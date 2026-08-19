@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Only authenticated users can read/write buildings they own.
+    // For v1 single-admin: any authenticated user can access all buildings.
+    match /buildings/{buildingId} {
+      allow read, write: if request.auth != null;
+
+      // Units subcollection — same rule, must be signed in
+      match /units/{unitId} {
+        allow read, write: if request.auth != null;
+      }
+    }
+
+    // Allow collection group queries on "units" for the dashboard table
+    match /{path=**}/units/{unitId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
