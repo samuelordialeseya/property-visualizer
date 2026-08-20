@@ -18,20 +18,23 @@ export default function DashboardOverview({ buildings, units, onAddBuilding }) {
   const [bFloors, setBFloors] = useState(3);
   const [bUnitsPerFloor, setBUnitsPerFloor] = useState(4);
   const [bFootprintType, setBFootprintType] = useState("rectangle");
+  const [bAdvancedMode, setBAdvancedMode] = useState(false);
 
   const handleAddBuilding = async (e) => {
     e.preventDefault();
     await onAddBuilding({
       name: bName || "New Building",
       address: bAddress,
-      floors: parseInt(bFloors),
-      units_per_floor: parseInt(bUnitsPerFloor),
+      floors: bAdvancedMode ? 1 : parseInt(bFloors),
+      units_per_floor: bAdvancedMode ? 1 : parseInt(bUnitsPerFloor),
+      advanced_build_mode: bAdvancedMode,
       footprint_type: bFootprintType,
     });
     setShowAddBuilding(false);
     setBName("");
     setBAddress("");
     setBFootprintType("rectangle");
+    setBAdvancedMode(false);
   };
 
   const stats = useMemo(() => {
@@ -89,7 +92,7 @@ export default function DashboardOverview({ buildings, units, onAddBuilding }) {
             <div className="rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] border border-zinc-100">
               <h3 className="mb-4 text-[16px] font-semibold tracking-[-0.02em]">Create Building Profile</h3>
               <form onSubmit={handleAddBuilding} className="space-y-5">
-                <div className="grid grid-cols-2 gap-5 md:grid-cols-5">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
                   <div className="md:col-span-2">
                     <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.08em] text-zinc-500">NAME</label>
                     <input
@@ -100,38 +103,43 @@ export default function DashboardOverview({ buildings, units, onAddBuilding }) {
                       required
                     />
                   </div>
-                  <div>
-                    <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.08em] text-zinc-500">FLOORS</label>
-                    <input
-                      type="number" min="1" max="20"
-                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-[14px] text-zinc-900 outline-none focus:border-[var(--color-verde-600)] focus:bg-white"
-                      value={bFloors}
-                      onChange={(e) => setBFloors(e.target.value)}
-                      required
+                  
+                  {!bAdvancedMode && (
+                    <>
+                      <div>
+                        <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.08em] text-zinc-500">FLOORS</label>
+                        <input
+                          type="number" min="1" max="20"
+                          className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-[14px] text-zinc-900 outline-none focus:border-[var(--color-verde-600)] focus:bg-white"
+                          value={bFloors}
+                          onChange={(e) => setBFloors(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.08em] text-zinc-500">UNITS / FLOOR</label>
+                        <input
+                          type="number" min="1" max="20"
+                          className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-[14px] text-zinc-900 outline-none focus:border-[var(--color-verde-600)] focus:bg-white"
+                          value={bUnitsPerFloor}
+                          onChange={(e) => setBUnitsPerFloor(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  <div className="flex items-center gap-2 md:pt-6 pt-2">
+                    <input 
+                      type="checkbox"
+                      id="advanced_mode"
+                      className="h-4 w-4 rounded border-zinc-300 text-[var(--color-verde-600)] focus:ring-[var(--color-verde-500)]"
+                      checked={bAdvancedMode}
+                      onChange={(e) => setBAdvancedMode(e.target.checked)}
                     />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.08em] text-zinc-500">UNITS / FLOOR</label>
-                    <input
-                      type="number" min="1" max="20"
-                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-[14px] text-zinc-900 outline-none focus:border-[var(--color-verde-600)] focus:bg-white"
-                      value={bUnitsPerFloor}
-                      onChange={(e) => setBUnitsPerFloor(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.08em] text-zinc-500">FOOTPRINT</label>
-                    <select
-                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-[14px] text-zinc-900 outline-none focus:border-[var(--color-verde-600)] focus:bg-white"
-                      name="footprint_type"
-                      value={bFootprintType}
-                      onChange={(e) => setBFootprintType(e.target.value)}
-                    >
-                      <option value="rectangle">Rectangle</option>
-                      <option value="l_shape">L-Shape</option>
-                      <option value="offset">Offset</option>
-                    </select>
+                    <label htmlFor="advanced_mode" className="text-[12px] font-semibold text-zinc-700 cursor-pointer select-none">
+                      Advanced Build Mode (Build in 3D)
+                    </label>
                   </div>
                 </div>
                 <div className="flex gap-3 pt-2">

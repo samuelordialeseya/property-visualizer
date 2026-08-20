@@ -44,23 +44,50 @@ export function useBuildings() {
     };
     const docRef = await addDoc(collection(db, "buildings"), data);
     
-    // Auto-generate units based on grid
-    const { floors, units_per_floor } = data;
-    for (let f = 1; f <= floors; f++) {
-      for (let u = 1; u <= units_per_floor; u++) {
-        const unitLabel = `${String.fromCharCode(64 + f)}${u}`; // A1, A2, B1, etc.
-        const positionIndex = (f - 1) * units_per_floor + (u - 1);
-        await addDoc(collection(db, "buildings", docRef.id, "units"), {
-          unit_label: unitLabel,
-          floor: f,
-          status: "vacant",
-          monthly_rent: 0,
-          position_index: positionIndex,
-          tenant: null,
-          buildingId: docRef.id // useful for collection group queries
-        });
+    // Auto-generate units as independent room boxes side-by-side
+    const { floors, units_per_floor, advanced_build_mode } = data;
+    const defaultW = 2.6;
+    const defaultD = 3.2;
+    const defaultH = 2.2;
+
+    if (advanced_build_mode) {
+      // Initialize with just a single default starting room
+      await addDoc(collection(db, "buildings", docRef.id, "units"), {
+        unit_label: "A1",
+        floor: 1,
+        status: "vacant",
+        monthly_rent: 0,
+        x: 0,
+        z: 0,
+        width: 3.0,
+        depth: 3.0,
+        height: defaultH,
+        tenant: null,
+        buildingId: docRef.id
+      });
+    } else {
+      for (let f = 1; f <= floors; f++) {
+        for (let u = 1; u <= units_per_floor; u++) {
+          const unitLabel = `${String.fromCharCode(64 + f)}${u}`; // A1, A2, etc.
+          // Position them side-by-side along X, centered around 0
+          const xOffset = (u - 1 - (units_per_floor - 1) / 2) * (defaultW + 0.4);
+          await addDoc(collection(db, "buildings", docRef.id, "units"), {
+            unit_label: unitLabel,
+            floor: f,
+            status: "vacant",
+            monthly_rent: 0,
+            x: xOffset,
+            z: 0,
+            width: defaultW,
+            depth: defaultD,
+            height: defaultH,
+            tenant: null,
+            buildingId: docRef.id
+          });
+        }
       }
     }
+    return docRef.id;
   };
 
   const updateBuilding = async (buildingId, data) => {
@@ -99,7 +126,15 @@ export function useAllUnits() {
     await updateDoc(unitRef, data);
   };
 
-  return { units, loading, updateUnit };
+  const addUnit = async (buildingId, data) => {
+    return await addDoc(collection(db, "buildings", buildingId, "units"), data);
+  };
+
+  const deleteUnit = async (unitRef) => {
+    await deleteDoc(unitRef);
+  };
+
+  return { units, loading, updateUnit, addUnit, deleteUnit };
 }
 
 export function useBuildingUnits(buildingId) {

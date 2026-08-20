@@ -15,7 +15,7 @@ import UnitPanel from "@/components/UnitPanel";
 export default function Home() {
   const { user, loading: authLoading, logout } = useAuth();
   const { buildings, addBuilding, updateBuilding, deleteBuilding } = useBuildings();
-  const { units, updateUnit } = useAllUnits();
+  const { units, updateUnit, addUnit, deleteUnit } = useAllUnits();
 
   const [activeView, setActiveView] = useState("dashboard");
   const [selectedBuildingId, setSelectedBuildingId] = useState(null);
@@ -44,6 +44,14 @@ export default function Home() {
     handleSetActiveView("property_detail");
   };
 
+  const handleCreateBuilding = async (buildingData) => {
+    const newId = await addBuilding(buildingData);
+    if (buildingData.advanced_build_mode) {
+      setSelectedBuildingId(newId);
+      setActiveView("3d_view");
+    }
+  };
+
   const selectedBuilding = buildings.find((b) => b.id === selectedBuildingId);
   const buildingUnits = units.filter((u) => u.buildingId === selectedBuildingId);
 
@@ -59,7 +67,7 @@ export default function Home() {
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {activeView === "dashboard" && (
-          <DashboardOverview buildings={buildings} units={units} onAddBuilding={addBuilding} />
+          <DashboardOverview buildings={buildings} units={units} onAddBuilding={handleCreateBuilding} />
         )}
         
         {activeView === "properties" && (
@@ -93,8 +101,40 @@ export default function Home() {
               units={buildingUnits}
               selectedUnitId={selectedUnit3D?.id}
               onSelectUnit={(unit) => setSelectedUnit3D(unit)}
-              onSaveFootprint={(points) => {
-                updateBuilding(selectedBuilding.id, { custom_footprint_points: points });
+              onSaveLayout={async (editorRooms, deletedRoomIds) => {
+                // 1. Process deletions
+                for (const dId of deletedRoomIds) {
+                  const toDel = buildingUnits.find(u => u.id === dId);
+                  if (toDel && toDel.ref) {
+                    await deleteUnit(toDel.ref);
+                  }
+                }
+
+                // 2. Process updates and additions
+                for (const room of editorRooms) {
+                  const unitData = {
+                    unit_label: room.unit_label,
+                    floor: room.floor,
+                    status: room.status,
+                    monthly_rent: room.monthly_rent,
+                    x: room.x,
+                    z: room.z,
+                    width: room.width,
+                    depth: room.depth,
+                    height: room.height,
+                    tenant: room.tenant,
+                    buildingId: selectedBuilding.id
+                  };
+
+                  if (room.id.startsWith("new-temp-")) {
+                    await addUnit(selectedBuilding.id, unitData);
+                  } else {
+                    const existingRef = buildingUnits.find(u => u.id === room.id)?.ref;
+                    if (existingRef) {
+                      await updateUnit(existingRef, unitData);
+                    }
+                  }
+                }
               }}
               onBack={() => {
                 handleSetActiveView("property_detail");
