@@ -97,13 +97,11 @@ function UnitBox({ unit, isSelected, onClick }) {
         />
       </mesh>
 
-      {/* Door on ground floor */}
-      {unit.floor === 1 && (
-        <mesh position={[0, -bh / 2 + 0.5, bd / 2 + 0.03]}>
-          <planeGeometry args={[0.55, 1.0]} />
-          <meshStandardMaterial color={DOOR_COLOR} roughness={0.5} side={THREE.DoubleSide} />
-        </mesh>
-      )}
+      {/* Door */}
+      <mesh position={[0, -bh / 2 + 0.5, bd / 2 + 0.03]}>
+        <planeGeometry args={[0.55, 1.0]} />
+        <meshStandardMaterial color={DOOR_COLOR} roughness={0.5} side={THREE.DoubleSide} />
+      </mesh>
 
       {/* Unit label */}
       <Text
