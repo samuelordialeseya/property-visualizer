@@ -262,9 +262,14 @@ export default function RoomLayoutEditor({ rooms, onChange, selectedRoomId, onSe
         const floor = room.floor || 1;
         const yOff = (floor - 1) * UNIT_H;
         const h = room.height || UNIT_H;
-        const bw = room.width - 0.05;
+        const rot = room.rotation || 0;
+        const rad = (rot * Math.PI) / 180;
+        const isRotated = rot === 90 || rot === 270;
+        const localW = isRotated ? room.depth : room.width;
+        const localD = isRotated ? room.width : room.depth;
+        const bw = localW - 0.05;
         const bh = h - 0.05;
-        const bd = room.depth - 0.05;
+        const bd = localD - 0.05;
 
         const x1 = room.x - room.width / 2;
         const x2 = room.x + room.width / 2;
@@ -286,21 +291,27 @@ export default function RoomLayoutEditor({ rooms, onChange, selectedRoomId, onSe
         return (
           <group key={room.id}>
             {/* ── Room body ───────────────────────────────────────── */}
-            <mesh
-              position={[room.x, yOff + h / 2, room.z]}
-              castShadow
-              receiveShadow
-              onPointerDown={(e) => startMoveDrag(e, room.id)}
-            >
-              <boxGeometry args={[bw, bh, bd]} />
-              <meshStandardMaterial
-                color={isSelected ? "#3a5c4e" : "#2a3438"}
-                roughness={0.82}
-                emissive={isSelected ? "#5fa889" : "#000"}
-                emissiveIntensity={isSelected ? 0.18 : 0}
-              />
-              {isSelected && <Edges scale={1.008} threshold={15} color="#5fa889" />}
-            </mesh>
+            <group position={[room.x, yOff + h / 2, room.z]} rotation={[0, rad, 0]}>
+              <mesh
+                castShadow
+                receiveShadow
+                onPointerDown={(e) => startMoveDrag(e, room.id)}
+              >
+                <boxGeometry args={[bw, bh, bd]} />
+                <meshStandardMaterial
+                  color={isSelected ? "#3a5c4e" : "#2a3438"}
+                  roughness={0.82}
+                  emissive={isSelected ? "#5fa889" : "#000"}
+                  emissiveIntensity={isSelected ? 0.18 : 0}
+                />
+                {isSelected && <Edges scale={1.008} threshold={15} color="#5fa889" />}
+              </mesh>
+              {/* Door orientation marker */}
+              <mesh position={[0, -bh / 2 + 0.5, bd / 2 + 0.03]}>
+                <planeGeometry args={[0.55, 1.0]} />
+                <meshStandardMaterial color={isSelected ? "#5fa889" : "#3c6e59"} roughness={0.5} side={THREE.DoubleSide} />
+              </mesh>
+            </group>
 
             {/* ── Status strip at base ─────────────────────────────── */}
             <mesh position={[room.x, yOff + 0.07, room.z]}>

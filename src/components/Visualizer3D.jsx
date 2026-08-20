@@ -39,11 +39,17 @@ function UnitBox({ unit, isSelected, onClick }) {
   const w = unit.width || 2.6;
   const d = unit.depth || 3.2;
 
-  const bw = w - 0.08, bh = h - 0.08, bd = d - 0.08;
+  const rot = unit.rotation || 0;
+  const rad = (rot * Math.PI) / 180;
+  const isRotated = rot === 90 || rot === 270;
+  const localW = isRotated ? d : w;
+  const localD = isRotated ? w : d;
+
+  const bw = localW - 0.08, bh = h - 0.08, bd = localD - 0.08;
   const statusHex = STATUS_COLOR[unit.status] || STATUS_COLOR.vacant;
 
   return (
-    <group position={[x, y, z]}>
+    <group position={[x, y, z]} rotation={[0, rad, 0]}>
       {/* Main body */}
       <mesh
         castShadow
@@ -113,7 +119,7 @@ function UnitBox({ unit, isSelected, onClick }) {
 
       {/* Flat roof slab */}
       <mesh position={[0, bh / 2 + 0.05, 0]} castShadow>
-        <boxGeometry args={[w, 0.1, d]} />
+        <boxGeometry args={[localW, 0.1, localD]} />
         <meshStandardMaterial color={ROOF_COLOR} roughness={0.8} />
       </mesh>
     </group>
@@ -171,6 +177,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
       width: u.width ?? 2.6,
       depth: u.depth ?? 3.2,
       height: u.height ?? 2.2,
+      rotation: u.rotation || 0,
       tenant: u.tenant || null
     })));
     setDeletedRoomIds([]);
@@ -345,12 +352,25 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                   <div className="rounded-xl border border-[#2c3134] bg-[#1c2023]/95 backdrop-blur p-4 text-[12px] text-[#8b9390] space-y-3 w-64 shadow-xl">
                     <div className="flex justify-between items-center border-b border-[#2c3134] pb-2">
                       <span className="font-bold text-[#eceeec]">Room {selectedRoom.unit_label}</span>
-                      <button 
-                        onClick={handleDeleteRoom}
-                        className="text-red-500 hover:text-red-400 font-semibold"
-                      >
-                        Delete
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => {
+                            const cur = selectedRoom.rotation || 0;
+                            const next = (cur + 90) % 360;
+                            setEditorRooms(editorRooms.map(r => r.id === selectedEditorRoomId ? { ...r, rotation: next } : r));
+                          }}
+                          className="text-[#5fa889] hover:text-[#76c2a1] font-semibold flex items-center gap-1"
+                          title="Rotate Door 90°"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        </button>
+                        <button 
+                          onClick={handleDeleteRoom}
+                          className="text-red-500 hover:text-red-400 font-semibold ml-2"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
