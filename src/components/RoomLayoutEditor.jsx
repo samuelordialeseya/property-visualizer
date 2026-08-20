@@ -314,7 +314,7 @@ export default function RoomLayoutEditor({ rooms, onChange, selectedRoomId, onSe
             </group>
 
             {/* ── Status strip at base ─────────────────────────────── */}
-            <mesh position={[room.x, yOff + 0.07, room.z]}>
+            <mesh position={[room.x, yOff + 0.18, room.z]}>
               <boxGeometry args={[room.width - 0.02, 0.14, room.depth - 0.02]} />
               <meshStandardMaterial color={STATUS_COLOR[room.status] || STATUS_COLOR.vacant} roughness={0.6} />
             </mesh>

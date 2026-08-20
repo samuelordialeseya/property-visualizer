@@ -69,7 +69,7 @@ function UnitBox({ unit, isSelected, onClick }) {
       </mesh>
 
       {/* Status strip at base */}
-      <mesh position={[0, -bh / 2 + 0.07, 0]} castShadow>
+      <mesh position={[0, -bh / 2 + 0.12, 0]} castShadow>
         <boxGeometry args={[bw + 0.02, 0.14, bd + 0.02]} />
         <meshStandardMaterial color={statusHex} roughness={0.6} />
       </mesh>
