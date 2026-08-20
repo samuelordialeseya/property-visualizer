@@ -122,6 +122,7 @@ export default function Home() {
                     width: room.width,
                     depth: room.depth,
                     height: room.height,
+                    rotation: room.rotation || 0,
                     tenant: room.tenant,
                     buildingId: selectedBuilding.id
                   };
