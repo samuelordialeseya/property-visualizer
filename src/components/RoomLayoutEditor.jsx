@@ -1,243 +1,370 @@
 "use client";
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useThree } from "@react-three/fiber";
 import { Edges } from "@react-three/drei";
 import * as THREE from "three";
 
 const UNIT_H = 2.2;
 const MIN_DIM = 1.0;
+const GRID_SNAP = 0.5;
+const ADJACENCY_THR = 0.14;  // within this distance → walls are "touching"
+const MAGNET_SNAP = 0.9;     // snap-to-edge radius while dragging
 
-function roomsIntersect(r1, r2) {
-  if (r1.floor !== r2.floor) return false;
-  const margin = 0.02; // very small margin to allow sharing boundaries
-  const r1x1 = r1.x - r1.width / 2;
-  const r1x2 = r1.x + r1.width / 2;
-  const r1z1 = r1.z - r1.depth / 2;
-  const r1z2 = r1.z + r1.depth / 2;
+function snapV(v) {
+  return Math.round(v / GRID_SNAP) * GRID_SNAP;
+}
 
-  const r2x1 = r2.x - r2.width / 2;
-  const r2x2 = r2.x + r2.width / 2;
-  const r2z1 = r2.z - r2.depth / 2;
-  const r2z2 = r2.z + r2.depth / 2;
+// Which walls of `room` are shared with any other room on the same floor?
+function getSharedWalls(room, allRooms) {
+  const shared = { N: false, S: false, E: false, W: false };
 
+  const rx1 = room.x - room.width / 2;
+  const rx2 = room.x + room.width / 2;
+  const rz1 = room.z - room.depth / 2;
+  const rz2 = room.z + room.depth / 2;
+
+  for (const o of allRooms) {
+    if (o.id === room.id || (o.floor || 1) !== (room.floor || 1)) continue;
+
+    const ox1 = o.x - o.width / 2;
+    const ox2 = o.x + o.width / 2;
+    const oz1 = o.z - o.depth / 2;
+    const oz2 = o.z + o.depth / 2;
+
+    const zOvlp = Math.min(rz2, oz2) - Math.max(rz1, oz1);
+    const xOvlp = Math.min(rx2, ox2) - Math.max(rx1, ox1);
+
+    if (Math.abs(rx2 - ox1) < ADJACENCY_THR && zOvlp > 0.18) shared.E = true;
+    if (Math.abs(rx1 - ox2) < ADJACENCY_THR && zOvlp > 0.18) shared.W = true;
+    if (Math.abs(rz2 - oz1) < ADJACENCY_THR && xOvlp > 0.18) shared.S = true;
+    if (Math.abs(rz1 - oz2) < ADJACENCY_THR && xOvlp > 0.18) shared.N = true;
+  }
+
+  return shared;
+}
+
+// Returns true if two rooms on the same floor truly overlap (not just touch)
+function roomsOverlap(r1, r2) {
+  if (r1.id === r2.id || (r1.floor || 1) !== (r2.floor || 1)) return false;
+  const M = 0.05;
   return (
-    r1x1 + margin < r2x2 &&
-    r1x2 - margin > r2x1 &&
-    r1z1 + margin < r2z2 &&
-    r1z2 - margin > r2z1
+    r1.x - r1.width / 2 + M < r2.x + r2.width / 2 &&
+    r1.x + r1.width / 2 - M > r2.x - r2.width / 2 &&
+    r1.z - r1.depth / 2 + M < r2.z + r2.depth / 2 &&
+    r1.z + r1.depth / 2 - M > r2.z - r2.depth / 2
   );
 }
 
+// Magnetic snap: pull room edges toward neighbouring room edges
+function magnetSnap(candidate, allRooms) {
+  let { x, z, width: w, depth: d, floor: f } = candidate;
+
+  for (const o of allRooms) {
+    if (o.id === candidate.id || (o.floor || 1) !== (f || 1)) continue;
+    const ox1 = o.x - o.width / 2;
+    const ox2 = o.x + o.width / 2;
+    const oz1 = o.z - o.depth / 2;
+    const oz2 = o.z + o.depth / 2;
+
+    const cx1 = x - w / 2, cx2 = x + w / 2;
+    const cz1 = z - d / 2, cz2 = z + d / 2;
+
+    // X snap
+    if (Math.abs(cx2 - ox1) < MAGNET_SNAP) x = ox1 - w / 2;
+    else if (Math.abs(cx1 - ox2) < MAGNET_SNAP) x = ox2 + w / 2;
+
+    // Z snap
+    if (Math.abs(cz2 - oz1) < MAGNET_SNAP) z = oz1 - d / 2;
+    else if (Math.abs(cz1 - oz2) < MAGNET_SNAP) z = oz2 + d / 2;
+  }
+
+  return { ...candidate, x, z };
+}
+
+// A single directed arrow-cone, pointing outward from a wall
+function WallArrow({ pos, dir, onDragStart }) {
+  const [hov, setHov] = useState(false);
+
+  // Cone default points UP (+Y). Rotate so it points in `dir`.
+  // dir: "E" (+X), "W" (-X), "S" (+Z), "N" (-Z)
+  const rotMap = {
+    E: [0, 0, -Math.PI / 2],
+    W: [0, 0, Math.PI / 2],
+    S: [-Math.PI / 2, 0, 0],
+    N: [Math.PI / 2, 0, 0],
+  };
+
+  return (
+    <mesh
+      position={pos}
+      rotation={rotMap[dir]}
+      onPointerEnter={(e) => { e.stopPropagation(); setHov(true); document.body.style.cursor = "crosshair"; }}
+      onPointerLeave={(e) => { e.stopPropagation(); setHov(false); document.body.style.cursor = "auto"; }}
+      onPointerDown={(e) => { e.stopPropagation(); onDragStart(e); }}
+    >
+      <coneGeometry args={[0.22, 0.5, 8]} />
+      <meshStandardMaterial
+        color={hov ? "#ffffff" : "#f2c98a"}
+        emissive={hov ? "#f2c98a" : "#7a5010"}
+        emissiveIntensity={hov ? 0.8 : 0.35}
+        roughness={0.3}
+      />
+    </mesh>
+  );
+}
+
+// --- MAIN EDITOR -----------------------------------------------------------
 export default function RoomLayoutEditor({ rooms, onChange, selectedRoomId, onSelectRoom }) {
   const { controls, raycaster } = useThree();
-  
-  // Dragging states
-  // dragType: 'move' | 'corner-0' | 'corner-1' | 'corner-2' | 'corner-3' | 'height'
-  const [dragState, setDragState] = useState(null); 
+
+  // dragState: { roomId, type: "move" | "wall-E" | "wall-W" | "wall-N" | "wall-S" | "height" }
+  const [dragState, setDragState] = useState(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, z: 0 });
   const planeRef = useRef(null);
 
-  // Disable camera controls when dragging
+  // Disable orbit while dragging
   useEffect(() => {
-    if (controls) {
-      controls.enabled = dragState === null;
-    }
+    if (controls) controls.enabled = dragState === null;
   }, [dragState, controls]);
 
-  const handlePointerDown = (e, roomId, type) => {
+  // Helpers ----------------------------------------------------------------
+  const getGroundHit = () => {
+    if (!planeRef.current) return null;
+    const hits = raycaster.intersectObject(planeRef.current);
+    return hits.length > 0 ? hits[0].point : null;
+  };
+
+  // Pointer handlers -------------------------------------------------------
+  const startMoveDrag = (e, roomId) => {
     e.stopPropagation();
     onSelectRoom(roomId);
-    setDragState({ roomId, type });
+    const hit = getGroundHit();
+    if (!hit) return;
+    const room = rooms.find(r => r.id === roomId);
+    if (!room) return;
+    setDragOffset({ x: room.x - hit.x, z: room.z - hit.z });
+    setDragState({ roomId, type: "move" });
+    e.target.setPointerCapture(e.pointerId);
+  };
+
+  const startWallDrag = (e, roomId, wall) => {
+    e.stopPropagation();
+    setDragState({ roomId, type: `wall-${wall}` });
     e.target.setPointerCapture(e.pointerId);
   };
 
   const handlePointerMove = (e) => {
-    if (!dragState || !planeRef.current) return;
+    if (!dragState) return;
     const { roomId, type } = dragState;
-    const currentRoom = rooms.find(r => r.id === roomId);
-    if (!currentRoom) return;
+    const room = rooms.find(r => r.id === roomId);
+    if (!room) return;
 
-    const intersects = raycaster.intersectObject(planeRef.current);
-    if (intersects.length === 0) return;
-    const hitPoint = intersects[0].point;
+    const hit = getGroundHit();
+    if (!hit) return;
 
-    // Convert room to coordinates format
-    let x1 = currentRoom.x - currentRoom.width / 2;
-    let x2 = currentRoom.x + currentRoom.width / 2;
-    let z1 = currentRoom.z - currentRoom.depth / 2;
-    let z2 = currentRoom.z + currentRoom.depth / 2;
-    let height = currentRoom.height;
-    let floor = currentRoom.floor;
-
-    const gridSnap = 0.5;
-    const snapX = Math.round(hitPoint.x / gridSnap) * gridSnap;
-    const snapZ = Math.round(hitPoint.z / gridSnap) * gridSnap;
-
-    let updatedRoom = { ...currentRoom };
+    let updated = { ...room };
 
     if (type === "move") {
-      // For movement, we raycast and center the room on the cursor
-      // (relative to drag offset would be better, but direct center-snap is extremely clean and stable)
-      updatedRoom.x = snapX;
-      updatedRoom.z = snapZ;
-    } else if (type.startsWith("corner-")) {
-      const idx = parseInt(type.split("-")[1], 10);
-      // Index mapping:
-      // 0: bottom-left (x1, z1)
-      // 1: bottom-right (x2, z1)
-      // 2: top-left (x1, z2)
-      // 3: top-right (x2, z2)
-      if (idx === 0) {
-        x1 = Math.min(snapX, x2 - MIN_DIM);
-        z1 = Math.min(snapZ, z2 - MIN_DIM);
-      } else if (idx === 1) {
-        x2 = Math.max(snapX, x1 + MIN_DIM);
-        z1 = Math.min(snapZ, z2 - MIN_DIM);
-      } else if (idx === 2) {
-        x1 = Math.min(snapX, x2 - MIN_DIM);
-        z2 = Math.max(snapZ, z1 + MIN_DIM);
-      } else if (idx === 3) {
-        x2 = Math.max(snapX, x1 + MIN_DIM);
-        z2 = Math.max(snapZ, z1 + MIN_DIM);
+      const rawX = hit.x + dragOffset.x;
+      const rawZ = hit.z + dragOffset.z;
+      const snapped = { ...updated, x: snapV(rawX), z: snapV(rawZ) };
+      updated = magnetSnap(snapped, rooms);
+
+    } else if (type.startsWith("wall-")) {
+      const wall = type.slice(5); // "E"|"W"|"N"|"S"
+      let x1 = room.x - room.width / 2;
+      let x2 = room.x + room.width / 2;
+      let z1 = room.z - room.depth / 2;
+      let z2 = room.z + room.depth / 2;
+
+      const sx = snapV(hit.x);
+      const sz = snapV(hit.z);
+
+      if (wall === "E") {
+        x2 = Math.max(sx, x1 + MIN_DIM);
+        // magnet to neighbouring west edges
+        for (const o of rooms) {
+          if (o.id === roomId || (o.floor || 1) !== (room.floor || 1)) continue;
+          const ox1 = o.x - o.width / 2;
+          if (Math.abs(x2 - ox1) < MAGNET_SNAP) x2 = ox1;
+        }
+      } else if (wall === "W") {
+        x1 = Math.min(sx, x2 - MIN_DIM);
+        for (const o of rooms) {
+          if (o.id === roomId || (o.floor || 1) !== (room.floor || 1)) continue;
+          const ox2 = o.x + o.width / 2;
+          if (Math.abs(x1 - ox2) < MAGNET_SNAP) x1 = ox2;
+        }
+      } else if (wall === "S") {
+        z2 = Math.max(sz, z1 + MIN_DIM);
+        for (const o of rooms) {
+          if (o.id === roomId || (o.floor || 1) !== (room.floor || 1)) continue;
+          const oz1 = o.z - o.depth / 2;
+          if (Math.abs(z2 - oz1) < MAGNET_SNAP) z2 = oz1;
+        }
+      } else if (wall === "N") {
+        z1 = Math.min(sz, z2 - MIN_DIM);
+        for (const o of rooms) {
+          if (o.id === roomId || (o.floor || 1) !== (room.floor || 1)) continue;
+          const oz2 = o.z + o.depth / 2;
+          if (Math.abs(z1 - oz2) < MAGNET_SNAP) z1 = oz2;
+        }
       }
-      updatedRoom.width = x2 - x1;
-      updatedRoom.depth = z2 - z1;
-      updatedRoom.x = (x1 + x2) / 2;
-      updatedRoom.z = (z1 + z2) / 2;
+
+      updated.width = x2 - x1;
+      updated.depth = z2 - z1;
+      updated.x = (x1 + x2) / 2;
+      updated.z = (z1 + z2) / 2;
+
     } else if (type === "height") {
-      // Raycast height against vertical projection or cursor y
-      // Hit point is on ground plane, so we look at the vertical cursor position.
-      // But standard R3F raycaster against ground plane won't give height directly.
-      // So we can estimate delta Y based on mouse movement, or raycast against a vertical plane facing camera.
-      // Standard simple approach for flat ground plane height control:
-      // Use the cursor hit point Z delta or simply read the screen space delta.
-      // Let's do plane hitPoint Z delta translated to height for simplicity and stability, 
-      // or check the actual vertical coordinate of the ray's origin/direction.
-      // Even simpler: Since we have the raycaster ray, we can find the point of closest approach to a vertical line,
-      // or compute it mathematically:
       const ray = raycaster.ray;
-      // Solve for vertical line at [currentRoom.x, z]:
-      // ray.origin + t * ray.direction = [currentRoom.x, y, currentRoom.z]
-      // t * direction.x = currentRoom.x - origin.x  =>  t = (currentRoom.x - origin.x) / direction.x
       let t = 0;
       if (Math.abs(ray.direction.x) > 0.01) {
-        t = (currentRoom.x - ray.origin.x) / ray.direction.x;
+        t = (room.x - ray.origin.x) / ray.direction.x;
       } else if (Math.abs(ray.direction.z) > 0.01) {
-        t = (currentRoom.z - ray.origin.z) / ray.direction.z;
+        t = (room.z - ray.origin.z) / ray.direction.z;
       }
-      const verticalY = ray.origin.y + t * ray.direction.y;
-      
-      const groundLevel = (floor - 1) * UNIT_H;
-      const calculatedHeight = Math.max(1.0, Math.min(6.0, verticalY - groundLevel));
-      // Snap height to 0.2 units
-      updatedRoom.height = Math.round(calculatedHeight / 0.2) * 0.2;
+      const vy = ray.origin.y + t * ray.direction.y;
+      const groundLevel = ((room.floor || 1) - 1) * UNIT_H;
+      updated.height = Math.round(Math.max(1.0, Math.min(6.0, vy - groundLevel)) / 0.2) * 0.2;
     }
 
-    // Check collision with other rooms on the same floor
-    const hasCollision = rooms.some(r => r.id !== roomId && roomsIntersect(updatedRoom, r));
+    // Collision guard (allow touching but not overlapping)
+    const hasCollision = rooms.some(r => r.id !== roomId && roomsOverlap(updated, r));
     if (!hasCollision) {
-      const newRooms = rooms.map(r => r.id === roomId ? updatedRoom : r);
-      onChange(newRooms);
+      onChange(rooms.map(r => r.id === roomId ? updated : r));
     }
   };
 
   const handlePointerUp = (e) => {
     if (dragState) {
-      e.target.releasePointerCapture(e.pointerId);
+      try { e.target.releasePointerCapture(e.pointerId); } catch {}
+      document.body.style.cursor = "auto";
       setDragState(null);
     }
   };
 
+  const STATUS_COLOR = { occupied: "#c97a4a", overdue: "#b23b3b", vacant: "#a9b6b0" };
+
   return (
-    <group 
+    <group
       onPointerMove={dragState ? handlePointerMove : undefined}
       onPointerUp={dragState ? handlePointerUp : undefined}
     >
-      {/* Invisible plane at y = 0 for XZ raycasting */}
-      <mesh ref={planeRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} visible={false}>
-        <planeGeometry args={[300, 300]} />
+      {/* Invisible ground plane for XZ raycasting */}
+      <mesh ref={planeRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.001, 0]} visible={false}>
+        <planeGeometry args={[400, 400]} />
         <meshBasicMaterial side={THREE.DoubleSide} />
       </mesh>
 
-      {/* Render all rooms */}
       {rooms.map((room) => {
         const isSelected = room.id === selectedRoomId;
-        const yOffset = (room.floor - 1) * UNIT_H;
-        const center = [room.x, yOffset + room.height / 2, room.z];
-        const statusColors = {
-          occupied: "#c97a4a",
-          overdue: "#b23b3b",
-          vacant: "#a9b6b0"
-        };
-        const baseColor = isSelected ? "#3c6e59" : "#2e3438";
+        const floor = room.floor || 1;
+        const yOff = (floor - 1) * UNIT_H;
+        const h = room.height || UNIT_H;
+        const bw = room.width - 0.05;
+        const bh = h - 0.05;
+        const bd = room.depth - 0.05;
 
-        // Corners for handles
         const x1 = room.x - room.width / 2;
         const x2 = room.x + room.width / 2;
         const z1 = room.z - room.depth / 2;
         const z2 = room.z + room.depth / 2;
-        const corners = [
-          { x: x1, z: z1 }, // 0: BL
-          { x: x2, z: z1 }, // 1: BR
-          { x: x1, z: z2 }, // 2: TL
-          { x: x2, z: z2 }  // 3: TR
+
+        const shared = getSharedWalls(room, rooms);
+        const arrowY = yOff + h * 0.55;
+        const aSep = 0.5; // arrow separation from face
+
+        // Wall arrows — only for non-shared (exterior) walls
+        const wallArrows = [
+          { dir: "E", pos: [x2 + aSep, arrowY, room.z], show: !shared.E },
+          { dir: "W", pos: [x1 - aSep, arrowY, room.z], show: !shared.W },
+          { dir: "S", pos: [room.x, arrowY, z2 + aSep], show: !shared.S },
+          { dir: "N", pos: [room.x, arrowY, z1 - aSep], show: !shared.N },
         ];
 
         return (
           <group key={room.id}>
-            {/* Room Box Mesh */}
-            <mesh 
-              position={center} 
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelectRoom(room.id);
-              }}
-              onPointerDown={(e) => {
-                // If not clicking handles, drag the body of the room to move
-                if (isSelected) {
-                  handlePointerDown(e, room.id, "move");
-                }
-              }}
+            {/* ── Room body ───────────────────────────────────────── */}
+            <mesh
+              position={[room.x, yOff + h / 2, room.z]}
+              castShadow
+              receiveShadow
+              onPointerDown={(e) => startMoveDrag(e, room.id)}
             >
-              <boxGeometry args={[room.width - 0.05, room.height - 0.05, room.depth - 0.05]} />
-              <meshStandardMaterial 
-                color={baseColor} 
-                roughness={0.8}
-                emissive={isSelected ? "#5fa889" : "#000000"}
-                emissiveIntensity={isSelected ? 0.2 : 0}
+              <boxGeometry args={[bw, bh, bd]} />
+              <meshStandardMaterial
+                color={isSelected ? "#3a5c4e" : "#2a3438"}
+                roughness={0.82}
+                emissive={isSelected ? "#5fa889" : "#000"}
+                emissiveIntensity={isSelected ? 0.18 : 0}
               />
-              {isSelected && <Edges scale={1.005} threshold={15} color="#5fa889" />}
+              {isSelected && <Edges scale={1.008} threshold={15} color="#5fa889" />}
             </mesh>
 
-            {/* Status strip at base of the room */}
-            <mesh position={[room.x, yOffset + 0.07, room.z]}>
-              <boxGeometry args={[room.width - 0.03, 0.14, room.depth - 0.03]} />
-              <meshStandardMaterial color={statusColors[room.status || "vacant"]} roughness={0.6} />
+            {/* ── Status strip at base ─────────────────────────────── */}
+            <mesh position={[room.x, yOff + 0.07, room.z]}>
+              <boxGeometry args={[room.width - 0.02, 0.14, room.depth - 0.02]} />
+              <meshStandardMaterial color={STATUS_COLOR[room.status] || STATUS_COLOR.vacant} roughness={0.6} />
             </mesh>
 
-            {/* Render handles ONLY if selected */}
+            {/* ── Flat roof slab ───────────────────────────────────── */}
+            <mesh position={[room.x, yOff + h + 0.055, room.z]}>
+              <boxGeometry args={[room.width + 0.04, 0.11, room.depth + 0.04]} />
+              <meshStandardMaterial color="#1a2024" roughness={0.9} />
+            </mesh>
+
+            {/* ── Shared-wall "seam" highlight (visual lock indicator) ── */}
+            {shared.E && (
+              <mesh position={[x2, yOff + h / 2, room.z]} rotation={[0, 0, 0]}>
+                <boxGeometry args={[0.04, h * 0.9, room.depth * 0.85]} />
+                <meshStandardMaterial color="#5fa889" roughness={0.5} emissive="#5fa889" emissiveIntensity={0.25} />
+              </mesh>
+            )}
+            {shared.W && (
+              <mesh position={[x1, yOff + h / 2, room.z]}>
+                <boxGeometry args={[0.04, h * 0.9, room.depth * 0.85]} />
+                <meshStandardMaterial color="#5fa889" roughness={0.5} emissive="#5fa889" emissiveIntensity={0.25} />
+              </mesh>
+            )}
+            {shared.S && (
+              <mesh position={[room.x, yOff + h / 2, z2]}>
+                <boxGeometry args={[room.width * 0.85, h * 0.9, 0.04]} />
+                <meshStandardMaterial color="#5fa889" roughness={0.5} emissive="#5fa889" emissiveIntensity={0.25} />
+              </mesh>
+            )}
+            {shared.N && (
+              <mesh position={[room.x, yOff + h / 2, z1]}>
+                <boxGeometry args={[room.width * 0.85, h * 0.9, 0.04]} />
+                <meshStandardMaterial color="#5fa889" roughness={0.5} emissive="#5fa889" emissiveIntensity={0.25} />
+              </mesh>
+            )}
+
+            {/* ── Wall expand arrows (selected room, exterior walls only) ─ */}
+            {isSelected && wallArrows.map(({ dir, pos, show }) =>
+              show && (
+                <WallArrow
+                  key={dir}
+                  pos={pos}
+                  dir={dir}
+                  onDragStart={(e) => startWallDrag(e, room.id, dir)}
+                />
+              )
+            )}
+
+            {/* ── Height handle (top cone) ─────────────────────────── */}
             {isSelected && (
-              <>
-                {/* 4 Corner resizing handles */}
-                {corners.map((c, i) => (
-                  <mesh 
-                    key={i} 
-                    position={[c.x, yOffset + 0.15, c.z]}
-                    onPointerDown={(e) => handlePointerDown(e, room.id, `corner-${i}`)}
-                  >
-                    <sphereGeometry args={[0.22, 16, 16]} />
-                    <meshStandardMaterial color="#f2c98a" roughness={0.4} emissive="#f2c98a" emissiveIntensity={0.2} />
-                  </mesh>
-                ))}
-
-                {/* Top vertical height handle */}
-                <mesh 
-                  position={[room.x, yOffset + room.height + 0.15, room.z]}
-                  onPointerDown={(e) => handlePointerDown(e, room.id, "height")}
-                >
-                  <coneGeometry args={[0.18, 0.4, 16]} />
-                  <meshStandardMaterial color="#f2c98a" roughness={0.4} emissive="#f2c98a" emissiveIntensity={0.2} />
-                </mesh>
-              </>
+              <mesh
+                position={[room.x, yOff + h + 0.35, room.z]}
+                onPointerDown={(e) => {
+                  e.stopPropagation();
+                  setDragState({ roomId: room.id, type: "height" });
+                  e.target.setPointerCapture(e.pointerId);
+                }}
+              >
+                <coneGeometry args={[0.18, 0.45, 8]} />
+                <meshStandardMaterial color="#a5d8c0" emissive="#5fa889" emissiveIntensity={0.4} roughness={0.3} />
+              </mesh>
             )}
           </group>
         );

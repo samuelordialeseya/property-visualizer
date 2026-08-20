@@ -185,22 +185,75 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
     const labelNum = floorRooms.length + 1;
     const unitLabel = `${String.fromCharCode(64 + targetFloor)}${labelNum}`;
 
+    // Place new room beside the last room if any, otherwise at origin
+    const lastRoom = floorRooms[floorRooms.length - 1];
+    const W = 3.0, D = 3.0;
+    const x = lastRoom ? lastRoom.x + lastRoom.width / 2 + W / 2 : 0;
+    const z = lastRoom ? lastRoom.z : 0;
+
     const newRoom = {
       id: newId,
       unit_label: unitLabel,
       floor: targetFloor,
       status: "vacant",
       monthly_rent: 0,
-      x: 0,
-      z: 0,
-      width: 2.6,
-      depth: 3.2,
+      x, z,
+      width: W,
+      depth: D,
       height: 2.2,
       tenant: null
     };
 
     setEditorRooms([...editorRooms, newRoom]);
     setSelectedEditorRoomId(newId);
+  };
+
+  const handleAddLShape = () => {
+    const baseId = `new-temp-${Date.now()}`;
+    const wingId = `new-temp-${Date.now() + 1}`;
+    const baseW = 3.0, baseD = 3.0;
+    const wingW = 3.0, wingD = 1.5;
+
+    // Find a free spot: offset past any existing rooms
+    const allRooms = editorRooms.filter(r => (r.floor || 1) === 1);
+    const maxX = allRooms.length > 0 ? Math.max(...allRooms.map(r => r.x + r.width / 2)) : -baseW / 2;
+    const originX = maxX + baseW / 2 + 0.5; // half-width offset + gap
+    const originZ = 0;
+
+    // Base room
+    const baseRoom = {
+      id: baseId,
+      unit_label: `A${editorRooms.length + 1}`,
+      floor: 1,
+      status: "vacant",
+      monthly_rent: 0,
+      x: originX,
+      z: originZ,
+      width: baseW,
+      depth: baseD,
+      height: 2.2,
+      tenant: null
+    };
+
+    // Wing attached to east wall of base, south-edge (high-Z) aligned
+    // base south edge: originZ + baseD/2
+    // wing center Z: (originZ + baseD/2) - wingD/2
+    const wingRoom = {
+      id: wingId,
+      unit_label: `A${editorRooms.length + 2}`,
+      floor: 1,
+      status: "vacant",
+      monthly_rent: 0,
+      x: originX + baseW / 2 + wingW / 2,
+      z: (originZ + baseD / 2) - wingD / 2,
+      width: wingW,
+      depth: wingD,
+      height: 2.2,
+      tenant: null
+    };
+
+    setEditorRooms([...editorRooms, baseRoom, wingRoom]);
+    setSelectedEditorRoomId(baseId);
   };
 
   const handleDeleteRoom = () => {
@@ -248,7 +301,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                 {editMode ? "Layout Editor (Sims-Style)" : building.name}
               </div>
               <div className="mt-1 text-[12px] text-[#8b9390] uppercase tracking-[0.04em]">
-                {editMode ? "Drag body to move · Drag handles to resize" : "Drag to orbit · Click a unit"}
+                {editMode ? "Drag room to move · Arrows to expand · Green seam = locked wall" : "Drag to orbit · Click a unit"}
               </div>
             </div>
             
@@ -260,12 +313,21 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                 Edit Building Layout
               </button>
             ) : (
-              <button 
-                onClick={handleAddRoom}
-                className="mt-2 w-fit rounded-full bg-[#3c6e59] px-4 py-1.5 text-[11px] font-semibold text-white transition hover:bg-[#4a8a70]"
-              >
-                + Add Room
-              </button>
+              <div className="mt-2 flex gap-2">
+                <button 
+                  onClick={handleAddRoom}
+                  className="rounded-full bg-[#3c6e59] px-3.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-[#4a8a70]"
+                >
+                  + Room
+                </button>
+                <button 
+                  onClick={handleAddLShape}
+                  className="rounded-full bg-[#2d5a72] px-3.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-[#3a7290] border border-[#3a7290]"
+                  title="Adds two pre-aligned rooms in an L-shape"
+                >
+                  ⌐ L-Shape
+                </button>
+              </div>
             )}
           </div>
 
