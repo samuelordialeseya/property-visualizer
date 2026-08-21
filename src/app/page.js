@@ -46,10 +46,36 @@ export default function Home() {
 
   const handleCreateBuilding = async (buildingData) => {
     const newId = await addBuilding(buildingData);
-    if (buildingData.advanced_build_mode) {
-      setSelectedBuildingId(newId);
-      setActiveView("3d_view");
+    setSelectedBuildingId(newId);
+    handleSetActiveView("3d_view");
+  };
+
+  // Called from dashboard with no args — creates blank building and enters 3D setup
+  const handleNewBuildingFromDashboard = async () => {
+    const newId = await addBuilding({
+      name: "",
+      address: "",
+      floors: 1,
+      units_per_floor: 1,
+      advanced_build_mode: true,
+      is_new: true,
+    });
+    setSelectedBuildingId(newId);
+    handleSetActiveView("3d_view");
+  };
+
+  const handleOpen3D = (id) => {
+    setSelectedBuildingId(id);
+    handleSetActiveView("3d_view");
+  };
+
+  const handleCancelNewBuilding = async () => {
+    // Delete the blank building and go back to dashboard
+    if (selectedBuildingId) {
+      await deleteBuilding(selectedBuildingId);
     }
+    setSelectedBuildingId(null);
+    handleSetActiveView("dashboard");
   };
 
   const selectedBuilding = buildings.find((b) => b.id === selectedBuildingId);
@@ -67,7 +93,13 @@ export default function Home() {
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {activeView === "dashboard" && (
-          <DashboardOverview buildings={buildings} units={units} onAddBuilding={handleCreateBuilding} />
+          <DashboardOverview 
+            buildings={buildings} 
+            units={units} 
+            onAddBuilding={handleNewBuildingFromDashboard}
+            onSelectProperty={handleSelectProperty}
+            onOpen3D={handleOpen3D}
+          />
         )}
         
         {activeView === "properties" && (
@@ -98,6 +130,8 @@ export default function Home() {
           <div className="h-full w-full relative">
             <Visualizer3D
               building={selectedBuilding}
+              onUpdateBuilding={(data) => updateBuilding(selectedBuilding.id, data)}
+              onCancelNewBuilding={handleCancelNewBuilding}
               units={buildingUnits}
               selectedUnitId={selectedUnit3D?.id}
               onSelectUnit={(unit) => setSelectedUnit3D(unit)}
@@ -123,6 +157,7 @@ export default function Home() {
                     depth: room.depth,
                     height: room.height,
                     rotation: room.rotation || 0,
+                    roof_type: room.roof_type || 'flat',
                     tenant: room.tenant,
                     buildingId: selectedBuilding.id
                   };

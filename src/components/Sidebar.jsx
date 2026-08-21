@@ -9,15 +9,14 @@ export default function Sidebar({ activeView, setActiveView, onLogout, collapsed
 
   return (
     <aside
-      className={`relative flex flex-col border-r border-zinc-200 bg-white transition-all duration-300 ease-in-out shrink-0 ${
+      className={`relative flex flex-col border-r border-zinc-200 bg-[#f4f4f5] transition-all duration-300 ease-in-out shrink-0 ${
         collapsed ? "w-[64px]" : "w-64"
       }`}
     >
       {/* Toggle button — sits on the edge of the sidebar */}
       <button
         onClick={onToggleCollapse}
-        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        className="absolute -right-3 top-6 z-20 grid h-6 w-6 place-items-center rounded-full border border-zinc-200 bg-white shadow-sm text-zinc-500 transition hover:bg-[var(--color-verde-50)] hover:text-[var(--color-verde-600)] hover:border-[var(--color-verde-300)]"
+        className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 grid h-6 w-6 place-items-center rounded-full border border-zinc-200 bg-white shadow-sm text-zinc-500 transition hover:bg-[var(--color-verde-50)] hover:text-[var(--color-verde-600)] hover:border-[var(--color-verde-300)]"
       >
         {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
       </button>
@@ -28,8 +27,8 @@ export default function Sidebar({ activeView, setActiveView, onLogout, collapsed
           collapsed ? "justify-center px-0 py-5" : "gap-3 px-5 py-5"
         }`}
       >
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--color-verde-600)] text-lg text-white shadow-sm">
-          🏢
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--color-verde-600)] text-white shadow-sm">
+          <Building2 size={18} />
         </div>
         {!collapsed && (
           <div className="overflow-hidden">

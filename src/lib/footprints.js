@@ -4,7 +4,7 @@
 
 const UNIT_W = 2.6;
 const UNIT_D = 3.2;
-const UNIT_H = 1.9;
+const UNIT_H = 2.2;
 const GAP   = 0.08; // small gap between units for visual separation
 
 /**

@@ -244,7 +244,7 @@ export default function RoomLayoutEditor({ rooms, onChange, selectedRoomId, onSe
     }
   };
 
-  const STATUS_COLOR = { occupied: "#c97a4a", overdue: "#b23b3b", vacant: "#a9b6b0" };
+  const STATUS_COLOR = { occupied: "#d98a53", overdue: "#e05c5c", vacant: "#6e8592" };
 
   return (
     <group
@@ -260,7 +260,7 @@ export default function RoomLayoutEditor({ rooms, onChange, selectedRoomId, onSe
       {rooms.map((room) => {
         const isSelected = room.id === selectedRoomId;
         const floor = room.floor || 1;
-        const yOff = (floor - 1) * UNIT_H;
+        const yOff = (floor - 1) * (UNIT_H + 0.11);
         const h = room.height || UNIT_H;
         const rot = room.rotation || 0;
         const rad = (rot * Math.PI) / 180;
@@ -299,55 +299,68 @@ export default function RoomLayoutEditor({ rooms, onChange, selectedRoomId, onSe
               >
                 <boxGeometry args={[bw, bh, bd]} />
                 <meshStandardMaterial
-                  color={isSelected ? "#3a5c4e" : "#2a3438"}
+                  color={isSelected ? "#5c6f7c" : "#4a5a66"}
                   roughness={0.82}
-                  emissive={isSelected ? "#5fa889" : "#000"}
+                  emissive={isSelected ? "#32b883" : "#000"}
                   emissiveIntensity={isSelected ? 0.18 : 0}
                 />
-                {isSelected && <Edges scale={1.008} threshold={15} color="#5fa889" />}
+                {isSelected && <Edges scale={1.008} threshold={15} color="#32b883" />}
               </mesh>
               {/* Door orientation marker */}
               <mesh position={[0, -bh / 2 + 0.5, bd / 2 + 0.03]}>
                 <planeGeometry args={[0.55, 1.0]} />
-                <meshStandardMaterial color={isSelected ? "#5fa889" : "#3c6e59"} roughness={0.5} side={THREE.DoubleSide} />
+                <meshStandardMaterial color={isSelected ? "#32b883" : "#248f65"} roughness={0.5} side={THREE.DoubleSide} />
               </mesh>
             </group>
 
             {/* ── Status strip at base ─────────────────────────────── */}
-            <mesh position={[room.x, yOff + 0.18, room.z]}>
+            <mesh position={[room.x, yOff + 0.07, room.z]}>
               <boxGeometry args={[room.width - 0.02, 0.14, room.depth - 0.02]} />
               <meshStandardMaterial color={STATUS_COLOR[room.status] || STATUS_COLOR.vacant} roughness={0.6} />
             </mesh>
 
-            {/* ── Flat roof slab ───────────────────────────────────── */}
-            <mesh position={[room.x, yOff + h + 0.055, room.z]}>
-              <boxGeometry args={[room.width + 0.04, 0.11, room.depth + 0.04]} />
-              <meshStandardMaterial color="#1a2024" roughness={0.9} />
-            </mesh>
+            {/* ── Roof ───────────────────────────────────── */}
+            {room.roof_type === 'triangle' ? (
+              <group position={[room.x, yOff + h, room.z]}>
+                <mesh position={[0, 0.055, 0]} castShadow receiveShadow>
+                  <boxGeometry args={[room.width + 0.2, 0.11, room.depth + 0.2]} />
+                  <meshStandardMaterial color="#36434d" roughness={0.9} />
+                </mesh>
+                <mesh position={[0, 0.11 + 0.5, 0]} castShadow receiveShadow rotation={[0, Math.PI / 4, 0]} scale={[(room.width + 0.2) / Math.SQRT2, 1, (room.depth + 0.2) / Math.SQRT2]}>
+                  <coneGeometry args={[1, 1, 4]} />
+                  <meshStandardMaterial color="#36434d" roughness={0.9} />
+                </mesh>
+              </group>
+            ) : (
+              <mesh position={[room.x, yOff + h + 0.055, room.z]} castShadow receiveShadow>
+                <boxGeometry args={[room.width + 0.2, 0.11, room.depth + 0.2]} />
+                <meshStandardMaterial color="#36434d" roughness={0.9} />
+              </mesh>
+            )}
 
             {/* ── Shared-wall "seam" highlight (visual lock indicator) ── */}
             {shared.E && (
               <mesh position={[x2, yOff + h / 2, room.z]} rotation={[0, 0, 0]}>
                 <boxGeometry args={[0.04, h * 0.9, room.depth * 0.85]} />
-                <meshStandardMaterial color="#5fa889" roughness={0.5} emissive="#5fa889" emissiveIntensity={0.25} />
+                <meshStandardMaterial color="#32b883" roughness={0.5} emissive="#32b883" emissiveIntensity={0.25} />
               </mesh>
             )}
             {shared.W && (
               <mesh position={[x1, yOff + h / 2, room.z]}>
                 <boxGeometry args={[0.04, h * 0.9, room.depth * 0.85]} />
-                <meshStandardMaterial color="#5fa889" roughness={0.5} emissive="#5fa889" emissiveIntensity={0.25} />
+                <meshStandardMaterial color="#32b883" roughness={0.5} emissive="#32b883" emissiveIntensity={0.25} />
               </mesh>
             )}
             {shared.S && (
               <mesh position={[room.x, yOff + h / 2, z2]}>
                 <boxGeometry args={[room.width * 0.85, h * 0.9, 0.04]} />
-                <meshStandardMaterial color="#5fa889" roughness={0.5} emissive="#5fa889" emissiveIntensity={0.25} />
+                <meshStandardMaterial color="#32b883" roughness={0.5} emissive="#32b883" emissiveIntensity={0.25} />
               </mesh>
             )}
             {shared.N && (
               <mesh position={[room.x, yOff + h / 2, z1]}>
                 <boxGeometry args={[room.width * 0.85, h * 0.9, 0.04]} />
-                <meshStandardMaterial color="#5fa889" roughness={0.5} emissive="#5fa889" emissiveIntensity={0.25} />
+                <meshStandardMaterial color="#32b883" roughness={0.5} emissive="#32b883" emissiveIntensity={0.25} />
               </mesh>
             )}
 
@@ -374,7 +387,7 @@ export default function RoomLayoutEditor({ rooms, onChange, selectedRoomId, onSe
                 }}
               >
                 <coneGeometry args={[0.18, 0.45, 8]} />
-                <meshStandardMaterial color="#a5d8c0" emissive="#5fa889" emissiveIntensity={0.4} roughness={0.3} />
+                <meshStandardMaterial color="#a5d8c0" emissive="#32b883" emissiveIntensity={0.4} roughness={0.3} />
               </mesh>
             )}
           </group>

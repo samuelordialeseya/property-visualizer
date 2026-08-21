@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Nunito", "Inter", "ui-sans-serif", "system-ui", "sans-serif";
+  --font-sans: "Manrope", "Nunito", "Inter", "ui-sans-serif", "system-ui", "sans-serif";
 
   --color-verde-50: #e9f9ef;
   --color-verde-100: #d2f3de;

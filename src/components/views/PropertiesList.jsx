@@ -38,17 +38,23 @@ export default function PropertiesList({ buildings, units, onSelectProperty }) {
             {buildings.map((b) => {
               const stats = getBuildingStats(b.id);
               return (
-                <div 
-                  key={b.id} 
-                  className="group rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] border border-zinc-100 transition hover:border-[var(--color-verde-500)] hover:shadow-md cursor-pointer flex flex-col"
-                  onClick={() => onSelectProperty(b.id)}
-                >
+                  <div 
+                    key={b.id} 
+                    className="group rounded-[24px] bg-[#fdfdfd] p-6 shadow-sm border border-zinc-200/60 transition-all duration-300 hover:border-[#059669]/30 hover:shadow-[0_24px_50px_-12px_rgba(0,0,0,0.12)] hover:-translate-y-1 cursor-pointer flex flex-col relative"
+                    onClick={() => onSelectProperty(b.id)}
+                  >
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h2 className="text-[18px] font-semibold text-zinc-900 group-hover:text-[var(--color-verde-600)] transition-colors">{b.name}</h2>
                       <div className="flex items-center gap-1.5 mt-1.5 text-[13px] text-zinc-500">
-                        <MapPin size={14} />
-                        {b.address || "No address provided"}
+                        {b.address ? (
+                          <>
+                            <MapPin size={14} />
+                            {b.address}
+                          </>
+                        ) : (
+                          <span className="text-[#059669] font-medium">+ Add Address</span>
+                        )}
                       </div>
                     </div>
                     <div className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--color-verde-50)] text-[var(--color-verde-600)]">
@@ -69,6 +75,10 @@ export default function PropertiesList({ buildings, units, onSelectProperty }) {
                       <div className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">Vacant</div>
                       <div className="text-[15px] font-medium text-zinc-500">{stats.vacant}</div>
                     </div>
+                  </div>
+                  
+                  <div className="mt-4 flex items-center justify-end text-[13px] font-[600] text-[#059669] opacity-0 group-hover:opacity-100 transition-opacity">
+                    Open Property &rarr;
                   </div>
                 </div>
               );

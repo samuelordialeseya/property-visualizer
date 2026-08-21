@@ -147,7 +147,7 @@ export function useBuildingUnits(buildingId) {
       setLoading(false);
       return;
     }
-    const q = query(collection(db, "buildings", buildingId, "units"), orderBy("position_index", "asc"));
+    const q = query(collection(db, "buildings", buildingId, "units"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({
         id: doc.id,

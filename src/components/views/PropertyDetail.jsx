@@ -86,12 +86,13 @@ export default function PropertyDetail({ building, units, updateUnit, onLaunch3D
                     <th className="px-6 py-3">TENANT</th>
                     <th className="px-6 py-3">RENT / MO</th>
                     <th className="px-6 py-3">LEASE END</th>
+                    <th className="px-6 py-3 text-right">ACTIONS</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100">
                   {filteredUnits.length === 0 ? (
                     <tr>
-                      <td colSpan="5" className="px-6 py-10 text-center text-[14px] text-zinc-500">
+                      <td colSpan="6" className="px-6 py-10 text-center text-[14px] text-zinc-500">
                         No units found
                       </td>
                     </tr>
@@ -122,6 +123,22 @@ export default function PropertyDetail({ building, units, updateUnit, onLaunch3D
                           <td className="px-6 py-3 text-zinc-600">
                             {u.tenant?.lease_end || <span className="text-zinc-400">—</span>}
                           </td>
+                          <td className="px-6 py-3 text-right">
+                            <div className="flex justify-end gap-2">
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setSelectedUnit(u); }}
+                                className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-[600] text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition shadow-sm"
+                              >
+                                Edit
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setSelectedUnit(u); }}
+                                className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-[600] text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition shadow-sm"
+                              >
+                                Pay
+                              </button>
+                            </div>
+                          </td>
                         </tr>
                       );
                     })
@@ -135,7 +152,7 @@ export default function PropertyDetail({ building, units, updateUnit, onLaunch3D
 
       {/* Slide-in Unit Panel */}
       {selectedUnit && (
-        <UnitPanel unit={selectedUnit} onClose={() => setSelectedUnit(null)} />
+        <UnitPanel unit={selectedUnit} onClose={() => setSelectedUnit(null)} isDrawerMode={true} />
       )}
     </div>
   );

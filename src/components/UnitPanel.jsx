@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useAllUnits, uploadFile } from "@/hooks/useFirestore";
-import { Pencil, X, Check, Plus, CreditCard, ChevronDown, ChevronUp } from "lucide-react";
+import { Pencil, X, Check, Plus, CreditCard, ChevronDown, ChevronUp, User } from "lucide-react";
 
 const STATUS_OPTIONS = [
   { value: "vacant",   label: "Vacant",         pill: "bg-zinc-100 text-zinc-600 border-zinc-200",  dot: "bg-zinc-400" },
@@ -89,7 +89,7 @@ function Field({ label, value, fallback = "—" }) {
   );
 }
 
-export default function UnitPanel({ unit, onClose }) {
+export default function UnitPanel({ unit, onClose, isDrawerMode }) {
   const { updateUnit } = useAllUnits();
 
   // ── Edit mode state ───────────────────────────────────────────────────────
@@ -227,8 +227,15 @@ export default function UnitPanel({ unit, onClose }) {
   const curStatus = STATUS_OPTIONS.find((s) => s.value === status) || STATUS_OPTIONS[0];
   const displayPhoto = photoFile ? URL.createObjectURL(photoFile) : tenantPhotoUrl;
 
+  const floatingClasses = "absolute top-8 bottom-8 right-10 z-50 w-96 rounded-2xl border border-zinc-200 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.25)]";
+  const drawerClasses = "fixed top-0 right-0 h-full w-[420px] shadow-2xl z-50 transition-transform border-l border-zinc-200";
+
   return (
-    <div className="absolute top-8 bottom-8 right-10 z-50 flex w-96 flex-col rounded-2xl border border-zinc-200 bg-white font-sans text-zinc-900 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.25)] overflow-hidden">
+    <>
+      {isDrawerMode && (
+        <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+      )}
+      <div className={`flex flex-col bg-white font-sans text-zinc-900 overflow-hidden ${isDrawerMode ? drawerClasses : floatingClasses}`}>
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4 shrink-0">
@@ -237,7 +244,9 @@ export default function UnitPanel({ unit, onClose }) {
           {displayPhoto ? (
             <img src={displayPhoto} alt="Tenant" className="h-10 w-10 rounded-full object-cover border border-zinc-200 shrink-0" />
           ) : (
-            <div className="h-10 w-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400 text-[18px] shrink-0">👤</div>
+            <div className="h-10 w-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-400 shrink-0">
+              <User size={18} />
+            </div>
           )}
           <div>
             <div className="text-[17px] font-semibold leading-tight text-zinc-900">
@@ -271,7 +280,7 @@ export default function UnitPanel({ unit, onClose }) {
             onClick={onClose}
             className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 text-zinc-500 transition hover:bg-zinc-200"
           >
-            ✕
+            <X size={16} />
           </button>
         </div>
       </div>
@@ -446,7 +455,7 @@ export default function UnitPanel({ unit, onClose }) {
                         disabled={recordingSave}
                         className="flex-1 rounded-xl bg-[var(--color-verde-600)] py-2 text-[12px] font-semibold text-white transition hover:bg-[var(--color-verde-700)] disabled:opacity-50"
                       >
-                        {recordingSave ? "Saving…" : "✓ Record Payment"}
+                        {recordingSave ? "Saving…" : "Record Payment"}
                       </button>
                       <button
                         type="button"
@@ -594,7 +603,9 @@ export default function UnitPanel({ unit, onClose }) {
                     {displayPhoto ? (
                       <img src={displayPhoto} alt="Tenant" className="h-10 w-10 rounded-full object-cover border border-zinc-200 shrink-0" />
                     ) : (
-                      <div className="h-10 w-10 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-400 text-[18px] shrink-0">👤</div>
+                      <div className="h-10 w-10 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-400 shrink-0">
+                        <User size={18} />
+                      </div>
                     )}
                     <input type="file" accept="image/*"
                       className="w-full text-[12px] text-zinc-600 file:mr-2 file:rounded-full file:border-0 file:bg-zinc-200 file:px-2 file:py-1 file:text-[11px] file:font-semibold file:text-zinc-700"
@@ -684,5 +695,6 @@ export default function UnitPanel({ unit, onClose }) {
         </div>
       )}
     </div>
+    </>
   );
 }

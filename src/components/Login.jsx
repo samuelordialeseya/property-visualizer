@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { Building2 } from "lucide-react";
 
 export default function Login() {
   const { login } = useAuth();
@@ -16,7 +17,7 @@ export default function Login() {
     try {
       await login(email, password);
     } catch (err) {
-      setError(err.message.replace("Firebase: ", "").replace(/\(auth\/.*\)/, "").trim());
+      setError(err.message || "Failed to sign in. Check your credentials.");
     } finally {
       setLoading(false);
     }
@@ -27,8 +28,8 @@ export default function Login() {
       <div className="w-full max-w-sm">
         {/* Brand */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-[var(--color-verde-600)] text-2xl text-white shadow-lg">
-            🏢
+          <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-[var(--color-verde-600)] text-white shadow-lg">
+            <Building2 size={28} />
           </div>
           <h1 className="text-[26px] font-semibold leading-tight tracking-[-0.02em] text-zinc-900">
             Property Visualizer
