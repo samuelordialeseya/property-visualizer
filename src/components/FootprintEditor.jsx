@@ -126,7 +126,7 @@ export default function FootprintEditor({ initialPoints, onChange }) {
       {linePoints.length > 1 && (
         <Line 
           points={linePoints}
-          color="#5fa889"
+          color="#2270b8"
           lineWidth={4}
           dashed={true}
           dashSize={0.5}
@@ -146,7 +146,7 @@ export default function FootprintEditor({ initialPoints, onChange }) {
         >
           <sphereGeometry args={[0.3, 16, 16]} />
           <meshStandardMaterial 
-            color={dragIndex === i ? "#f2c98a" : hoverIndex === i ? "#5fa889" : "#3c6e59"} 
+            color={dragIndex === i ? "#f2c98a" : hoverIndex === i ? "#2270b8" : "#0b3860"} 
             roughness={0.4} 
             emissive={dragIndex === i ? "#f2c98a" : "#000000"}
             emissiveIntensity={0.4}

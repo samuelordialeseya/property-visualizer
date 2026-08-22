@@ -40,12 +40,12 @@ export default function PropertiesList({ buildings, units, onSelectProperty }) {
               return (
                   <div 
                     key={b.id} 
-                    className="group rounded-[24px] bg-[#fdfdfd] p-6 shadow-sm border border-zinc-200/60 transition-all duration-300 hover:border-[#059669]/30 hover:shadow-[0_24px_50px_-12px_rgba(0,0,0,0.12)] hover:-translate-y-1 cursor-pointer flex flex-col relative"
+                    className="group rounded-[24px] bg-[#fdfdfd] p-6 shadow-sm border border-zinc-200/60 transition-all duration-300 hover:border-[#0F4C81]/30 hover:shadow-[0_24px_50px_-12px_rgba(0,0,0,0.12)] hover:-translate-y-1 cursor-pointer flex flex-col relative"
                     onClick={() => onSelectProperty(b.id)}
                   >
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h2 className="text-[18px] font-semibold text-zinc-900 group-hover:text-[var(--color-verde-600)] transition-colors">{b.name}</h2>
+                      <h2 className="text-[18px] font-semibold text-zinc-900 group-hover:text-[var(--color-blue-600)] transition-colors">{b.name}</h2>
                       <div className="flex items-center gap-1.5 mt-1.5 text-[13px] text-zinc-500">
                         {b.address ? (
                           <>
@@ -53,11 +53,11 @@ export default function PropertiesList({ buildings, units, onSelectProperty }) {
                             {b.address}
                           </>
                         ) : (
-                          <span className="text-[#059669] font-medium">+ Add Address</span>
+                          <span className="text-[#0F4C81] font-medium">+ Add Address</span>
                         )}
                       </div>
                     </div>
-                    <div className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--color-verde-50)] text-[var(--color-verde-600)]">
+                    <div className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--color-blue-50)] text-[var(--color-blue-600)]">
                       <Building2 size={20} />
                     </div>
                   </div>
@@ -69,7 +69,7 @@ export default function PropertiesList({ buildings, units, onSelectProperty }) {
                     </div>
                     <div>
                       <div className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">Occupied</div>
-                      <div className="text-[15px] font-medium text-[var(--color-verde-600)]">{stats.occupied}</div>
+                      <div className="text-[15px] font-medium text-[var(--color-blue-600)]">{stats.occupied}</div>
                     </div>
                     <div>
                       <div className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">Vacant</div>
@@ -77,7 +77,7 @@ export default function PropertiesList({ buildings, units, onSelectProperty }) {
                     </div>
                   </div>
                   
-                  <div className="mt-4 flex items-center justify-end text-[13px] font-[600] text-[#059669] opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="mt-4 flex items-center justify-end text-[13px] font-[600] text-[#0F4C81] opacity-0 group-hover:opacity-100 transition-opacity">
                     Open Property &rarr;
                   </div>
                 </div>

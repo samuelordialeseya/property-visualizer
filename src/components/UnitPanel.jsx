@@ -5,7 +5,7 @@ import { Pencil, X, Check, Plus, CreditCard, ChevronDown, ChevronUp, User } from
 
 const STATUS_OPTIONS = [
   { value: "vacant",   label: "Vacant",         pill: "bg-zinc-100 text-zinc-600 border-zinc-200",  dot: "bg-zinc-400" },
-  { value: "occupied", label: "Occupied",        pill: "bg-[var(--color-verde-50)] text-[var(--color-verde-700)] border-[var(--color-verde-500)]", dot: "bg-[var(--color-verde-500)]" },
+  { value: "occupied", label: "Occupied",        pill: "bg-[var(--color-blue-50)] text-[var(--color-blue-700)] border-[var(--color-blue-500)]", dot: "bg-[var(--color-blue-500)]" },
   { value: "overdue",  label: "Overdue",         pill: "bg-red-50 text-red-700 border-red-500",      dot: "bg-red-500" },
 ];
 
@@ -292,16 +292,16 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
         {!isEditing && (
           <>
             {/* Rent */}
-            <div className="rounded-xl bg-[var(--color-verde-50)] shadow-md shadow-[var(--color-verde-100)] px-4 py-3 flex items-center justify-between">
+            <div className="rounded-xl bg-[var(--color-blue-50)] shadow-md shadow-[var(--color-blue-100)] px-4 py-3 flex items-center justify-between">
               <div>
-                <div className="text-[10px] font-semibold tracking-[0.08em] text-[var(--color-verde-600)] uppercase">Monthly Rent</div>
-                <div className="text-[22px] font-bold text-[var(--color-verde-700)] leading-tight">
+                <div className="text-[10px] font-semibold tracking-[0.08em] text-[var(--color-blue-600)] uppercase">Monthly Rent</div>
+                <div className="text-[22px] font-bold text-[var(--color-blue-700)] leading-tight">
                   ₱{(Number(unit.monthly_rent) || 0).toLocaleString()}
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[10px] font-semibold tracking-[0.08em] text-[var(--color-verde-600)] uppercase">Due Day</div>
-                <div className="text-[15px] font-semibold text-[var(--color-verde-700)]">
+                <div className="text-[10px] font-semibold tracking-[0.08em] text-[var(--color-blue-600)] uppercase">Due Day</div>
+                <div className="text-[15px] font-semibold text-[var(--color-blue-700)]">
                   {unit.tenant?.rent_due_date ? `Day ${unit.tenant.rent_due_date}` : "—"}
                 </div>
               </div>
@@ -334,7 +334,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
                   <div className="text-[12px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Payment History</div>
                   <button
                     onClick={() => setShowPayForm((v) => !v)}
-                    className="flex items-center gap-1 rounded-full bg-[var(--color-verde-600)] px-3 py-1 text-[11px] font-semibold text-white transition hover:bg-[var(--color-verde-700)]"
+                    className="flex items-center gap-1 rounded-full bg-[var(--color-blue-600)] px-3 py-1 text-[11px] font-semibold text-white transition hover:bg-[var(--color-blue-700)]"
                   >
                     <Plus size={11} />
                     Record Payment
@@ -344,15 +344,15 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
                 {showPayForm && (
                   <form
                     onSubmit={handleRecordPayment}
-                    className="mb-4 rounded-2xl border border-[var(--color-verde-200)] bg-[var(--color-verde-50)] p-4 space-y-3"
+                    className="mb-4 rounded-2xl border border-[var(--color-blue-200)] bg-[var(--color-blue-50)] p-4 space-y-3"
                   >
-                    <div className="text-[11px] font-semibold text-[var(--color-verde-700)] uppercase tracking-wider">New Payment Entry</div>
+                    <div className="text-[11px] font-semibold text-[var(--color-blue-700)] uppercase tracking-wider">New Payment Entry</div>
 
                     {/* Payment type */}
                     <div>
                       <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Payment Type</label>
                       <select
-                        className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-verde-600)]"
+                        className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]"
                         value={payType}
                         onChange={(e) => setPayType(e.target.value)}
                       >
@@ -366,7 +366,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
                         <div>
                           <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">For Month</label>
                           <select
-                            className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-verde-600)]"
+                            className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]"
                             value={payMonth}
                             onChange={(e) => setPayMonth(e.target.value)}
                           >
@@ -377,7 +377,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
                           <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Year</label>
                           <input
                             type="number" min="2020" max="2040"
-                            className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-verde-600)]"
+                            className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]"
                             value={payYear}
                             onChange={(e) => setPayYear(e.target.value)}
                           />
@@ -391,7 +391,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
                         <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Description</label>
                         <input
                           type="text"
-                          className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-verde-600)]"
+                          className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]"
                           value={payDesc}
                           onChange={(e) => setPayDesc(e.target.value)}
                           placeholder="e.g. Broken faucet repair"
@@ -405,7 +405,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
                         <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Amount (₱)</label>
                         <input
                           type="number" min="0" required
-                          className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-verde-600)]"
+                          className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]"
                           value={payAmount}
                           onChange={(e) => setPayAmount(e.target.value)}
                           placeholder="e.g. 15000"
@@ -415,7 +415,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
                         <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Date Paid</label>
                         <input
                           type="date" required
-                          className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-verde-600)]"
+                          className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]"
                           value={payDatePaid}
                           onChange={(e) => setPayDatePaid(e.target.value)}
                         />
@@ -424,7 +424,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
                     <div>
                       <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Payment Method</label>
                       <select
-                        className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-verde-600)]"
+                        className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]"
                         value={payMethod}
                         onChange={(e) => setPayMethod(e.target.value)}
                       >
@@ -453,7 +453,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
                       <button
                         type="submit"
                         disabled={recordingSave}
-                        className="flex-1 rounded-xl bg-[var(--color-verde-600)] py-2 text-[12px] font-semibold text-white transition hover:bg-[var(--color-verde-700)] disabled:opacity-50"
+                        className="flex-1 rounded-xl bg-[var(--color-blue-600)] py-2 text-[12px] font-semibold text-white transition hover:bg-[var(--color-blue-700)] disabled:opacity-50"
                       >
                         {recordingSave ? "Saving…" : "Record Payment"}
                       </button>
@@ -532,7 +532,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
                                   </>
                                 ) : (
                                   <>
-                                    <span className="rounded-full bg-[var(--color-verde-50)] border border-[var(--color-verde-200)] px-2 py-0.5 text-[10px] font-semibold text-[var(--color-verde-700)]">PAID</span>
+                                    <span className="rounded-full bg-[var(--color-blue-50)] border border-[var(--color-blue-200)] px-2 py-0.5 text-[10px] font-semibold text-[var(--color-blue-700)]">PAID</span>
                                     {expandedPayId === p.id ? <ChevronUp size={14} className="text-zinc-400" /> : <ChevronDown size={14} className="text-zinc-400" />}
                                   </>
                                 )}
@@ -587,7 +587,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
             <div>
               <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.08em] text-zinc-500">MONTHLY RENT (₱)</label>
               <input type="number" min="0"
-                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-[14px] text-zinc-900 outline-none focus:border-[var(--color-verde-600)] focus:bg-white transition"
+                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-[14px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] focus:bg-white transition"
                 value={rent} onChange={(e) => setRent(e.target.value)}
               />
             </div>
@@ -617,7 +617,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
                 <div>
                   <label className="mb-1 block text-[10px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Name</label>
                   <input type="text"
-                    className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[13px] text-zinc-900 outline-none focus:border-[var(--color-verde-600)] transition"
+                    className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[13px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition"
                     value={tenantName} onChange={(e) => setTenantName(e.target.value)}
                     required={status !== "vacant"} placeholder="Full name"
                   />
@@ -626,7 +626,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
                 <div>
                   <label className="mb-1 block text-[10px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Contact</label>
                   <input type="text"
-                    className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[13px] text-zinc-900 outline-none focus:border-[var(--color-verde-600)] transition"
+                    className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[13px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition"
                     value={contact} onChange={(e) => setContact(e.target.value)} placeholder="+63 9XX XXX XXXX"
                   />
                 </div>
@@ -635,14 +635,14 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
                   <div>
                     <label className="mb-1 block text-[10px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Lease Start</label>
                     <input type="date"
-                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] text-zinc-900 outline-none focus:border-[var(--color-verde-600)] transition"
+                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition"
                       value={leaseStart} onChange={(e) => setLeaseStart(e.target.value)}
                     />
                   </div>
                   <div>
                     <label className="mb-1 block text-[10px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Lease End</label>
                     <input type="date"
-                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] text-zinc-900 outline-none focus:border-[var(--color-verde-600)] transition"
+                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition"
                       value={leaseEnd} onChange={(e) => setLeaseEnd(e.target.value)}
                     />
                   </div>
@@ -652,7 +652,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
                   <div>
                     <label className="mb-1 block text-[10px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Payment Method</label>
                     <select
-                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] text-zinc-900 outline-none focus:border-[var(--color-verde-600)] transition"
+                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition"
                       value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}
                     >
                       <option>Cash</option>
@@ -664,7 +664,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
                   <div>
                     <label className="mb-1 block text-[10px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Due Day</label>
                     <input type="number" min="1" max="31"
-                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] text-zinc-900 outline-none focus:border-[var(--color-verde-600)] transition"
+                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition"
                       value={rentDueDate} onChange={(e) => setRentDueDate(e.target.value)} placeholder="e.g. 5"
                     />
                   </div>
@@ -673,7 +673,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
                 <div>
                   <label className="mb-1 block text-[10px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Notes</label>
                   <textarea rows="2"
-                    className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] text-zinc-900 outline-none focus:border-[var(--color-verde-600)] transition resize-none"
+                    className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition resize-none"
                     value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional notes…"
                   />
                 </div>
@@ -688,7 +688,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
         <div className="border-t border-zinc-100 bg-zinc-50/50 px-6 py-4 shrink-0">
           <button
             type="submit" form="unit-form" disabled={saving}
-            className="w-full rounded-xl bg-[var(--color-verde-600)] py-2.5 text-[14px] font-semibold text-white transition hover:bg-[var(--color-verde-700)] disabled:opacity-50 shadow-sm"
+            className="w-full rounded-xl bg-[var(--color-blue-600)] py-2.5 text-[14px] font-semibold text-white transition hover:bg-[var(--color-blue-700)] disabled:opacity-50 shadow-sm"
           >
             {saving ? "Saving…" : "Save Changes →"}
           </button>

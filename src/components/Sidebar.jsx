@@ -16,7 +16,7 @@ export default function Sidebar({ activeView, setActiveView, onLogout, collapsed
       {/* Toggle button — sits on the edge of the sidebar */}
       <button
         onClick={onToggleCollapse}
-        className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 grid h-6 w-6 place-items-center rounded-full border border-zinc-200 bg-white shadow-sm text-zinc-500 transition hover:bg-[var(--color-verde-50)] hover:text-[var(--color-verde-600)] hover:border-[var(--color-verde-300)]"
+        className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 grid h-6 w-6 place-items-center rounded-full border border-zinc-200 bg-white shadow-sm text-zinc-500 transition hover:bg-[var(--color-blue-50)] hover:text-[var(--color-blue-600)] hover:border-[var(--color-blue-300)]"
       >
         {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
       </button>
@@ -27,12 +27,12 @@ export default function Sidebar({ activeView, setActiveView, onLogout, collapsed
           collapsed ? "justify-center px-0 py-5" : "gap-3 px-5 py-5"
         }`}
       >
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--color-verde-600)] text-white shadow-sm">
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--color-blue-600)] text-white shadow-sm">
           <Building2 size={18} />
         </div>
         {!collapsed && (
           <div className="overflow-hidden">
-            <div className="text-[14px] font-semibold leading-tight text-[var(--color-verde-700)] tracking-[-0.01em] whitespace-nowrap">
+            <div className="text-[14px] font-semibold leading-tight text-[var(--color-blue-700)] tracking-[-0.01em] whitespace-nowrap">
               Property<br />Visualizer
             </div>
           </div>
@@ -55,13 +55,13 @@ export default function Sidebar({ activeView, setActiveView, onLogout, collapsed
                 collapsed ? "justify-center px-0 py-3" : "gap-3 px-4 py-3"
               } ${
                 isActive
-                  ? "bg-[var(--color-verde-50)] text-[var(--color-verde-700)]"
+                  ? "bg-[var(--color-blue-50)] text-[var(--color-blue-700)]"
                   : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
               }`}
             >
               <Icon
                 size={18}
-                className={`shrink-0 ${isActive ? "text-[var(--color-verde-600)]" : "text-zinc-400"}`}
+                className={`shrink-0 ${isActive ? "text-[var(--color-blue-600)]" : "text-zinc-400"}`}
               />
               {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
             </button>

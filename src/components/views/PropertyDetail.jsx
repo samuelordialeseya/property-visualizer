@@ -5,7 +5,7 @@ import UnitPanel from "@/components/UnitPanel";
 
 const STATUS_STYLES = {
   vacant:   { pill: "bg-zinc-100 text-zinc-600",   dot: "bg-zinc-400",   label: "VACANT" },
-  occupied: { pill: "bg-[var(--color-verde-50)] text-[var(--color-verde-700)]",   dot: "bg-[var(--color-verde-500)]",   label: "OCCUPIED" },
+  occupied: { pill: "bg-[var(--color-blue-50)] text-[var(--color-blue-700)]",   dot: "bg-[var(--color-blue-500)]",   label: "OCCUPIED" },
   overdue:  { pill: "bg-red-50 text-red-700",   dot: "bg-red-500",   label: "OVERDUE" },
 };
 
@@ -51,7 +51,7 @@ export default function PropertyDetail({ building, units, updateUnit, onLaunch3D
               
               <button
                 onClick={onLaunch3D}
-                className="flex items-center gap-2 rounded-xl bg-[var(--color-verde-600)] px-5 py-2.5 text-[14px] font-semibold text-white transition hover:bg-[var(--color-verde-700)] shadow-sm"
+                className="flex items-center gap-2 rounded-xl bg-[var(--color-blue-600)] px-5 py-2.5 text-[14px] font-semibold text-white transition hover:bg-[var(--color-blue-700)] shadow-sm"
               >
                 <Box size={18} />
                 Launch 3D View
@@ -66,7 +66,7 @@ export default function PropertyDetail({ building, units, updateUnit, onLaunch3D
             <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
               <h2 className="text-[16px] font-semibold tracking-[-0.01em]">Units Directory</h2>
               <select
-                className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-medium text-zinc-600 outline-none focus:border-[var(--color-verde-600)] focus:bg-white"
+                className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-medium text-zinc-600 outline-none focus:border-[var(--color-blue-600)] focus:bg-white"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -103,7 +103,7 @@ export default function PropertyDetail({ building, units, updateUnit, onLaunch3D
                         <tr
                           key={u.id}
                           onClick={() => setSelectedUnit(u)}
-                          className={`cursor-pointer transition hover:bg-zinc-50 ${selectedUnit?.id === u.id ? 'bg-[var(--color-verde-50)]' : ''}`}
+                          className={`cursor-pointer transition hover:bg-zinc-50 ${selectedUnit?.id === u.id ? 'bg-[var(--color-blue-50)]' : ''}`}
                         >
                           <td className="px-6 py-3 font-semibold text-zinc-900">
                             Unit {u.unit_label}

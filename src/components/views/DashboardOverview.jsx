@@ -37,10 +37,10 @@ export default function DashboardOverview({ buildings, units, onAddBuilding, onS
     <div className="flex h-full flex-col overflow-hidden bg-[#fafafa] font-sans">
       {/* Header */}
       <div className="flex items-center justify-between px-10 py-8 shrink-0">
-        <h1 className="text-[36px] font-[700] text-[#064e3b] tracking-[-0.03em] font-['Sora']">Portfolio Overview</h1>
+        <h1 className="text-[36px] font-[700] text-[#0b3860] tracking-[-0.03em] font-['Sora']">Portfolio Overview</h1>
         <button
           onClick={onAddBuilding}
-          className="flex items-center gap-2 rounded-full bg-[#064e3b] px-6 py-3 text-[13px] font-[600] tracking-wide text-white transition hover:bg-[#022c22] shadow-md hover:shadow-lg active:scale-95"
+          className="flex items-center gap-2 rounded-full bg-[#0b3860] px-6 py-3 text-[13px] font-[600] tracking-wide text-white transition hover:bg-[#051b30] shadow-md hover:shadow-lg active:scale-95"
         >
           <Plus size={16} strokeWidth={3} />
           NEW BUILDING
@@ -54,15 +54,15 @@ export default function DashboardOverview({ buildings, units, onAddBuilding, onS
             label="Total Revenue (₱)" 
             value={`₱${stats.revenue.toLocaleString()}`} 
             icon={TrendingUp} 
-            iconColor="text-[#059669]" 
-            iconBg="bg-[#d1fae5]" 
+            iconColor="text-[#0F4C81]" 
+            iconBg="bg-[#e1ebf4]" 
           />
           <StatCard 
             label="Occupancy Rate %" 
             value={`${stats.pct}%`} 
             icon={CheckCircle2} 
-            iconColor="text-[#059669]" 
-            iconBg="bg-[#d1fae5]" 
+            iconColor="text-[#0F4C81]" 
+            iconBg="bg-[#e1ebf4]" 
           />
           <StatCard 
             label="Overdue Renters" 
@@ -84,7 +84,7 @@ export default function DashboardOverview({ buildings, units, onAddBuilding, onS
         <div className="grid grid-cols-3 gap-6">
           {/* Left panel: My Properties (Property List) */}
           <div className="col-span-2 rounded-[24px] bg-[#fdfdfd] p-8 shadow-[0_24px_50px_-12px_rgba(0,0,0,0.12)] border border-zinc-200/50">
-            <h2 className="text-[17px] font-[600] text-[#064e3b] flex items-center gap-3 mb-8 tracking-[-0.01em] font-['Sora']">
+            <h2 className="text-[17px] font-[600] text-[#0b3860] flex items-center gap-3 mb-8 tracking-[-0.01em] font-['Sora']">
               My Properties
             </h2>
 
@@ -114,7 +114,7 @@ export default function DashboardOverview({ buildings, units, onAddBuilding, onS
                         <div>
                           <p className="text-[15px] font-[600] text-slate-800">{b.name || "Untitled Building"}</p>
                           <div className="mt-1 flex items-center gap-3 text-[12px] font-medium text-slate-500">
-                            <span className="flex items-center gap-1 text-[#059669] bg-[#d1fae5] px-2 py-0.5 rounded-full font-[500]">
+                            <span className="flex items-center gap-1 text-[#0F4C81] bg-[#e1ebf4] px-2 py-0.5 rounded-full font-[500]">
                               <CheckCircle2 size={12} strokeWidth={3} />
                               {occ}/{bUnits.length} Occupied
                             </span>
@@ -147,8 +147,8 @@ export default function DashboardOverview({ buildings, units, onAddBuilding, onS
           <div className="col-span-1 space-y-6">
             <div className="rounded-[24px] bg-[#fdfdfd] p-8 shadow-[0_24px_50px_-12px_rgba(0,0,0,0.12)] border border-zinc-200/50">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-[11px] font-[600] text-[#064e3b] uppercase tracking-[0.1em] font-['Sora']">Est. Monthly Revenue</h2>
-                <TrendingUp size={16} className="text-[#059669]" />
+                <h2 className="text-[11px] font-[600] text-[#0b3860] uppercase tracking-[0.1em] font-['Sora']">Est. Monthly Revenue</h2>
+                <TrendingUp size={16} className="text-[#0F4C81]" />
               </div>
               <div className="text-[36px] font-[700] text-slate-800 tracking-tight font-['Sora'] mb-4">
                 ₱{stats.revenue.toLocaleString()}
@@ -157,16 +157,16 @@ export default function DashboardOverview({ buildings, units, onAddBuilding, onS
               <div className="space-y-1.5">
                 <div className="flex justify-between text-[11px] font-bold text-slate-600">
                   <span>Rent Collection</span>
-                  <span className="text-[#059669]">₱{stats.revenue.toLocaleString()} / ₱{stats.revenue.toLocaleString()}</span>
+                  <span className="text-[#0F4C81]">₱{stats.revenue.toLocaleString()} / ₱{stats.revenue.toLocaleString()}</span>
                 </div>
                 <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#059669] rounded-full" style={{ width: '100%' }}></div>
+                  <div className="h-full bg-[#0F4C81] rounded-full" style={{ width: '100%' }}></div>
                 </div>
               </div>
             </div>
 
             <div className="rounded-[24px] bg-[#fdfdfd] p-8 shadow-[0_24px_50px_-12px_rgba(0,0,0,0.12)] border border-zinc-200/50">
-              <h2 className="text-[11px] font-[600] text-[#064e3b] uppercase tracking-[0.1em] mb-6 font-['Sora']">Occupancy Breakdown</h2>
+              <h2 className="text-[11px] font-[600] text-[#0b3860] uppercase tracking-[0.1em] mb-6 font-['Sora']">Occupancy Breakdown</h2>
               
               <div className="space-y-5">
                 <div>
@@ -175,7 +175,7 @@ export default function DashboardOverview({ buildings, units, onAddBuilding, onS
                     <span>{stats.occupied} units</span>
                   </div>
                   <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
-                    <div className="h-full rounded-full bg-[#064e3b]" style={{ width: `${stats.totalUnits > 0 ? (stats.occupied / stats.totalUnits) * 100 : 0}%` }} />
+                    <div className="h-full rounded-full bg-[#0b3860]" style={{ width: `${stats.totalUnits > 0 ? (stats.occupied / stats.totalUnits) * 100 : 0}%` }} />
                   </div>
                 </div>
                 
@@ -185,7 +185,7 @@ export default function DashboardOverview({ buildings, units, onAddBuilding, onS
                     <span>{stats.vacant} units</span>
                   </div>
                   <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
-                    <div className="h-full rounded-full bg-[#34d399]" style={{ width: `${stats.totalUnits > 0 ? (stats.vacant / stats.totalUnits) * 100 : 0}%` }} />
+                    <div className="h-full rounded-full bg-[#479de9]" style={{ width: `${stats.totalUnits > 0 ? (stats.vacant / stats.totalUnits) * 100 : 0}%` }} />
                   </div>
                 </div>
 

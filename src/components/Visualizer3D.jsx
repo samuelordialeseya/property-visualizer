@@ -17,7 +17,7 @@ const STATUS_COLOR = {
 const UNIT_BODY_COLOR  = 0x4a5a66;
 const ROOF_COLOR       = 0x36434d;
 const WINDOW_COLOR     = 0xf9d392;
-const DOOR_COLOR       = 0x32b883;
+const DOOR_COLOR       = 0x479de9;
 const GROUND_COLOR     = 0x0b0f13;
 const SLAB_COLOR       = 0x111518;
 
@@ -116,7 +116,7 @@ function UnitBox({ unit, isSelected, onClick }) {
           roughness={0.85}
           metalness={0.05}
         />
-        {isSelected && <Edges scale={1.005} threshold={15} color="#5fa889" />}
+        {isSelected && <Edges scale={1.005} threshold={15} color="#2270b8" />}
       </mesh>
 
       {/* Status strip at base */}
@@ -158,7 +158,7 @@ function UnitBox({ unit, isSelected, onClick }) {
       <Text
         position={[0, bh / 2 + 0.2, 0]}
         fontSize={0.3}
-        color="#5fa889"
+        color="#2270b8"
         anchorX="center"
         anchorY="middle"
         rotation={[-Math.PI / 2, 0, 0]}
@@ -436,7 +436,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                 <button
                   onClick={openEditInfo}
                   title="Edit building info"
-                  className="ml-1 flex items-center justify-center h-6 w-6 rounded-lg border border-zinc-200 bg-white/80 backdrop-blur text-zinc-400 transition hover:text-[#5fa889] hover:border-[#5fa889]/40"
+                  className="ml-1 flex items-center justify-center h-6 w-6 rounded-lg border border-zinc-200 bg-white/80 backdrop-blur text-zinc-400 transition hover:text-[#2270b8] hover:border-[#2270b8]/40"
                 >
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 </button>
@@ -446,7 +446,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
             {!editMode ? (
               <button 
                 onClick={handleEnterEditMode}
-                className="mt-2 w-fit rounded-full bg-[#3c6e59] px-4 py-1.5 text-[11px] font-semibold text-white transition hover:bg-[#4a8a70]"
+                className="mt-2 w-fit rounded-full bg-[#0b3860] px-4 py-1.5 text-[11px] font-semibold text-white transition hover:bg-[#154e83]"
               >
                 Edit Building Layout
               </button>
@@ -454,7 +454,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
               <div className="mt-2 flex gap-2">
                 <button 
                   onClick={handleAddRoom}
-                  className="rounded-full bg-[#3c6e59] px-3.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-[#4a8a70]"
+                  className="rounded-full bg-[#0b3860] px-3.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-[#154e83]"
                 >
                   + Room
                 </button>
@@ -473,7 +473,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
           <div className="absolute top-5 right-5 z-10 flex gap-2">
             {!editMode ? (
               units.length > 0 && (
-                <div className="rounded-full border border-emerald-200 bg-emerald-50/80 backdrop-blur px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-emerald-700 shadow-sm">
+                <div className="rounded-full border border-blue-200 bg-blue-50/80 backdrop-blur px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-blue-700 shadow-sm">
                   {units.length} Rooms Configured
                 </div>
               )
@@ -490,7 +490,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                             const next = (cur + 90) % 360;
                             setEditorRooms(editorRooms.map(r => r.id === selectedEditorRoomId ? { ...r, rotation: next } : r));
                           }}
-                          className="text-[#5fa889] hover:text-[#76c2a1] font-semibold flex items-center gap-1"
+                          className="text-[#2270b8] hover:text-[#479de9] font-semibold flex items-center gap-1"
                           title="Rotate Door 90°"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
@@ -508,7 +508,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                       <div>
                         <label className="block text-[10px] uppercase">Floor</label>
                         <select 
-                          className="w-full bg-zinc-50 border border-zinc-200 rounded px-1.5 py-1 mt-0.5 text-zinc-800 outline-none focus:border-[#5fa889]"
+                          className="w-full bg-zinc-50 border border-zinc-200 rounded px-1.5 py-1 mt-0.5 text-zinc-800 outline-none focus:border-[#2270b8]"
                           value={selectedRoom.floor}
                           onChange={(e) => {
                             const val = parseInt(e.target.value, 10);
@@ -525,7 +525,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                         <label className="block text-[10px] uppercase">Height ({selectedRoom.height}m)</label>
                         <input 
                           type="range" min="1" max="4" step="0.2"
-                          className="w-full mt-2 accent-[#5fa889]"
+                          className="w-full mt-2 accent-[#2270b8]"
                           value={selectedRoom.height}
                           onChange={(e) => {
                             const val = parseFloat(e.target.value);
@@ -539,7 +539,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                         <label className="block text-[10px] uppercase">Label</label>
                         <input 
                           type="text"
-                          className="w-full bg-zinc-50 border border-zinc-200 rounded px-1.5 py-1 mt-0.5 text-zinc-800 outline-none focus:border-[#5fa889]"
+                          className="w-full bg-zinc-50 border border-zinc-200 rounded px-1.5 py-1 mt-0.5 text-zinc-800 outline-none focus:border-[#2270b8]"
                           value={selectedRoom.unit_label}
                           onChange={(e) => {
                             setEditorRooms(editorRooms.map(r => r.id === selectedEditorRoomId ? { ...r, unit_label: e.target.value } : r));
@@ -549,7 +549,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                       <div>
                         <label className="block text-[10px] uppercase">Roof</label>
                         <select 
-                          className="w-full bg-zinc-50 border border-zinc-200 rounded px-1.5 py-1 mt-0.5 text-zinc-800 outline-none focus:border-[#5fa889]"
+                          className="w-full bg-zinc-50 border border-zinc-200 rounded px-1.5 py-1 mt-0.5 text-zinc-800 outline-none focus:border-[#2270b8]"
                           value={selectedRoom.roof_type || 'flat'}
                           onChange={(e) => {
                             setEditorRooms(editorRooms.map(r => r.id === selectedEditorRoomId ? { ...r, roof_type: e.target.value } : r));
@@ -571,7 +571,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                   </button>
                   <button 
                     onClick={handleSave}
-                    className="rounded-full bg-[#5fa889] px-4 py-1.5 text-[11px] font-semibold text-white transition hover:bg-[#6dbf9b]"
+                    className="rounded-full bg-[#2270b8] px-4 py-1.5 text-[11px] font-semibold text-white transition hover:bg-[#3186d6]"
                   >
                     Save Layout
                   </button>
@@ -594,9 +594,9 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
 
           {/* Camera Presets */}
           <div className="absolute right-6 bottom-6 z-10 flex gap-2">
-            <button onClick={() => setCameraPreset("isometric")} className={`rounded-xl px-3 py-1.5 text-[11px] font-[600] transition shadow-sm border ${cameraPreset === 'isometric' ? 'bg-[#059669] text-white border-[#059669]' : 'bg-white/90 text-zinc-600 border-zinc-200 hover:bg-white backdrop-blur-sm'}`}>Isometric</button>
-            <button onClick={() => setCameraPreset("top-down")} className={`rounded-xl px-3 py-1.5 text-[11px] font-[600] transition shadow-sm border ${cameraPreset === 'top-down' ? 'bg-[#059669] text-white border-[#059669]' : 'bg-white/90 text-zinc-600 border-zinc-200 hover:bg-white backdrop-blur-sm'}`}>Top-Down</button>
-            <button onClick={() => setCameraPreset("front")} className={`rounded-xl px-3 py-1.5 text-[11px] font-[600] transition shadow-sm border ${cameraPreset === 'front' ? 'bg-[#059669] text-white border-[#059669]' : 'bg-white/90 text-zinc-600 border-zinc-200 hover:bg-white backdrop-blur-sm'}`}>Front View</button>
+            <button onClick={() => setCameraPreset("isometric")} className={`rounded-xl px-3 py-1.5 text-[11px] font-[600] transition shadow-sm border ${cameraPreset === 'isometric' ? 'bg-[#0F4C81] text-white border-[#0F4C81]' : 'bg-white/90 text-zinc-600 border-zinc-200 hover:bg-white backdrop-blur-sm'}`}>Isometric</button>
+            <button onClick={() => setCameraPreset("top-down")} className={`rounded-xl px-3 py-1.5 text-[11px] font-[600] transition shadow-sm border ${cameraPreset === 'top-down' ? 'bg-[#0F4C81] text-white border-[#0F4C81]' : 'bg-white/90 text-zinc-600 border-zinc-200 hover:bg-white backdrop-blur-sm'}`}>Top-Down</button>
+            <button onClick={() => setCameraPreset("front")} className={`rounded-xl px-3 py-1.5 text-[11px] font-[600] transition shadow-sm border ${cameraPreset === 'front' ? 'bg-[#0F4C81] text-white border-[#0F4C81]' : 'bg-white/90 text-zinc-600 border-zinc-200 hover:bg-white backdrop-blur-sm'}`}>Front View</button>
           </div>
 
           <Canvas
@@ -680,12 +680,12 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
             <div className="absolute inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(11,15,19,0.72)', backdropFilter: 'blur(8px)' }}>
               <div className="relative w-[440px] rounded-3xl border border-white/10 bg-white/10 p-8 shadow-2xl backdrop-blur-xl" style={{ boxShadow: '0 32px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08)' }}>
                 {/* Glow accent */}
-                <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-40 w-40 rounded-full bg-[#5fa889] opacity-20 blur-3xl" />
+                <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-40 w-40 rounded-full bg-[#2270b8] opacity-20 blur-3xl" />
 
                 {/* Header */}
                 <div className="mb-1 flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[#5fa889]/20 text-[#5fa889]">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[#2270b8]/20 text-[#2270b8]">
                       {setupIsNew ? (
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
                       ) : (
@@ -720,7 +720,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                     <input
                       autoFocus
                       required
-                      className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-[14px] text-white placeholder-white/30 outline-none transition focus:border-[#5fa889]/60 focus:bg-white/15"
+                      className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-[14px] text-white placeholder-white/30 outline-none transition focus:border-[#2270b8]/60 focus:bg-white/15"
                       placeholder="e.g. North Tower"
                       value={setupName}
                       onChange={e => setSetupName(e.target.value)}
@@ -729,7 +729,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                   <div>
                     <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.1em] text-white/50">Address</label>
                     <input
-                      className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-[14px] text-white placeholder-white/30 outline-none transition focus:border-[#5fa889]/60 focus:bg-white/15"
+                      className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-[14px] text-white placeholder-white/30 outline-none transition focus:border-[#2270b8]/60 focus:bg-white/15"
                       placeholder="e.g. 123 Rizal St., Manila"
                       value={setupAddress}
                       onChange={e => setSetupAddress(e.target.value)}
@@ -748,7 +748,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                     <button
                       type="submit"
                       disabled={setupSaving || !setupName.trim()}
-                      className="flex-1 rounded-xl bg-[#5fa889] py-3 text-[14px] font-bold text-white shadow-lg transition hover:bg-[#76c2a1] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 rounded-xl bg-[#2270b8] py-3 text-[14px] font-bold text-white shadow-lg transition hover:bg-[#479de9] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {setupSaving ? 'Saving…' : setupIsNew ? 'Start Building →' : 'Save Changes'}
                     </button>
