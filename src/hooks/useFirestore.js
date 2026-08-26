@@ -12,7 +12,8 @@ import {
   onSnapshot,
   query,
   collectionGroup,
-  orderBy
+  orderBy,
+  where
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -23,23 +24,44 @@ export const uploadFile = async (path, file) => {
   return await getDownloadURL(storageRef);
 };
 
-export function useBuildings() {
+// Standalone document mutation helpers (no snapshot listeners attached)
+export const updateUnitDoc = async (unitRef, data) => {
+  await updateDoc(unitRef, data);
+};
+
+export const addUnitDoc = async (buildingId, data) => {
+  return await addDoc(collection(db, "buildings", buildingId, "units"), data);
+};
+
+export const deleteUnitDoc = async (unitRef) => {
+  await deleteDoc(unitRef);
+};
+
+export function useBuildings(userId) {
   const [buildings, setBuildings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, "buildings"), orderBy("created_at", "desc"));
+    // Fetch all buildings and filter in JS to ensure legacy buildings (without user_id) are still retrieved
+    const q = query(collection(db, "buildings"));
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(b => !userId || b.user_id === userId || !b.user_id); // Include user docs + legacy demo docs
+      
+      // Sort by created_at desc in JS to avoid needing complex composite index in GCP console
+      data.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
       setBuildings(data);
       setLoading(false);
     });
     return unsubscribe;
-  }, []);
+  }, [userId]);
 
   const addBuilding = async (buildingData) => {
     const data = {
       ...buildingData,
+      user_id: userId || buildingData.user_id || null,
       created_at: new Date().toISOString()
     };
     const docRef = await addDoc(collection(db, "buildings"), data);
@@ -63,13 +85,13 @@ export function useBuildings() {
         depth: 3.0,
         height: defaultH,
         tenant: null,
-        buildingId: docRef.id
+        buildingId: docRef.id,
+        user_id: userId || null
       });
     } else {
       for (let f = 1; f <= floors; f++) {
         for (let u = 1; u <= units_per_floor; u++) {
           const unitLabel = `${String.fromCharCode(64 + f)}${u}`; // A1, A2, etc.
-          // Position them side-by-side along X, centered around 0
           const xOffset = (u - 1 - (units_per_floor - 1) / 2) * (defaultW + 0.4);
           await addDoc(collection(db, "buildings", docRef.id, "units"), {
             unit_label: unitLabel,
@@ -82,7 +104,8 @@ export function useBuildings() {
             depth: defaultD,
             height: defaultH,
             tenant: null,
-            buildingId: docRef.id
+            buildingId: docRef.id,
+            user_id: userId || null
           });
         }
       }
@@ -104,30 +127,40 @@ export function useBuildings() {
   return { buildings, loading, addBuilding, updateBuilding, deleteBuilding };
 }
 
-export function useAllUnits() {
+export function useAllUnits(userId) {
   const [units, setUnits] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Fetch all units from collectionGroup.
+    // We remove the where() clause here to bypass the Firebase index requirement, 
+    // and instead rely on the JS .filter() below.
     const q = query(collectionGroup(db, "units"));
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ref: doc.ref,
-        ...doc.data()
-      }));
+      const data = snapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ref: doc.ref,
+          ...doc.data()
+        }))
+        .filter(u => !userId || u.user_id === userId || !u.user_id);
+
       setUnits(data);
       setLoading(false);
     });
     return unsubscribe;
-  }, []);
+  }, [userId]);
 
   const updateUnit = async (unitRef, data) => {
     await updateDoc(unitRef, data);
   };
 
   const addUnit = async (buildingId, data) => {
-    return await addDoc(collection(db, "buildings", buildingId, "units"), data);
+    return await addDoc(collection(db, "buildings", buildingId, "units"), {
+      ...data,
+      user_id: userId || data.user_id || null
+    });
   };
 
   const deleteUnit = async (unitRef) => {
@@ -162,3 +195,149 @@ export function useBuildingUnits(buildingId) {
 
   return { units, loading };
 }
+
+// ─── Staff Hooks ──────────────────────────────────────────────────────────────
+
+export function useStaff(userId, buildingId) {
+  const [staff, setStaff] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!userId) { setStaff([]); setLoading(false); return; }
+    const q = query(collection(db, "staff"), where("user_id", "==", userId));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      let data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (buildingId) {
+        data = data.filter(s =>
+          !s.assigned_properties || s.assigned_properties.length === 0 ||
+          s.assigned_properties.includes(buildingId)
+        );
+      }
+      data.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+      setStaff(data);
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, [userId, buildingId]);
+
+  return { staff, loading };
+}
+
+export function useStaffErrands(staffId) {
+  const [errands, setErrands] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!staffId) { setErrands([]); setLoading(false); return; }
+    const q = query(collection(db, "errands"), where("staff_id", "==", staffId));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+      setErrands(data);
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, [staffId]);
+
+  return { errands, loading };
+}
+
+export const addStaffDoc = async (data) => {
+  return await addDoc(collection(db, "staff"), {
+    ...data,
+    petty_cash_balance: 0,
+    created_at: new Date().toISOString(),
+  });
+};
+
+export const updateStaffDoc = async (staffId, data) => {
+  await updateDoc(doc(db, "staff", staffId), data);
+};
+
+export const deleteStaffDoc = async (staffId) => {
+  await deleteDoc(doc(db, "staff", staffId));
+};
+
+export const addErrandDoc = async (data) => {
+  return await addDoc(collection(db, "errands"), {
+    ...data,
+    created_at: new Date().toISOString(),
+  });
+};
+
+export const updateErrandDoc = async (errandId, data) => {
+  await updateDoc(doc(db, "errands", errandId), data);
+};
+
+export const deleteErrandDoc = async (errandId) => {
+  await deleteDoc(doc(db, "errands", errandId));
+};
+
+export const giveCashAdvance = async (staffId, amount, title, userId) => {
+  const date = new Date().toISOString().split("T")[0];
+  await addDoc(collection(db, "errands"), {
+    staff_id: staffId,
+    user_id: userId,
+    type: "cash_advance",
+    title: title || "Cash Advance",
+    date,
+    amount: Number(amount),
+    is_paid: false,
+    receipt_url: null,
+    created_at: new Date().toISOString(),
+  });
+  const staffRef = doc(db, "staff", staffId);
+  const staffSnap = await getDoc(staffRef);
+  if (staffSnap.exists()) {
+    const current = staffSnap.data().petty_cash_balance || 0;
+    await updateDoc(staffRef, { petty_cash_balance: current + Number(amount) });
+  }
+};
+
+export const settleStaffLedger = async (staffId, errandIds) => {
+  const updates = errandIds.map(id => updateDoc(doc(db, "errands", id), { is_paid: true }));
+  await Promise.all(updates);
+  await updateDoc(doc(db, "staff", staffId), { petty_cash_balance: 0 });
+};
+
+// ─── Maintenance Hooks ────────────────────────────────────────────────────────
+
+export function useMaintenanceTickets(buildingId) {
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!buildingId) { setTickets([]); setLoading(false); return; }
+    const q = query(collection(db, "maintenance"), where("building_id", "==", buildingId));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+      setTickets(data);
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, [buildingId]);
+
+  return { tickets, loading };
+}
+
+export const addMaintenanceTicketDoc = async (data) => {
+  return await addDoc(collection(db, "maintenance"), {
+    ...data,
+    status: data.status || "reported",
+    is_paid: false,
+    receipt_urls: data.receipt_urls || [],
+    created_at: new Date().toISOString(),
+  });
+};
+
+export const updateMaintenanceTicketDoc = async (ticketId, data) => {
+  await updateDoc(doc(db, "maintenance", ticketId), data);
+};
+
+export const deleteMaintenanceTicketDoc = async (ticketId) => {
+  await deleteDoc(doc(db, "maintenance", ticketId));
+};
+

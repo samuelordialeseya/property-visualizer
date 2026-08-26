@@ -14,8 +14,8 @@ import UnitPanel from "@/components/UnitPanel";
 
 export default function Home() {
   const { user, loading: authLoading, logout } = useAuth();
-  const { buildings, addBuilding, updateBuilding, deleteBuilding } = useBuildings();
-  const { units, updateUnit, addUnit, deleteUnit } = useAllUnits();
+  const { buildings, addBuilding, updateBuilding, deleteBuilding } = useBuildings(user?.uid);
+  const { units, updateUnit, addUnit, deleteUnit } = useAllUnits(user?.uid);
 
   const [activeView, setActiveView] = useState("dashboard");
   const [selectedBuildingId, setSelectedBuildingId] = useState(null);
@@ -114,6 +114,8 @@ export default function Home() {
           <PropertyDetail
             building={selectedBuilding}
             units={buildingUnits}
+            buildings={buildings}
+            userId={user?.uid}
             updateUnit={updateUnit}
             onLaunch3D={() => handleSetActiveView("3d_view")}
             onDeleteProperty={async () => {
@@ -158,6 +160,9 @@ export default function Home() {
                     height: room.height,
                     rotation: room.rotation || 0,
                     roof_type: room.roof_type || 'flat',
+                    material_type: room.material_type || 'stucco',
+                    texture_url: room.texture_url || null,
+                    wall_color: room.wall_color || '#4a5a66',
                     tenant: room.tenant,
                     buildingId: selectedBuilding.id
                   };

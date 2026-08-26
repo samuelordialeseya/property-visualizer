@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useAllUnits, uploadFile } from "@/hooks/useFirestore";
-import { Pencil, X, Check, Plus, CreditCard, ChevronDown, ChevronUp, User } from "lucide-react";
+import { updateUnitDoc, uploadFile, useMaintenanceTickets } from "@/hooks/useFirestore";
+import { Pencil, X, Check, Plus, CreditCard, ChevronDown, ChevronUp, User, Wrench, Zap, Droplets, Wifi, Car, Trash2, Building2, Receipt, MoreHorizontal } from "lucide-react";
 
 const STATUS_OPTIONS = [
   { value: "vacant",   label: "Vacant",         pill: "bg-zinc-100 text-zinc-600 border-zinc-200",  dot: "bg-zinc-400" },
@@ -16,6 +16,16 @@ const PAYMENT_TYPES = [
   { value: "maintenance",  label: "Maintenance / Repair" },
   { value: "late_fee",     label: "Late Fee" },
   { value: "other",        label: "Other" },
+];
+
+const BILL_TYPES = [
+  { value: "electric",   label: "Electric",         icon: Zap,          color: "text-yellow-600", bg: "bg-yellow-50" },
+  { value: "water",      label: "Water",            icon: Droplets,     color: "text-sky-600",    bg: "bg-sky-50" },
+  { value: "internet",   label: "Internet / Cable", icon: Wifi,         color: "text-indigo-600", bg: "bg-indigo-50" },
+  { value: "parking",    label: "Parking",          icon: Car,          color: "text-zinc-600",   bg: "bg-zinc-100" },
+  { value: "dues",       label: "Association Dues", icon: Building2,    color: "text-purple-600", bg: "bg-purple-50" },
+  { value: "garbage",    label: "Garbage / Waste",  icon: Trash2,       color: "text-green-600",  bg: "bg-green-50" },
+  { value: "other",      label: "Other",            icon: Receipt,      color: "text-zinc-500",   bg: "bg-zinc-50" },
 ];
 
 const currentYear  = new Date().getFullYear();
@@ -90,10 +100,13 @@ function Field({ label, value, fallback = "—" }) {
 }
 
 export default function UnitPanel({ unit, onClose, isDrawerMode }) {
-  const { updateUnit } = useAllUnits();
+  const updateUnit = updateUnitDoc;
 
   // ── Edit mode state ───────────────────────────────────────────────────────
   const [isEditing, setIsEditing] = useState(false);
+
+  // ── Unit fields ───────────────────────────────────────────────────────────
+  const [unitLabel,     setUnitLabel]     = useState("");
 
   // ── Tenant fields ─────────────────────────────────────────────────────────
   const [status,        setStatus]        = useState("vacant");
@@ -107,6 +120,17 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
   const [rentDueDate,   setRentDueDate]   = useState("1");
   const [tenantPhotoUrl, setTenantPhotoUrl] = useState("");
   const [photoFile,     setPhotoFile]     = useState(null);
+
+  // ── Smart Bills ────────────────────────────────────────────────────────────
+  const [smartBills,    setSmartBills]    = useState([]);
+  const [showBillForm,  setShowBillForm]  = useState(false);
+  const [billType,      setBillType]      = useState("electric");
+  const [billLabel,     setBillLabel]     = useState("");
+  const [billAmount,    setBillAmount]    = useState("");
+  const [billFreq,      setBillFreq]      = useState("monthly");
+  const [billNotes,     setBillNotes]     = useState("");
+  const [billSaving,    setBillSaving]    = useState(false);
+  const [editBillId,    setEditBillId]    = useState(null);
 
   // ── Payment history ───────────────────────────────────────────────────────
   const [paymentHistory, setPaymentHistory] = useState([]); // [{id, month, year, amount, method, date_paid, screenshot_url}]
@@ -130,6 +154,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
   // ── Sync from unit prop ───────────────────────────────────────────────────
   useEffect(() => {
     if (unit) {
+      setUnitLabel(unit.unit_label ?? "");
       setStatus(unit.status || "vacant");
       setRent(unit.monthly_rent ?? "");
       setTenantName(unit.tenant?.name ?? "");
@@ -142,12 +167,18 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
       setTenantPhotoUrl(unit.tenant?.tenant_photo_url ?? "");
       setPhotoFile(null);
       setPaymentHistory(unit.payment_history ?? []);
+      setSmartBills(unit.smart_bills ?? []);
       setIsEditing(false);
       setShowPayForm(false);
+      setShowBillForm(false);
     }
   }, [unit]);
 
-  // ── Save tenant details ───────────────────────────────────────────────────
+  // ── Maintenance Tickets for this unit ──────────────────────────────────────
+  const { tickets } = useMaintenanceTickets(unit?.buildingId);
+  const unitTickets = tickets.filter(t => t.unitId === unit?.id);
+
+  // ── Save tenant & unit details ────────────────────────────────────────────
   const handleSave = async (e) => {
     e.preventDefault();
     if (!unit) return;
@@ -159,6 +190,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
     }
 
     await updateUnit(unit.ref, {
+      unit_label: unitLabel.trim() || unit.unit_label || "101",
       status,
       monthly_rent: Number(rent) || 0,
       tenant: status === "vacant" ? null : {
@@ -171,6 +203,46 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
     });
     setSaving(false);
     setIsEditing(false);
+  };
+
+  // ── Smart Bill helpers ────────────────────────────────────────────────────
+  const handleAddBill = async (e) => {
+    e.preventDefault();
+    setBillSaving(true);
+    const cfg = BILL_TYPES.find(b => b.value === billType);
+    const newBill = {
+      id: `bill-${Date.now()}`,
+      type: billType,
+      label: billLabel.trim() || cfg?.label || "Bill",
+      amount: Number(billAmount) || 0,
+      frequency: billFreq,
+      notes: billNotes.trim(),
+      created_at: new Date().toISOString(),
+    };
+    const updated = editBillId
+      ? smartBills.map(b => b.id === editBillId ? { ...newBill, id: editBillId } : b)
+      : [...smartBills, newBill];
+    await updateUnit(unit.ref, { smart_bills: updated });
+    setSmartBills(updated);
+    setBillLabel(""); setBillAmount(""); setBillNotes(""); setBillFreq("monthly"); setBillType("electric");
+    setShowBillForm(false); setEditBillId(null); setBillSaving(false);
+  };
+
+  const handleDeleteBill = async (billId) => {
+    if (!confirm("Remove this bill?")) return;
+    const updated = smartBills.filter(b => b.id !== billId);
+    await updateUnit(unit.ref, { smart_bills: updated });
+    setSmartBills(updated);
+  };
+
+  const handleEditBill = (bill) => {
+    setEditBillId(bill.id);
+    setBillType(bill.type);
+    setBillLabel(bill.label);
+    setBillAmount(String(bill.amount));
+    setBillFreq(bill.frequency || "monthly");
+    setBillNotes(bill.notes || "");
+    setShowBillForm(true);
   };
 
   // ── Record a payment ──────────────────────────────────────────────────────
@@ -227,8 +299,8 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
   const curStatus = STATUS_OPTIONS.find((s) => s.value === status) || STATUS_OPTIONS[0];
   const displayPhoto = photoFile ? URL.createObjectURL(photoFile) : tenantPhotoUrl;
 
-  const floatingClasses = "absolute top-8 bottom-8 right-10 z-50 w-96 rounded-2xl border border-zinc-200 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.25)]";
-  const drawerClasses = "fixed top-0 right-0 h-full w-[420px] shadow-2xl z-50 transition-transform border-l border-zinc-200";
+  const floatingClasses = "absolute top-8 bottom-8 right-10 z-[999] w-96 rounded-2xl border border-zinc-200 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.25)]";
+  const drawerClasses = "fixed top-0 right-0 h-full w-[420px] shadow-2xl z-[999] transition-transform border-l border-zinc-200";
 
   return (
     <>
@@ -250,7 +322,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
           )}
           <div>
             <div className="text-[17px] font-semibold leading-tight text-zinc-900">
-              Unit {unit.unit_label}
+              {unit.unit_label || "Unnamed Unit"}
             </div>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className={`h-1.5 w-1.5 rounded-full ${curStatus.dot}`} />
@@ -291,21 +363,35 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
         {/* ── READ-ONLY VIEW ─────────────────────────────────────────────── */}
         {!isEditing && (
           <>
-            {/* Rent */}
-            <div className="rounded-xl bg-[var(--color-blue-50)] shadow-md shadow-[var(--color-blue-100)] px-4 py-3 flex items-center justify-between">
-              <div>
-                <div className="text-[10px] font-semibold tracking-[0.08em] text-[var(--color-blue-600)] uppercase">Monthly Rent</div>
-                <div className="text-[22px] font-bold text-[var(--color-blue-700)] leading-tight">
-                  ₱{(Number(unit.monthly_rent) || 0).toLocaleString()}
+            {/* Rent + Smart Bill total */}
+            {(() => {
+              const monthlyExtras = smartBills.filter(b => b.frequency === "monthly").reduce((s, b) => s + (b.amount || 0), 0);
+              const totalMonthly = (Number(unit.monthly_rent) || 0) + monthlyExtras;
+              return (
+                <div className="rounded-xl bg-[var(--color-blue-50)] shadow-md shadow-[var(--color-blue-100)] px-4 py-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-[10px] font-semibold tracking-[0.08em] text-[var(--color-blue-600)] uppercase">Monthly Rent</div>
+                      <div className="text-[22px] font-bold text-[var(--color-blue-700)] leading-tight">
+                        ₱{(Number(unit.monthly_rent) || 0).toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="text-right flex flex-col items-end gap-1">
+                      <div className="text-[10px] font-semibold tracking-[0.08em] text-[var(--color-blue-600)] uppercase">Due Day</div>
+                      <div className="text-[15px] font-semibold text-[var(--color-blue-700)]">
+                        {unit.tenant?.rent_due_date ? `Day ${unit.tenant.rent_due_date}` : "—"}
+                      </div>
+                    </div>
+                  </div>
+                  {monthlyExtras > 0 && (
+                    <div className="mt-2.5 pt-2.5 border-t border-[var(--color-blue-200)] flex items-center justify-between">
+                      <div className="text-[10px] text-[var(--color-blue-600)] font-semibold uppercase tracking-wide">Total w/ Bills</div>
+                      <div className="text-[14px] font-bold text-[var(--color-blue-800)]">₱{totalMonthly.toLocaleString()}<span className="text-[10px] font-medium text-[var(--color-blue-500)] ml-1">(+₱{monthlyExtras.toLocaleString()} extras)</span></div>
+                    </div>
+                  )}
                 </div>
-              </div>
-              <div className="text-right">
-                <div className="text-[10px] font-semibold tracking-[0.08em] text-[var(--color-blue-600)] uppercase">Due Day</div>
-                <div className="text-[15px] font-semibold text-[var(--color-blue-700)]">
-                  {unit.tenant?.rent_due_date ? `Day ${unit.tenant.rent_due_date}` : "—"}
-                </div>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* Tenant info */}
             {unit.status !== "vacant" && unit.tenant ? (
@@ -324,6 +410,149 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
             ) : (
               <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-6 text-center text-[13px] text-zinc-400">
                 No tenant assigned. Click <strong>Edit</strong> to add one.
+              </div>
+            )}
+
+            {/* ── SMART BILLS ──────────────────────────────────────────── */}
+            {unit.status !== "vacant" && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-[12px] font-semibold tracking-[0.06em] text-zinc-500 uppercase flex items-center gap-1.5">
+                    <CreditCard size={13} className="text-zinc-400" /> Smart Bills
+                  </div>
+                  <button
+                    onClick={() => { setShowBillForm(v => !v); setEditBillId(null); setBillLabel(""); setBillAmount(""); setBillNotes(""); setBillFreq("monthly"); setBillType("electric"); }}
+                    className="flex items-center gap-1 rounded-full bg-zinc-100 hover:bg-zinc-200 px-3 py-1 text-[11px] font-semibold text-zinc-600 transition"
+                  >
+                    <Plus size={11} />{showBillForm && !editBillId ? "Cancel" : "Add Bill"}
+                  </button>
+                </div>
+
+                {/* Add / Edit Bill Form */}
+                {showBillForm && (
+                  <form onSubmit={handleAddBill} className="mb-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 space-y-3">
+                    <div className="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider">
+                      {editBillId ? "Edit Bill" : "New Smart Bill"}
+                    </div>
+
+                    {/* Bill type picker */}
+                    <div>
+                      <label className="mb-1.5 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Bill Type</label>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {BILL_TYPES.map(bt => {
+                          const Icon = bt.icon;
+                          return (
+                            <button key={bt.value} type="button" onClick={() => { setBillType(bt.value); if (!billLabel || BILL_TYPES.find(x => x.label === billLabel)) setBillLabel(bt.label); }}
+                              className={`flex flex-col items-center gap-1 py-2 rounded-xl border text-center transition text-[9.5px] font-semibold ${
+                                billType === bt.value
+                                  ? `${bt.bg} border-current ${bt.color} ring-1 ring-current`
+                                  : "border-zinc-200 bg-white text-zinc-500 hover:bg-zinc-50"
+                              }`}>
+                              <Icon size={14} />{bt.label.split(" ")[0]}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Label override */}
+                    <div>
+                      <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Bill Name / Label</label>
+                      <input type="text" required value={billLabel} onChange={e => setBillLabel(e.target.value)}
+                        placeholder="e.g. Meralco, MAYNILAD, PLDT"
+                        className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)] transition" />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {/* Amount */}
+                      <div>
+                        <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Amount (₱)</label>
+                        <input type="number" min="0" required value={billAmount} onChange={e => setBillAmount(e.target.value)}
+                          placeholder="e.g. 1200"
+                          className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)] transition" />
+                      </div>
+                      {/* Frequency */}
+                      <div>
+                        <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Frequency</label>
+                        <div className="flex gap-1.5 h-[34px]">
+                          {[["monthly","Monthly"],["once","One-time"]].map(([v,l]) => (
+                            <button key={v} type="button" onClick={() => setBillFreq(v)}
+                              className={`flex-1 rounded-xl text-[11px] font-semibold border transition ${
+                                billFreq === v ? "bg-[#0b3860] text-white border-[#0b3860]" : "border-zinc-200 bg-white text-zinc-500 hover:bg-zinc-50"
+                              }`}>{l}</button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Notes */}
+                    <div>
+                      <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Notes (optional)</label>
+                      <input type="text" value={billNotes} onChange={e => setBillNotes(e.target.value)}
+                        placeholder="e.g. Separate meter, included in rent…"
+                        className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)] transition" />
+                    </div>
+
+                    <div className="flex gap-2 pt-1">
+                      <button type="submit" disabled={billSaving}
+                        className="flex-1 rounded-xl bg-[var(--color-blue-600)] py-2 text-[12px] font-semibold text-white hover:bg-[var(--color-blue-700)] transition disabled:opacity-50">
+                        {billSaving ? "Saving…" : editBillId ? "Update Bill" : "Add Bill"}
+                      </button>
+                      <button type="button" onClick={() => { setShowBillForm(false); setEditBillId(null); }}
+                        className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-500 hover:bg-zinc-50">
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* Bills List */}
+                {smartBills.length === 0 && !showBillForm ? (
+                  <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-4 text-center text-[12px] text-zinc-400">
+                    No extra bills added. Click <strong>Add Bill</strong> to track electric, water, etc.
+                  </div>
+                ) : smartBills.length > 0 && (
+                  <div className="space-y-1.5">
+                    {smartBills.map(bill => {
+                      const cfg = BILL_TYPES.find(b => b.value === bill.type) || BILL_TYPES[BILL_TYPES.length - 1];
+                      const Icon = cfg.icon;
+                      return (
+                        <div key={bill.id} className="flex items-center gap-3 rounded-xl border border-zinc-100 bg-white px-3 py-2.5 hover:border-zinc-200 transition group">
+                          <div className={`p-1.5 rounded-lg ${cfg.bg} shrink-0`}>
+                            <Icon size={13} className={cfg.color} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[13px] font-semibold text-zinc-900 leading-tight truncate">{bill.label}</div>
+                            {bill.notes && <div className="text-[10px] text-zinc-400 truncate">{bill.notes}</div>}
+                          </div>
+                          <div className="text-right shrink-0">
+                            <div className="text-[13px] font-bold text-zinc-800">₱{(bill.amount || 0).toLocaleString()}</div>
+                            <span className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded-full ${
+                              bill.frequency === "monthly" ? "bg-blue-50 text-blue-600" : "bg-zinc-100 text-zinc-500"
+                            }`}>{bill.frequency === "monthly" ? "Monthly" : "One-time"}</span>
+                          </div>
+                          <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition">
+                            <button onClick={() => handleEditBill(bill)} className="p-1 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 transition" title="Edit">
+                              <Pencil size={11} />
+                            </button>
+                            <button onClick={() => handleDeleteBill(bill.id)} className="p-1 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-500 transition" title="Remove">
+                              <X size={11} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {/* Monthly total row */}
+                    {smartBills.some(b => b.frequency === "monthly") && (
+                      <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-100 mt-1">
+                        <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wide">Total Monthly Bills</span>
+                        <span className="text-[13px] font-bold text-zinc-800">
+                          ₱{smartBills.filter(b => b.frequency === "monthly").reduce((s, b) => s + (b.amount || 0), 0).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -563,12 +792,59 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
                 })()}
               </div>
             )}
+
+            {/* ── MAINTENANCE TICKETS ──────────────────────────────────────── */}
+            {unit.status !== "vacant" && (
+              <div>
+                <div className="flex items-center justify-between mb-3 mt-6 border-t border-zinc-100 pt-6">
+                  <div className="text-[12px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Active Maintenance</div>
+                </div>
+                {unitTickets.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-4 text-center text-[12px] text-zinc-400">
+                    No active tickets.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {unitTickets.map(t => (
+                      <div key={t.id} className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[13px] font-semibold text-zinc-900">{t.title}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            t.status === 'open' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                          }`}>
+                            {t.status}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-zinc-500 mb-2">{t.description}</div>
+                        {t.assigned_to && (
+                          <div className="text-[10px] font-medium text-zinc-400">Assigned: {t.assigned_to_name}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </>
         )}
 
         {/* ── EDIT MODE ──────────────────────────────────────────────────── */}
         {isEditing && (
           <form id="unit-form" onSubmit={handleSave} className="space-y-5">
+            {/* Unit Name / Number */}
+            <div>
+              <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.08em] text-zinc-500 uppercase">UNIT NAME / NUMBER</label>
+              <input
+                type="text"
+                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-[14px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] focus:bg-white transition"
+                value={unitLabel}
+                onChange={(e) => setUnitLabel(e.target.value)}
+                placeholder="e.g. 101, A-1, Studio B, Penthouse, Room 4"
+                required
+              />
+              <p className="mt-1 text-[11px] text-zinc-400">Can be any format (numbers, letters, custom room names)</p>
+            </div>
+
             {/* Status */}
             <div>
               <label className="mb-2 block text-[11px] font-semibold tracking-[0.08em] text-zinc-500">STATUS</label>

@@ -17,5 +17,16 @@ service cloud.firestore {
     match /{path=**}/units/{unitId} {
       allow read, write: if request.auth != null;
     }
+
+    // Operations & Maintenance Suite
+    match /staff/{staffId} {
+      allow read, write: if request.auth != null;
+    }
+    match /errands/{errandId} {
+      allow read, write: if request.auth != null;
+    }
+    match /maintenance/{ticketId} {
+      allow read, write: if request.auth != null;
+    }
   }
 }

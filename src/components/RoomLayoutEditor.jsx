@@ -3,12 +3,15 @@ import { useState, useRef, useEffect } from "react";
 import { useThree } from "@react-three/fiber";
 import { Edges } from "@react-three/drei";
 import * as THREE from "three";
+import { applyMaterialToRef } from "@/lib/textureGenerator";
 
 const UNIT_H = 2.2;
 const MIN_DIM = 1.0;
 const GRID_SNAP = 0.5;
 const ADJACENCY_THR = 0.14;  // within this distance → walls are "touching"
 const MAGNET_SNAP = 0.9;     // snap-to-edge radius while dragging
+
+const STATUS_COLOR = { occupied: "#d98a53", overdue: "#e05c5c", vacant: "#6e8592" };
 
 function snapV(v) {
   return Math.round(v / GRID_SNAP) * GRID_SNAP;
@@ -86,7 +89,6 @@ function WallArrow({ pos, dir, onDragStart }) {
   const [hov, setHov] = useState(false);
 
   // Cone default points UP (+Y). Rotate so it points in `dir`.
-  // dir: "E" (+X), "W" (-X), "S" (+Z), "N" (-Z)
   const rotMap = {
     E: [0, 0, -Math.PI / 2],
     W: [0, 0, Math.PI / 2],
@@ -110,6 +112,152 @@ function WallArrow({ pos, dir, onDragStart }) {
         roughness={0.3}
       />
     </mesh>
+  );
+}
+
+function EditableRoom({ room, isSelected, rooms, startMoveDrag, startWallDrag, setDragState }) {
+  const floor = room.floor || 1;
+  const yOff = (floor - 1) * (UNIT_H + 0.11);
+  const h = room.height || UNIT_H;
+  const rot = room.rotation || 0;
+  const rad = (rot * Math.PI) / 180;
+  const isRotated = rot === 90 || rot === 270;
+  const localW = isRotated ? room.depth : room.width;
+  const localD = isRotated ? room.width : room.depth;
+  const bw = localW - 0.05;
+  const bh = h - 0.05;
+  const bd = localD - 0.05;
+
+  const x1 = room.x - room.width / 2;
+  const x2 = room.x + room.width / 2;
+  const z1 = room.z - room.depth / 2;
+  const z2 = room.z + room.depth / 2;
+
+  const shared = getSharedWalls(room, rooms);
+  const arrowY = yOff + h * 0.55;
+  const aSep = 0.5; // arrow separation from face
+
+  const wallArrows = [
+    { dir: "E", pos: [x2 + aSep, arrowY, room.z], show: !shared.E },
+    { dir: "W", pos: [x1 - aSep, arrowY, room.z], show: !shared.W },
+    { dir: "S", pos: [room.x, arrowY, z2 + aSep], show: !shared.S },
+    { dir: "N", pos: [room.x, arrowY, z1 - aSep], show: !shared.N },
+  ];
+
+  // ── Material & Skinning
+  const matRef = useRef();
+
+  useEffect(() => {
+    const repeatX = Math.max(1, (room.width || 2.6) / 1.6);
+    const repeatY = Math.max(1, (room.height || 2.2) / 1.6);
+    applyMaterialToRef(matRef.current, room.material_type, room.texture_url, repeatX, repeatY, room.wall_color);
+  }, [room.texture_url, room.material_type, room.width, room.height, room.wall_color, isSelected]);
+
+  const isDefaultColor = !room.wall_color || room.wall_color === '#4a5a66';
+  const baseColor = isDefaultColor ? (isSelected ? "#5c6f7c" : "#4a5a66") : room.wall_color;
+
+  return (
+    <group>
+      {/* ── Room body ───────────────────────────────────────── */}
+      <group position={[room.x, yOff + h / 2, room.z]} rotation={[0, rad, 0]}>
+        <mesh
+          castShadow
+          receiveShadow
+          onPointerDown={(e) => startMoveDrag(e, room.id)}
+        >
+          <boxGeometry args={[bw, bh, bd]} />
+          <meshStandardMaterial
+            ref={matRef}
+            emissive={isSelected ? "#32b883" : "#000"}
+            emissiveIntensity={isSelected ? 0.18 : 0}
+          />
+          {isSelected && <Edges scale={1.008} threshold={15} color="#32b883" />}
+        </mesh>
+        {/* Door orientation marker */}
+        <mesh position={[0, -bh / 2 + 0.5, bd / 2 + 0.03]}>
+          <planeGeometry args={[0.55, 1.0]} />
+          <meshStandardMaterial color={isSelected ? "#32b883" : "#479de9"} roughness={0.5} side={THREE.DoubleSide} />
+        </mesh>
+      </group>
+
+      {/* ── Status strip at base ─────────────────────────────── */}
+      <mesh position={[room.x, yOff + 0.07, room.z]}>
+        <boxGeometry args={[room.width - 0.02, 0.14, room.depth - 0.02]} />
+        <meshStandardMaterial color={STATUS_COLOR[room.status] || STATUS_COLOR.vacant} roughness={0.6} />
+      </mesh>
+
+      {/* ── Roof ───────────────────────────────────── */}
+      {room.roof_type === 'triangle' ? (
+        <group position={[room.x, yOff + h, room.z]}>
+          <mesh position={[0, 0.055, 0]} castShadow receiveShadow>
+            <boxGeometry args={[room.width + 0.2, 0.11, room.depth + 0.2]} />
+            <meshStandardMaterial color="#36434d" roughness={0.9} />
+          </mesh>
+          <mesh position={[0, 0.11 + 0.5, 0]} castShadow receiveShadow rotation={[0, Math.PI / 4, 0]} scale={[(room.width + 0.2) / Math.SQRT2, 1, (room.depth + 0.2) / Math.SQRT2]}>
+            <coneGeometry args={[1, 1, 4]} />
+            <meshStandardMaterial color="#36434d" roughness={0.9} />
+          </mesh>
+        </group>
+      ) : (
+        <mesh position={[room.x, yOff + h + 0.055, room.z]} castShadow receiveShadow>
+          <boxGeometry args={[room.width + 0.2, 0.11, room.depth + 0.2]} />
+          <meshStandardMaterial color="#36434d" roughness={0.9} />
+        </mesh>
+      )}
+
+      {/* ── Shared-wall "seam" highlight (visual lock indicator) ── */}
+      {shared.E && (
+        <mesh position={[x2, yOff + h / 2, room.z]} rotation={[0, 0, 0]}>
+          <boxGeometry args={[0.04, h * 0.9, room.depth * 0.85]} />
+          <meshStandardMaterial color="#32b883" roughness={0.5} emissive="#32b883" emissiveIntensity={0.25} />
+        </mesh>
+      )}
+      {shared.W && (
+        <mesh position={[x1, yOff + h / 2, room.z]}>
+          <boxGeometry args={[0.04, h * 0.9, room.depth * 0.85]} />
+          <meshStandardMaterial color="#32b883" roughness={0.5} emissive="#32b883" emissiveIntensity={0.25} />
+        </mesh>
+      )}
+      {shared.S && (
+        <mesh position={[room.x, yOff + h / 2, z2]}>
+          <boxGeometry args={[room.width * 0.85, h * 0.9, 0.04]} />
+          <meshStandardMaterial color="#32b883" roughness={0.5} emissive="#32b883" emissiveIntensity={0.25} />
+        </mesh>
+      )}
+      {shared.N && (
+        <mesh position={[room.x, yOff + h / 2, z1]}>
+          <boxGeometry args={[room.width * 0.85, h * 0.9, 0.04]} />
+          <meshStandardMaterial color="#32b883" roughness={0.5} emissive="#32b883" emissiveIntensity={0.25} />
+        </mesh>
+      )}
+
+      {/* ── Wall expand arrows (selected room, exterior walls only) ─ */}
+      {isSelected && wallArrows.map(({ dir, pos, show }) =>
+        show && (
+          <WallArrow
+            key={dir}
+            pos={pos}
+            dir={dir}
+            onDragStart={(e) => startWallDrag(e, room.id, dir)}
+          />
+        )
+      )}
+
+      {/* ── Height handle (top cone) ─────────────────────────── */}
+      {isSelected && (
+        <mesh
+          position={[room.x, yOff + h + 0.35, room.z]}
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            setDragState({ roomId: room.id, type: "height" });
+            e.target.setPointerCapture(e.pointerId);
+          }}
+        >
+          <coneGeometry args={[0.18, 0.45, 8]} />
+          <meshStandardMaterial color="#a5d8c0" emissive="#32b883" emissiveIntensity={0.4} roughness={0.3} />
+        </mesh>
+      )}
+    </group>
   );
 }
 
@@ -182,7 +330,6 @@ export default function RoomLayoutEditor({ rooms, onChange, selectedRoomId, onSe
 
       if (wall === "E") {
         x2 = Math.max(sx, x1 + MIN_DIM);
-        // magnet to neighbouring west edges
         for (const o of rooms) {
           if (o.id === roomId || (o.floor || 1) !== (room.floor || 1)) continue;
           const ox1 = o.x - o.width / 2;
@@ -244,8 +391,6 @@ export default function RoomLayoutEditor({ rooms, onChange, selectedRoomId, onSe
     }
   };
 
-  const STATUS_COLOR = { occupied: "#d98a53", overdue: "#e05c5c", vacant: "#6e8592" };
-
   return (
     <group
       onPointerMove={dragState ? handlePointerMove : undefined}
@@ -257,142 +402,17 @@ export default function RoomLayoutEditor({ rooms, onChange, selectedRoomId, onSe
         <meshBasicMaterial side={THREE.DoubleSide} />
       </mesh>
 
-      {rooms.map((room) => {
-        const isSelected = room.id === selectedRoomId;
-        const floor = room.floor || 1;
-        const yOff = (floor - 1) * (UNIT_H + 0.11);
-        const h = room.height || UNIT_H;
-        const rot = room.rotation || 0;
-        const rad = (rot * Math.PI) / 180;
-        const isRotated = rot === 90 || rot === 270;
-        const localW = isRotated ? room.depth : room.width;
-        const localD = isRotated ? room.width : room.depth;
-        const bw = localW - 0.05;
-        const bh = h - 0.05;
-        const bd = localD - 0.05;
-
-        const x1 = room.x - room.width / 2;
-        const x2 = room.x + room.width / 2;
-        const z1 = room.z - room.depth / 2;
-        const z2 = room.z + room.depth / 2;
-
-        const shared = getSharedWalls(room, rooms);
-        const arrowY = yOff + h * 0.55;
-        const aSep = 0.5; // arrow separation from face
-
-        // Wall arrows — only for non-shared (exterior) walls
-        const wallArrows = [
-          { dir: "E", pos: [x2 + aSep, arrowY, room.z], show: !shared.E },
-          { dir: "W", pos: [x1 - aSep, arrowY, room.z], show: !shared.W },
-          { dir: "S", pos: [room.x, arrowY, z2 + aSep], show: !shared.S },
-          { dir: "N", pos: [room.x, arrowY, z1 - aSep], show: !shared.N },
-        ];
-
-        return (
-          <group key={room.id}>
-            {/* ── Room body ───────────────────────────────────────── */}
-            <group position={[room.x, yOff + h / 2, room.z]} rotation={[0, rad, 0]}>
-              <mesh
-                castShadow
-                receiveShadow
-                onPointerDown={(e) => startMoveDrag(e, room.id)}
-              >
-                <boxGeometry args={[bw, bh, bd]} />
-                <meshStandardMaterial
-                  color={isSelected ? "#5c6f7c" : "#4a5a66"}
-                  roughness={0.82}
-                  emissive={isSelected ? "#32b883" : "#000"}
-                  emissiveIntensity={isSelected ? 0.18 : 0}
-                />
-                {isSelected && <Edges scale={1.008} threshold={15} color="#32b883" />}
-              </mesh>
-              {/* Door orientation marker */}
-              <mesh position={[0, -bh / 2 + 0.5, bd / 2 + 0.03]}>
-                <planeGeometry args={[0.55, 1.0]} />
-                <meshStandardMaterial color={isSelected ? "#32b883" : "#248f65"} roughness={0.5} side={THREE.DoubleSide} />
-              </mesh>
-            </group>
-
-            {/* ── Status strip at base ─────────────────────────────── */}
-            <mesh position={[room.x, yOff + 0.07, room.z]}>
-              <boxGeometry args={[room.width - 0.02, 0.14, room.depth - 0.02]} />
-              <meshStandardMaterial color={STATUS_COLOR[room.status] || STATUS_COLOR.vacant} roughness={0.6} />
-            </mesh>
-
-            {/* ── Roof ───────────────────────────────────── */}
-            {room.roof_type === 'triangle' ? (
-              <group position={[room.x, yOff + h, room.z]}>
-                <mesh position={[0, 0.055, 0]} castShadow receiveShadow>
-                  <boxGeometry args={[room.width + 0.2, 0.11, room.depth + 0.2]} />
-                  <meshStandardMaterial color="#36434d" roughness={0.9} />
-                </mesh>
-                <mesh position={[0, 0.11 + 0.5, 0]} castShadow receiveShadow rotation={[0, Math.PI / 4, 0]} scale={[(room.width + 0.2) / Math.SQRT2, 1, (room.depth + 0.2) / Math.SQRT2]}>
-                  <coneGeometry args={[1, 1, 4]} />
-                  <meshStandardMaterial color="#36434d" roughness={0.9} />
-                </mesh>
-              </group>
-            ) : (
-              <mesh position={[room.x, yOff + h + 0.055, room.z]} castShadow receiveShadow>
-                <boxGeometry args={[room.width + 0.2, 0.11, room.depth + 0.2]} />
-                <meshStandardMaterial color="#36434d" roughness={0.9} />
-              </mesh>
-            )}
-
-            {/* ── Shared-wall "seam" highlight (visual lock indicator) ── */}
-            {shared.E && (
-              <mesh position={[x2, yOff + h / 2, room.z]} rotation={[0, 0, 0]}>
-                <boxGeometry args={[0.04, h * 0.9, room.depth * 0.85]} />
-                <meshStandardMaterial color="#32b883" roughness={0.5} emissive="#32b883" emissiveIntensity={0.25} />
-              </mesh>
-            )}
-            {shared.W && (
-              <mesh position={[x1, yOff + h / 2, room.z]}>
-                <boxGeometry args={[0.04, h * 0.9, room.depth * 0.85]} />
-                <meshStandardMaterial color="#32b883" roughness={0.5} emissive="#32b883" emissiveIntensity={0.25} />
-              </mesh>
-            )}
-            {shared.S && (
-              <mesh position={[room.x, yOff + h / 2, z2]}>
-                <boxGeometry args={[room.width * 0.85, h * 0.9, 0.04]} />
-                <meshStandardMaterial color="#32b883" roughness={0.5} emissive="#32b883" emissiveIntensity={0.25} />
-              </mesh>
-            )}
-            {shared.N && (
-              <mesh position={[room.x, yOff + h / 2, z1]}>
-                <boxGeometry args={[room.width * 0.85, h * 0.9, 0.04]} />
-                <meshStandardMaterial color="#32b883" roughness={0.5} emissive="#32b883" emissiveIntensity={0.25} />
-              </mesh>
-            )}
-
-            {/* ── Wall expand arrows (selected room, exterior walls only) ─ */}
-            {isSelected && wallArrows.map(({ dir, pos, show }) =>
-              show && (
-                <WallArrow
-                  key={dir}
-                  pos={pos}
-                  dir={dir}
-                  onDragStart={(e) => startWallDrag(e, room.id, dir)}
-                />
-              )
-            )}
-
-            {/* ── Height handle (top cone) ─────────────────────────── */}
-            {isSelected && (
-              <mesh
-                position={[room.x, yOff + h + 0.35, room.z]}
-                onPointerDown={(e) => {
-                  e.stopPropagation();
-                  setDragState({ roomId: room.id, type: "height" });
-                  e.target.setPointerCapture(e.pointerId);
-                }}
-              >
-                <coneGeometry args={[0.18, 0.45, 8]} />
-                <meshStandardMaterial color="#a5d8c0" emissive="#32b883" emissiveIntensity={0.4} roughness={0.3} />
-              </mesh>
-            )}
-          </group>
-        );
-      })}
+      {rooms.map((room) => (
+        <EditableRoom 
+          key={room.id}
+          room={room}
+          isSelected={room.id === selectedRoomId}
+          rooms={rooms}
+          startMoveDrag={startMoveDrag}
+          startWallDrag={startWallDrag}
+          setDragState={setDragState}
+        />
+      ))}
     </group>
   );
 }

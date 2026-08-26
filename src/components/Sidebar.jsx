@@ -10,7 +10,7 @@ export default function Sidebar({ activeView, setActiveView, onLogout, collapsed
   return (
     <aside
       className={`relative flex flex-col border-r border-zinc-200 bg-[#f4f4f5] transition-all duration-300 ease-in-out shrink-0 ${
-        collapsed ? "w-[64px]" : "w-64"
+        collapsed ? "w-[80px]" : "w-[280px]"
       }`}
     >
       {/* Toggle button — sits on the edge of the sidebar */}
@@ -23,24 +23,24 @@ export default function Sidebar({ activeView, setActiveView, onLogout, collapsed
 
       {/* Brand */}
       <div
-        className={`flex items-center border-b border-zinc-100 transition-all duration-300 ${
-          collapsed ? "justify-center px-0 py-5" : "gap-3 px-5 py-5"
+        className={`flex items-center transition-all duration-300 ${
+          collapsed ? "justify-center px-0 py-8" : "gap-3 px-6 py-8"
         }`}
       >
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--color-blue-600)] text-white shadow-sm">
-          <Building2 size={18} />
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--color-blue-600)] text-white shadow-sm">
+          <Building2 size={20} />
         </div>
         {!collapsed && (
           <div className="overflow-hidden">
-            <div className="text-[14px] font-semibold leading-tight text-[var(--color-blue-700)] tracking-[-0.01em] whitespace-nowrap">
-              Property<br />Visualizer
+            <div className="text-[16px] font-bold leading-tight text-[var(--color-blue-700)] tracking-tight whitespace-nowrap">
+              Property Visualizer
             </div>
           </div>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className={`flex-1 space-y-1 p-2`}>
+      <nav className={`flex-1 space-y-3 px-4 mt-4`}>
         {navItems.map((item) => {
           const isActive =
             activeView === item.id ||
@@ -51,12 +51,12 @@ export default function Sidebar({ activeView, setActiveView, onLogout, collapsed
               key={item.id}
               onClick={() => setActiveView(item.id)}
               title={collapsed ? item.label : undefined}
-              className={`flex w-full items-center rounded-xl transition text-[14px] font-medium ${
-                collapsed ? "justify-center px-0 py-3" : "gap-3 px-4 py-3"
+              className={`flex w-full items-center rounded-[14px] transition text-[15px] font-medium ${
+                collapsed ? "justify-center px-0 py-3.5" : "gap-4 px-5 py-3.5"
               } ${
                 isActive
-                  ? "bg-[var(--color-blue-50)] text-[var(--color-blue-700)]"
-                  : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
+                  ? "bg-white text-[var(--color-blue-700)] shadow-sm border border-zinc-200/60"
+                  : "text-zinc-500 hover:bg-zinc-200/50 hover:text-zinc-900 border border-transparent"
               }`}
             >
               <Icon
