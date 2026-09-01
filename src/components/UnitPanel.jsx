@@ -99,7 +99,7 @@ function Field({ label, value, fallback = "—" }) {
   );
 }
 
-export default function UnitPanel({ unit, onClose, isDrawerMode }) {
+export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMaintenance }) {
   const updateUnit = updateUnitDoc;
 
   // ── Edit mode state ───────────────────────────────────────────────────────
@@ -176,7 +176,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
 
   // ── Maintenance Tickets for this unit ──────────────────────────────────────
   const { tickets } = useMaintenanceTickets(unit?.buildingId);
-  const unitTickets = tickets.filter(t => t.unitId === unit?.id);
+  const unitTickets = tickets.filter(t => t.unit_id === unit?.id && (t.status !== "settled" || !t.is_paid));
 
   // ── Save tenant & unit details ────────────────────────────────────────────
   const handleSave = async (e) => {
@@ -809,16 +809,38 @@ export default function UnitPanel({ unit, onClose, isDrawerMode }) {
                       <div key={t.id} className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-[13px] font-semibold text-zinc-900">{t.title}</span>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                            t.status === 'open' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
-                          }`}>
-                            {t.status}
-                          </span>
+                          <div className="flex gap-1">
+                            {!t.is_paid && t.billing_type === "separate_tenant_bill" && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200">
+                                UNPAID BILL
+                              </span>
+                            )}
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                              t.status === 'reported' ? 'bg-red-100 text-red-700' :
+                              t.status === 'approved' ? 'bg-amber-100 text-amber-700' :
+                              t.status === 'work_finished' ? 'bg-blue-100 text-blue-700' :
+                              'bg-green-100 text-green-700'
+                            }`}>
+                              {t.status.replace("_", " ")}
+                            </span>
+                          </div>
                         </div>
                         <div className="text-[11px] text-zinc-500 mb-2">{t.description}</div>
-                        {t.assigned_to && (
-                          <div className="text-[10px] font-medium text-zinc-400">Assigned: {t.assigned_to_name}</div>
-                        )}
+                        <div className="flex items-center justify-between">
+                          {t.assigned_to ? (
+                            <div className="text-[10px] font-medium text-zinc-400">Assigned: {t.assigned_to_name}</div>
+                          ) : <div />}
+                          <div className="flex items-center gap-2">
+                            {t.total_cost > 0 && (
+                              <div className="text-[11px] font-bold text-zinc-700">₱{t.total_cost.toLocaleString()}</div>
+                            )}
+                            {onNavigateToMaintenance && !t.is_paid && t.total_cost > 0 && (
+                              <button onClick={onNavigateToMaintenance} className="text-[10px] font-bold bg-[#0b3860] text-white px-2.5 py-1 rounded-full hover:bg-[#154e83] transition">
+                                Pay
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>

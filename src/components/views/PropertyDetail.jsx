@@ -208,7 +208,15 @@ export default function PropertyDetail({ building, units, buildings, updateUnit,
 
       {/* Slide-in Unit Panel */}
       {selectedUnit && (
-        <UnitPanel unit={selectedUnit} onClose={() => setSelectedUnit(null)} isDrawerMode={true} />
+        <UnitPanel 
+          unit={selectedUnit} 
+          onClose={() => setSelectedUnit(null)} 
+          isDrawerMode={true} 
+          onNavigateToMaintenance={() => {
+            setActiveTab("maintenance");
+            setSelectedUnit(null);
+          }}
+        />
       )}
     </div>
   );

@@ -3,7 +3,7 @@ import { useState, useMemo } from "react";
 import {
   Wrench, Plus, X, AlertTriangle, ChevronDown, Filter,
   Camera, Trash2, CheckCircle, Clock, Hammer, DollarSign,
-  Building, User, Package
+  Building, User, Package, CreditCard
 } from "lucide-react";
 import {
   useMaintenanceTickets,
@@ -29,6 +29,7 @@ const BILLING_TYPES = [
   { key: "landlord_expense",      label: "Landlord Expense",       desc: "You absorb the cost",           icon: <Building size={14} /> },
   { key: "billed_to_rent",        label: "Bill to Tenant Rent",    desc: "Deduct from next month's rent", icon: <User size={14} /> },
   { key: "deduct_security_deposit", label: "Deduct from Deposit",  desc: "Charge against security deposit", icon: <Package size={14} /> },
+  { key: "separate_tenant_bill",  label: "Direct Tenant Bill",     desc: "Tenant pays separately now",    icon: <CreditCard size={14} /> },
 ];
 
 const WORKFORCE_TYPES = [
@@ -247,7 +248,10 @@ function TicketCard({ ticket, onEdit, onDelete, onStatusChange }) {
   const pc = priorityCfg(ticket.priority);
   const billing = BILLING_TYPES.find(b => b.key === ticket.billing_type);
   const [updatingStatus, setUpdatingStatus] = useState(false);
-  const [togglingPaid, setTogglingPaid] = useState(false);
+  const [showPayForm, setShowPayForm] = useState(false);
+  const [payFile, setPayFile] = useState(null);
+  const [payFilePrev, setPayFilePrev] = useState(null);
+  const [submittingPay, setSubmittingPay] = useState(false);
   const currentIdx = STATUSES.findIndex(s => s.key === ticket.status);
 
   const advanceStatus = async () => {
@@ -257,10 +261,20 @@ function TicketCard({ ticket, onEdit, onDelete, onStatusChange }) {
     setUpdatingStatus(false);
   };
 
-  const togglePaid = async () => {
-    setTogglingPaid(true);
-    await updateMaintenanceTicketDoc(ticket.id, { is_paid: !ticket.is_paid });
-    setTogglingPaid(false);
+  const handlePaySubmit = async (e) => {
+    e.preventDefault();
+    setSubmittingPay(true);
+    let url = null;
+    if (payFile) {
+      url = await uploadFile(`maintenance_payments/${ticket.building_id || 'general'}/${ticket.id}_${Date.now()}`, payFile);
+    }
+    const updateData = { is_paid: true, status: "settled" };
+    if (url) {
+      updateData.payment_receipt_url = url;
+    }
+    await updateMaintenanceTicketDoc(ticket.id, updateData);
+    setSubmittingPay(false);
+    setShowPayForm(false);
   };
 
   return (
@@ -345,27 +359,61 @@ function TicketCard({ ticket, onEdit, onDelete, onStatusChange }) {
               {billing.icon} {billing.label}
             </span>
           )}
-          <button onClick={togglePaid} disabled={togglingPaid}
-            className={`text-[10px] font-bold px-2.5 py-1 rounded-full border transition ${ticket.is_paid ? "bg-green-50 text-green-700 border-green-200" : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"}`}>
-            {ticket.is_paid ? "✓ PAID" : "PENDING"}
-          </button>
-          {currentIdx < STATUSES.length - 1 && (
+          {ticket.is_paid && (
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
+              ✓ PAID
+            </span>
+          )}
+          {currentIdx < 2 && (
             <button onClick={advanceStatus} disabled={updatingStatus}
               className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#0b3860] text-white hover:bg-[#154e83] transition disabled:opacity-50 flex items-center gap-1">
               <ChevronDown size={10} /> {STATUSES[currentIdx + 1]?.label}
             </button>
           )}
+          {currentIdx === 2 && (
+            <button onClick={ticket.is_paid || ticket.total_cost === 0 ? advanceStatus : () => setShowPayForm(!showPayForm)} disabled={updatingStatus}
+              className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#0b3860] text-white hover:bg-[#154e83] transition disabled:opacity-50 flex items-center gap-1">
+              <ChevronDown size={10} /> {showPayForm ? "CANCEL" : (ticket.is_paid || (ticket.total_cost || 0) === 0 ? "MARK SETTLED" : "PAY & SETTLE")}
+            </button>
+          )}
         </div>
       </div>
 
+      {/* Payment Form */}
+      {showPayForm && !ticket.is_paid && (
+        <form onSubmit={handlePaySubmit} className="px-5 py-4 border-t border-zinc-100 bg-zinc-50/80 flex flex-col gap-3">
+          <div className="text-[11px] font-semibold text-zinc-700 uppercase tracking-wide">Settle Payment</div>
+          <div>
+            <label className="block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Payment Evidence / Receipt (Optional)</label>
+            <input type="file" accept="image/*" onChange={e => {
+              const f = e.target.files[0];
+              setPayFile(f);
+              setPayFilePrev(f ? URL.createObjectURL(f) : null);
+            }} className="w-full text-[11px] text-zinc-600 file:mr-2 file:rounded-full file:border-0 file:bg-white file:px-3 file:py-1.5 file:text-[10px] file:font-semibold border border-zinc-200 rounded-xl p-1 bg-white cursor-pointer hover:border-zinc-300 transition" />
+          </div>
+          {payFilePrev && (
+            <img src={payFilePrev} alt="Preview" className="h-24 w-auto object-cover rounded-xl border border-zinc-200 shadow-sm" />
+          )}
+          <button type="submit" disabled={submittingPay} className="rounded-xl bg-[#0b3860] py-2.5 text-[12px] font-bold text-white hover:bg-[#154e83] transition disabled:opacity-50 mt-1 shadow-sm">
+            {submittingPay ? "Processing..." : "Confirm & Mark Settled"}
+          </button>
+        </form>
+      )}
+
       {/* Photos */}
-      {ticket.receipt_urls?.length > 0 && (
-        <div className="px-5 pb-3 flex gap-2 flex-wrap">
-          {ticket.receipt_urls.map((url, i) => (
+      {(ticket.receipt_urls?.length > 0 || ticket.payment_receipt_url) && (
+        <div className="px-5 pb-4 flex gap-2 flex-wrap pt-2">
+          {ticket.receipt_urls?.map((url, i) => (
             <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-              <img src={url} alt="" className="h-12 w-12 object-cover rounded-lg border border-zinc-200 hover:opacity-80 transition" />
+              <img src={url} alt="Evidence" className="h-12 w-12 object-cover rounded-xl border border-zinc-200 hover:opacity-80 transition shadow-sm" />
             </a>
           ))}
+          {ticket.payment_receipt_url && (
+            <a href={ticket.payment_receipt_url} target="_blank" rel="noopener noreferrer" className="relative group ml-1">
+              <div className="absolute -top-1.5 -right-1.5 bg-green-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">PAID</div>
+              <img src={ticket.payment_receipt_url} alt="Payment Receipt" className="h-12 w-12 object-cover rounded-xl border-2 border-green-400 hover:opacity-80 transition shadow-sm" />
+            </a>
+          )}
         </div>
       )}
     </div>
@@ -379,8 +427,7 @@ export default function MaintenanceTab({ building, units, userId }) {
   const [showModal, setShowModal] = useState(false);
   const [editingTicket, setEditingTicket] = useState(null);
   const [unitFilter, setUnitFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("active");
 
   const openTickets = tickets.filter(t => t.status !== "settled");
   const totalCost = tickets.reduce((s, t) => s + (t.total_cost || 0), 0);
@@ -389,11 +436,14 @@ export default function MaintenanceTab({ building, units, userId }) {
   const filtered = useMemo(() => {
     return tickets.filter(t => {
       if (unitFilter !== "all" && t.unit_id !== unitFilter) return false;
-      if (statusFilter !== "all" && t.status !== statusFilter) return false;
-      if (priorityFilter !== "all" && t.priority !== priorityFilter) return false;
+      if (statusFilter === "active") {
+        if (t.status === "settled") return false;
+      } else if (statusFilter !== "all") {
+        if (t.status !== statusFilter) return false;
+      }
       return true;
     });
-  }, [tickets, unitFilter, statusFilter, priorityFilter]);
+  }, [tickets, unitFilter, statusFilter]);
 
   const handleDelete = async (t) => {
     if (!confirm(`Delete ticket "${t.title}"?`)) return;
@@ -435,13 +485,9 @@ export default function MaintenanceTab({ building, units, userId }) {
         </select>
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
           className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-medium text-zinc-600 outline-none focus:border-[#2270b8]">
-          <option value="all">All Statuses</option>
-          {STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
-        </select>
-        <select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value)}
-          className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-medium text-zinc-600 outline-none focus:border-[#2270b8]">
-          <option value="all">All Priorities</option>
-          {PRIORITIES.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
+          <option value="active">Active Tickets</option>
+          <option value="settled">Settled Tickets</option>
+          <option value="all">All History</option>
         </select>
         <div className="flex-1" />
         <button onClick={() => { setEditingTicket(null); setShowModal(true); }}
