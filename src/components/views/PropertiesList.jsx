@@ -19,18 +19,21 @@ export default function PropertiesList({ buildings, units, onSelectProperty }) {
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-zinc-50/50">
-      <div className="border-b border-zinc-200 bg-white px-8 py-6 shadow-sm">
-        <h1 className="text-[24px] font-semibold text-zinc-900 tracking-[-0.02em]">Properties</h1>
-        <p className="mt-1 text-[14px] text-zinc-500">Select a property to manage units or view in 3D</p>
+    <div className="flex h-full flex-col overflow-hidden bg-[#fafafa] font-sans">
+      <div className="flex items-center justify-between px-12 pt-12 pb-6 shrink-0">
+        <div>
+          <h1 className="text-[36px] font-[800] text-[#0b3860] tracking-[-0.03em] font-['Sora']">Properties</h1>
+          <p className="text-[14px] text-zinc-400 mt-1 font-['Manrope'] font-medium">Select a property to manage units or view in 3D</p>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-8">
+      <div className="flex-1 overflow-y-auto px-12 pb-12">
         {buildings.length === 0 ? (
-          <div className="flex h-64 items-center justify-center rounded-2xl border border-dashed border-zinc-300 bg-white">
+          <div className="flex h-64 items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200 bg-white">
             <div className="text-center text-zinc-500">
               <Building2 size={32} className="mx-auto mb-3 text-zinc-400" />
-              <p>No properties yet. Add one from the Dashboard.</p>
+              <p className="font-bold text-[15px] font-['Manrope']">No properties yet</p>
+              <p className="text-[13px] font-medium mt-1">Add one from the Dashboard.</p>
             </div>
           </div>
         ) : (
@@ -40,44 +43,45 @@ export default function PropertiesList({ buildings, units, onSelectProperty }) {
               return (
                   <div 
                     key={b.id} 
-                    className="group rounded-[24px] bg-[#fdfdfd] p-6 shadow-sm border border-zinc-200/60 transition-all duration-300 hover:border-[#0F4C81]/30 hover:shadow-[0_24px_50px_-12px_rgba(0,0,0,0.12)] hover:-translate-y-1 cursor-pointer flex flex-col relative"
+                    className="group rounded-2xl bg-white p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08)] border border-zinc-100 transition-all duration-300 hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.12)] hover:-translate-y-1 cursor-pointer flex flex-col relative overflow-hidden"
                     onClick={() => onSelectProperty(b.id)}
                   >
-                  <div className="flex items-start justify-between mb-4">
+                  
+                  <div className="flex items-start justify-between mb-5">
                     <div>
-                      <h2 className="text-[18px] font-semibold text-zinc-900 group-hover:text-[var(--color-blue-600)] transition-colors">{b.name}</h2>
-                      <div className="flex items-center gap-1.5 mt-1.5 text-[13px] text-zinc-500">
+                      <h2 className="text-[17px] font-[700] text-zinc-900 group-hover:text-[#2270b8] transition-colors font-['Sora']">{b.name}</h2>
+                      <div className="flex items-center gap-1.5 mt-1.5 text-[12px] text-zinc-400 font-medium font-['Manrope']">
                         {b.address ? (
                           <>
                             <MapPin size={14} />
                             {b.address}
                           </>
                         ) : (
-                          <span className="text-[#0F4C81] font-medium">+ Add Address</span>
+                          <span className="text-[#0F4C81]">+ Add Address</span>
                         )}
                       </div>
                     </div>
-                    <div className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--color-blue-50)] text-[var(--color-blue-600)]">
+                    <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#e1ebf4] text-[#0F4C81] shrink-0 shadow-sm transition-transform group-hover:scale-110 duration-300">
                       <Building2 size={20} />
                     </div>
                   </div>
 
                   <div className="mt-auto grid grid-cols-3 gap-2 border-t border-zinc-100 pt-4">
                     <div>
-                      <div className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">Total</div>
-                      <div className="text-[15px] font-medium text-zinc-700">{stats.total}</div>
+                      <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1 font-['Manrope']">Total</div>
+                      <div className="text-[16px] font-[700] text-zinc-800 font-['Sora']">{stats.total}</div>
                     </div>
                     <div>
-                      <div className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">Occupied</div>
-                      <div className="text-[15px] font-medium text-[var(--color-blue-600)]">{stats.occupied}</div>
+                      <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1 font-['Manrope']">Occupied</div>
+                      <div className="text-[16px] font-[700] text-[#0F4C81] font-['Sora']">{stats.occupied}</div>
                     </div>
                     <div>
-                      <div className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">Vacant</div>
-                      <div className="text-[15px] font-medium text-zinc-500">{stats.vacant}</div>
+                      <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1 font-['Manrope']">Vacant</div>
+                      <div className="text-[16px] font-[700] text-zinc-500 font-['Sora']">{stats.vacant}</div>
                     </div>
                   </div>
                   
-                  <div className="mt-4 flex items-center justify-end text-[13px] font-[600] text-[#0F4C81] opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="mt-4 flex items-center justify-end text-[12px] font-[700] text-[#0F4C81] opacity-0 group-hover:opacity-100 transition-opacity font-['Manrope']">
                     Open Property &rarr;
                   </div>
                 </div>

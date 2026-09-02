@@ -1,20 +1,21 @@
 "use client";
 import { useMemo } from "react";
-import { Plus, Home, AlertCircle, Building2, ArrowUp, ArrowDown, CheckCircle2, TrendingUp, Sparkles, Users, CalendarClock } from "lucide-react";
+import { Plus, Home, AlertCircle, Building2, ArrowUp, ArrowDown, CheckCircle2, TrendingUp, Sparkles, Users, CalendarClock, ChevronRight } from "lucide-react";
 
-function StatCard({ label, value, subLabel, icon: Icon, iconColor, iconBg }) {
+/* ── Stat Card ─────────────────────────────────────────────────────────── */
+function StatCard({ label, value, subLabel, icon: Icon, iconColor, iconBg, accentGradient }) {
   return (
-    <div className="rounded-[16px] bg-white p-5 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.12)] flex flex-col justify-between border border-zinc-100 relative overflow-hidden group">
+    <div className="group relative rounded-2xl bg-white p-5 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08)] border border-zinc-100 overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.12)] hover:-translate-y-0.5">
       <div className="flex items-start justify-between">
-        <div className="text-[11px] font-bold text-zinc-500 uppercase tracking-[0.1em] font-['Manrope']">{label}</div>
+        <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-[0.1em] font-['Manrope']">{label}</div>
         {Icon && (
-          <div className={`rounded-full p-2 ${iconBg} ${iconColor} transition-transform group-hover:scale-110 duration-300`}>
+          <div className={`rounded-xl p-2.5 ${iconBg} ${iconColor} transition-transform group-hover:scale-110 duration-300 shadow-sm`}>
             <Icon size={16} strokeWidth={2.5} />
           </div>
         )}
       </div>
       <div className="mt-3">
-        <div className="text-[32px] font-[800] leading-none text-zinc-800 tracking-tight font-['Sora']">{value}</div>
+        <div className="text-[30px] font-[800] leading-none text-zinc-900 tracking-tight font-['Sora']">{value}</div>
         {subLabel && (
           <div className="mt-3 text-[12px] font-semibold font-['Manrope']">
             {subLabel}
@@ -25,6 +26,25 @@ function StatCard({ label, value, subLabel, icon: Icon, iconColor, iconBg }) {
   );
 }
 
+/* ── Avatar with solid background ───────────────────────────────────── */
+const AVATAR_COLORS = [
+  "bg-[#0b3860]",
+  "bg-[#0F4C81]",
+  "bg-indigo-600",
+  "bg-teal-600",
+  "bg-purple-600",
+];
+
+function PropertyAvatar({ name }) {
+  const idx = (name || "").charCodeAt(0) % AVATAR_COLORS.length;
+  return (
+    <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${AVATAR_COLORS[idx]} text-white font-bold text-[17px] font-['Sora'] shadow-sm`}>
+      {name ? name.charAt(0).toUpperCase() : "B"}
+    </div>
+  );
+}
+
+/* ── Main Dashboard ────────────────────────────────────────────────────── */
 export default function DashboardOverview({ buildings, units, onAddBuilding, onSelectProperty, onOpen3D }) {
   const stats = useMemo(() => {
     const totalUnits = units.length;
@@ -56,11 +76,20 @@ export default function DashboardOverview({ buildings, units, onAddBuilding, onS
     });
 
     const pct = totalUnits > 0 ? Math.round((occupied / totalUnits) * 100) : 0;
-    const revenue = units
+    
+    const collectedRevenue = units
+      .filter((u) => u.status === "occupied")
+      .reduce((sum, u) => sum + (Number(u.monthly_rent) || 0), 0);
+      
+    const billedRevenue = units
       .filter((u) => u.status === "occupied" || u.status === "overdue")
       .reduce((sum, u) => sum + (Number(u.monthly_rent) || 0), 0);
       
-    return { totalUnits, occupied, overdue, overdueAmount, vacant, pct, revenue, expiringCount };
+    const potentialRevenue = units.reduce((sum, u) => sum + (Number(u.monthly_rent) || 0), 0);
+    
+    const collectionRate = billedRevenue > 0 ? Math.round((collectedRevenue / billedRevenue) * 100) : 0;
+      
+    return { totalUnits, occupied, overdue, overdueAmount, vacant, pct, revenue: billedRevenue, collectedRevenue, billedRevenue, potentialRevenue, collectionRate, expiringCount };
   }, [units]);
 
   const actionItems = useMemo(() => {
@@ -68,7 +97,6 @@ export default function DashboardOverview({ buildings, units, onAddBuilding, onS
     const today = new Date();
     
     units.forEach(u => {
-      // Overdue
       if (u.status === 'overdue') {
         items.push({
           id: `overdue-${u.id}`,
@@ -77,8 +105,6 @@ export default function DashboardOverview({ buildings, units, onAddBuilding, onS
           label: `${u.unit_label || u.label || 'Unit'} • ${u.tenant?.name || 'Unknown'} — ₱${u.monthly_rent || 0} Overdue`
         });
       }
-      
-      // Expiring
       if (u.tenant?.lease_end) {
         const endDate = new Date(u.tenant.lease_end);
         const diffTime = endDate.getTime() - today.getTime();
@@ -93,8 +119,6 @@ export default function DashboardOverview({ buildings, units, onAddBuilding, onS
           });
         }
       }
-      
-      // Vacant
       if (u.status === 'vacant') {
         const b = buildings.find(b => b.id === u.buildingId);
         items.push({
@@ -106,95 +130,105 @@ export default function DashboardOverview({ buildings, units, onAddBuilding, onS
       }
     });
 
-    // Sort or prioritize: Overdue first, then Expiring, then Vacant
     const overdueItems = items.filter(i => i.type === 'overdue');
     const expiringItems = items.filter(i => i.type === 'expiring').sort((a,b) => a.days - b.days);
-    const vacantItems = items.filter(i => i.type === 'vacant').slice(0, 2); // limit to top 2
+    const vacantItems = items.filter(i => i.type === 'vacant').slice(0, 3);
 
     return [...overdueItems, ...expiringItems, ...vacantItems];
   }, [units, buildings]);
 
+  const ACCENT_COLORS = {
+    overdue:  { bg: "bg-red-50/60",    badge: "bg-red-50 text-red-600 border border-red-200" },
+    expiring: { bg: "bg-amber-50/60",  badge: "bg-amber-50 text-amber-600 border border-amber-200" },
+    vacant:   { bg: "bg-zinc-50/60",   badge: "bg-zinc-100 text-zinc-600" },
+  };
+
   return (
     <div className="flex h-full flex-col overflow-hidden bg-[#fafafa] font-sans">
       {/* Header */}
-      <div className="flex items-center justify-between px-12 pt-14 pb-8 shrink-0">
-        <h1 className="text-[42px] font-[800] text-[#0b3860] tracking-[-0.03em] font-['Sora']">Portfolio Overview</h1>
+      <div className="flex items-center justify-between px-12 pt-12 pb-6 shrink-0">
+        <div>
+          <h1 className="text-[36px] font-[800] text-[#0b3860] tracking-[-0.03em] font-['Sora']">Portfolio Overview</h1>
+          <p className="text-[14px] text-zinc-400 mt-1 font-['Manrope'] font-medium">Manage properties, track tenants, and monitor revenue</p>
+        </div>
         <button
           onClick={onAddBuilding}
-          className="flex items-center gap-2 rounded-full bg-[#0b3860] px-6 py-3 text-[13px] font-[600] tracking-wide text-white transition hover:bg-[#051b30] shadow-md hover:shadow-lg active:scale-95"
+          className="flex items-center gap-2 rounded-xl bg-[#0b3860] px-6 py-3 text-[13px] font-[700] tracking-wide text-white transition hover:bg-[#051b30] shadow-md hover:shadow-lg active:scale-[0.97] font-['Manrope']"
         >
           <Plus size={16} strokeWidth={3} />
           NEW BUILDING
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-12 pb-12 space-y-8">
+      <div className="flex-1 overflow-y-auto px-12 pb-12 space-y-6">
         {/* Stats Row */}
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-4 gap-5">
           <StatCard 
             label="TOTAL PROPERTIES" 
-            value={`${buildings.length} Buildings`}
-            subLabel={
-              <span className="text-zinc-500 font-medium">{stats.totalUnits} Total Units</span>
-            }
+            value={buildings.length}
+            subLabel={<span className="text-zinc-400 font-medium">{stats.totalUnits} Total Units</span>}
             icon={Building2} 
             iconColor="text-[#0F4C81]" 
             iconBg="bg-[#e1ebf4]" 
+            accentGradient="bg-gradient-to-r from-[#0b3860] to-[#2270b8]"
           />
           <StatCard 
             label="ACTIVE TENANTS" 
-            value={`${stats.occupied} / ${stats.totalUnits}`} 
+            value={`${stats.occupied}`}
             subLabel={
-              <span className="text-zinc-500 font-medium">{stats.vacant} Vacant</span>
+              <div className="flex items-center gap-2">
+                <span className="text-zinc-400 font-medium">of {stats.totalUnits}</span>
+                <span className="text-[11px] font-bold text-[#0F4C81] bg-[#e1ebf4] px-2 py-0.5 rounded-full">{stats.pct}%</span>
+              </div>
             }
             icon={Users} 
             iconColor="text-[#0F4C81]" 
             iconBg="bg-[#e1ebf4]" 
+            accentGradient="bg-gradient-to-r from-[#2270b8] to-[#479de9]"
           />
           <StatCard 
             label="OVERDUE RENT" 
-            value={`${stats.overdue} Alerts`} 
+            value={stats.overdue} 
             subLabel={
               stats.overdue === 0 ? (
-                <span className="text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full inline-block">All Paid 🟢</span>
+                <span className="text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full inline-flex items-center gap-1 text-[11px]"><CheckCircle2 size={12} /> All Paid</span>
               ) : (
-                <span className="text-rose-600 font-semibold bg-rose-50 px-2 py-0.5 rounded-full inline-block">₱{stats.overdueAmount.toLocaleString()} Overdue 🔴</span>
+                <span className="text-red-600 font-semibold bg-red-50 px-2 py-0.5 rounded-full inline-block text-[11px]">₱{stats.overdueAmount.toLocaleString()} overdue</span>
               )
             }
             icon={AlertCircle} 
-            iconColor={stats.overdue > 0 ? "text-rose-600" : "text-emerald-600"} 
-            iconBg={stats.overdue > 0 ? "bg-rose-100" : "bg-emerald-100"} 
+            iconColor={stats.overdue > 0 ? "text-red-600" : "text-emerald-600"} 
+            iconBg={stats.overdue > 0 ? "bg-red-100" : "bg-emerald-100"} 
+            accentGradient={stats.overdue > 0 ? "bg-gradient-to-r from-red-500 to-red-400" : "bg-gradient-to-r from-emerald-500 to-emerald-400"}
           />
           <StatCard 
             label="EXPIRING LEASES" 
-            value={`${stats.expiringCount} ${stats.expiringCount === 1 ? 'Unit' : 'Units'}`} 
-            subLabel={
-              <span className="text-amber-600 font-semibold bg-amber-50 px-2 py-0.5 rounded-full inline-block">Next 30 Days 🟡</span>
-            }
+            value={stats.expiringCount} 
+            subLabel={<span className="text-amber-600 font-semibold bg-amber-50 px-2 py-0.5 rounded-full inline-block text-[11px]">Next 30 days</span>}
             icon={CalendarClock} 
             iconColor="text-amber-600" 
             iconBg="bg-amber-100" 
+            accentGradient="bg-gradient-to-r from-amber-500 to-amber-400"
           />
         </div>
 
         {/* Content Panels */}
-        <div className="grid grid-cols-2 gap-6">
-          {/* Left panel: My Properties (Property List) */}
-          <div className="col-span-1 rounded-[16px] bg-white p-8 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.12)] border border-zinc-100 flex flex-col">
-            <h2 className="text-[17px] font-[600] text-[#0b3860] flex items-center gap-3 mb-8 tracking-[-0.01em] font-['Sora']">
-              My Properties
-            </h2>
+        <div className="grid grid-cols-2 gap-5">
+          {/* Left panel: My Properties */}
+          <div className="col-span-1 rounded-2xl bg-white p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08)] border border-zinc-100 flex flex-col">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-[15px] font-[700] text-[#0b3860] tracking-[-0.01em] font-['Sora']">My Properties</h2>
+              <span className="text-[11px] font-semibold text-zinc-400 bg-zinc-100 px-2.5 py-1 rounded-full font-['Manrope']">{buildings.length} total</span>
+            </div>
 
             {buildings.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 py-16 text-center mt-4">
-                <div className="mb-4 rounded-2xl bg-white p-4 text-slate-400 shadow-sm">
-                  <Building2 size={32} />
-                </div>
-                <p className="text-[15px] font-bold text-slate-700">No properties yet</p>
-                <p className="mt-1 text-[13px] text-slate-500 font-medium">Click "New Building" to design your first property in 3D</p>
+              <div className="flex-1 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-50 py-16 text-center">
+                <div className="mb-4 rounded-2xl bg-white p-4 text-zinc-400 shadow-sm"><Building2 size={32} /></div>
+                <p className="text-[15px] font-bold text-zinc-700">No properties yet</p>
+                <p className="mt-1 text-[13px] text-zinc-500 font-medium">Click "New Building" to design your first property in 3D</p>
               </div>
             ) : (
-              <div className="space-y-4 max-h-[380px] overflow-y-auto pr-2">
+              <div className="space-y-1 max-h-[400px] overflow-y-auto pr-1 scrollbar-hide">
                 {buildings.map(b => {
                   const bUnits = units.filter(u => u.buildingId === b.id);
                   const occ = bUnits.filter(u => u.status === "occupied").length;
@@ -203,35 +237,30 @@ export default function DashboardOverview({ buildings, units, onAddBuilding, onS
                     .reduce((sum, u) => sum + (Number(u.monthly_rent) || 0), 0);
                     
                   return (
-                    <div key={b.id} className="flex items-center justify-between py-4 border-b border-slate-100 last:border-0">
-                      <div className="flex items-center gap-4">
-                        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-slate-50 text-slate-500 font-bold text-[18px]">
-                          {b.name ? b.name.charAt(0).toUpperCase() : "B"}
-                        </div>
-                        <div>
-                          <p className="text-[15px] font-[600] text-slate-800">{b.name || "Untitled Building"}</p>
-                          <div className="mt-1 flex items-center gap-3 text-[12px] font-medium text-slate-500">
-                            <span className="flex items-center gap-1 text-[#0F4C81] bg-[#e1ebf4] px-2 py-0.5 rounded-full font-[500]">
-                              <CheckCircle2 size={12} strokeWidth={3} />
-                              {occ}/{bUnits.length} Occupied
+                    <div key={b.id} 
+                      onClick={() => onSelectProperty(b.id)}
+                      className="flex items-center justify-between py-3.5 px-3 -mx-1 rounded-xl cursor-pointer transition-all duration-200 hover:bg-zinc-50 group">
+                      <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                        <PropertyAvatar name={b.name} />
+                        <div className="min-w-0">
+                          <p className="text-[14px] font-[700] text-zinc-800 truncate font-['Manrope']">{b.name || "Untitled Building"}</p>
+                          <div className="mt-1 flex items-center gap-2.5 text-[11px] font-medium text-zinc-400">
+                            <span className="flex items-center gap-1 text-[#0F4C81] bg-[#e1ebf4] px-2 py-0.5 rounded-full font-[600]">
+                              <CheckCircle2 size={11} strokeWidth={3} />
+                              {occ}/{bUnits.length}
                             </span>
-                            <span className="text-slate-600 font-[500]">₱{bRev.toLocaleString()} / mo</span>
+                            <span className="text-zinc-500 font-[600]">₱{bRev.toLocaleString()}/mo</span>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 shrink-0">
                         <button 
-                          onClick={() => onOpen3D(b.id)}
-                          className="px-3 py-1.5 rounded-full border border-slate-200 bg-white text-[12px] font-[600] text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition shadow-sm"
+                          onClick={(e) => { e.stopPropagation(); onOpen3D(b.id); }}
+                          className="px-3 py-1.5 rounded-lg border border-zinc-200 bg-white text-[11px] font-[700] text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition shadow-sm font-['Manrope']"
                         >
                           3D View
                         </button>
-                        <button 
-                          onClick={() => onSelectProperty(b.id)}
-                          className="px-3 py-1.5 rounded-full border border-slate-200 bg-white text-[12px] font-[600] text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition shadow-sm"
-                        >
-                          Units
-                        </button>
+                        <ChevronRight size={14} className="text-zinc-300 group-hover:text-zinc-500 transition" />
                       </div>
                     </div>
                   );
@@ -240,61 +269,74 @@ export default function DashboardOverview({ buildings, units, onAddBuilding, onS
             )}
           </div>
 
-          {/* Right panel: Revenue and Breakdown */}
-          <div className="col-span-1 space-y-6">
-            <div className="rounded-[16px] bg-white p-8 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.12)] border border-zinc-100">
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-[11px] font-[600] text-[#0b3860] uppercase tracking-[0.1em] font-['Sora']">Est. Monthly Revenue</h2>
-                <TrendingUp size={16} className="text-[#0F4C81]" />
+          {/* Right panel: Revenue and Attention */}
+          <div className="col-span-1 space-y-5">
+            {/* Revenue Card */}
+            <div className="rounded-2xl bg-white p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08)] border border-zinc-100 relative overflow-hidden">
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="text-[11px] font-[700] text-zinc-400 uppercase tracking-[0.1em] font-['Manrope']">Est. Monthly Revenue</h2>
+                <div className="rounded-xl bg-[#e1ebf4] p-2 text-[#0F4C81]"><TrendingUp size={14} /></div>
               </div>
-              <div className="text-[36px] font-[700] text-slate-800 tracking-tight font-['Sora'] mb-4">
+              <div className="text-[32px] font-[800] text-zinc-900 tracking-tight font-['Sora'] mb-4">
                 ₱{stats.revenue.toLocaleString()}
               </div>
               
-              <div className="space-y-1.5">
-                <div className="flex justify-between text-[11px] font-bold text-slate-600">
-                  <span>Rent Collection</span>
-                  <span className="text-[#0F4C81]">₱{stats.revenue.toLocaleString()} / ₱{stats.revenue.toLocaleString()}</span>
+              <div className="space-y-2">
+                <div className="flex justify-between text-[11px] font-bold font-['Manrope']">
+                  <span className="text-zinc-400">Collection Rate</span>
+                  <span className="text-[#0F4C81]">{stats.collectionRate}% · ₱{stats.collectedRevenue.toLocaleString()} / ₱{stats.billedRevenue.toLocaleString()}</span>
                 </div>
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#0F4C81] rounded-full" style={{ width: '100%' }}></div>
+                <div className="h-2.5 w-full bg-zinc-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#2270b8] rounded-full transition-all duration-700 ease-out" style={{ width: `${stats.collectionRate}%` }} />
                 </div>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-3 mt-5 pt-4 border-t border-zinc-100">
+                {[
+                  { label: "Occupied", value: stats.occupied, color: "text-[#0F4C81]" },
+                  { label: "Vacant", value: stats.vacant, color: "text-zinc-500" },
+                  { label: "Overdue", value: stats.overdue, color: stats.overdue > 0 ? "text-red-600" : "text-emerald-600" },
+                ].map(item => (
+                  <div key={item.label} className="text-center">
+                    <div className={`text-[18px] font-[800] font-['Sora'] ${item.color}`}>{item.value}</div>
+                    <div className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider font-['Manrope']">{item.label}</div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="rounded-[16px] bg-white p-8 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.12)] border border-zinc-100 flex flex-col max-h-[380px]">
-              <div className="flex items-center justify-between mb-6 shrink-0">
-                <h2 className="text-[11px] font-[600] text-[#0b3860] uppercase tracking-[0.1em] font-['Sora']">Attention Needed</h2>
-                <AlertCircle size={16} className="text-[#0F4C81]" />
+            {/* Attention Needed Card */}
+            <div className="rounded-2xl bg-white p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08)] border border-zinc-100 flex flex-col max-h-[340px] relative overflow-hidden">
+              <div className="flex items-center justify-between mb-4 shrink-0">
+                <h2 className="text-[11px] font-[700] text-zinc-400 uppercase tracking-[0.1em] font-['Manrope']">Attention Needed</h2>
+                <div className={`rounded-xl p-2 shadow-sm ${actionItems.length > 0 ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"}`}>
+                  {actionItems.length > 0 ? <AlertCircle size={14} /> : <CheckCircle2 size={14} />}
+                </div>
               </div>
               
-              <div className="overflow-y-auto pr-2 space-y-1">
+              <div className="overflow-y-auto pr-1 space-y-1.5 scrollbar-hide">
                 {actionItems.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-6 text-center">
-                    <div className="mb-3 rounded-full bg-emerald-50 p-3 text-emerald-500">
-                      <Sparkles size={24} />
-                    </div>
-                    <p className="text-[13px] font-medium text-slate-600">✨ All Clear! No pending issues or overdue payments.</p>
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="mb-3 rounded-full bg-emerald-50 p-3.5 text-emerald-500"><Sparkles size={22} /></div>
+                    <p className="text-[14px] font-semibold text-zinc-600 font-['Manrope']">All Clear!</p>
+                    <p className="text-[12px] text-zinc-400 mt-0.5 font-['Manrope']">No pending issues or overdue payments</p>
                   </div>
                 ) : (
-                  actionItems.map(item => (
-                    <div 
-                      key={item.id}
-                      onClick={() => onSelectProperty(item.buildingId)}
-                      className="flex items-center justify-between py-3 border-b border-zinc-100 last:border-none cursor-pointer hover:bg-zinc-50/60 rounded-xl px-2 -mx-2 transition-colors"
-                    >
-                      <span className="text-[13px] font-medium text-slate-700 font-['Manrope'] pr-4 truncate">{item.label}</span>
-                      {item.type === 'overdue' && (
-                        <span className="shrink-0 bg-rose-50 text-rose-600 border border-rose-200 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider">OVERDUE</span>
-                      )}
-                      {item.type === 'expiring' && (
-                        <span className="shrink-0 bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider">EXPIRING</span>
-                      )}
-                      {item.type === 'vacant' && (
-                        <span className="shrink-0 bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider">VACANT</span>
-                      )}
-                    </div>
-                  ))
+                  actionItems.map(item => {
+                    const accent = ACCENT_COLORS[item.type];
+                    return (
+                      <div 
+                        key={item.id}
+                        onClick={() => onSelectProperty(item.buildingId)}
+                        className={`flex items-center justify-between py-2.5 px-3 ${accent.bg} rounded-xl cursor-pointer hover:bg-zinc-50 transition-colors`}
+                      >
+                        <span className="text-[12px] font-medium text-zinc-700 font-['Manrope'] pr-3 truncate">{item.label}</span>
+                        <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider ${accent.badge}`}>
+                          {item.type === 'overdue' ? 'OVERDUE' : item.type === 'expiring' ? 'EXPIRING' : 'VACANT'}
+                        </span>
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </div>

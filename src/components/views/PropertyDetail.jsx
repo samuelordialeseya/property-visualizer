@@ -45,11 +45,11 @@ export default function PropertyDetail({ building, units, buildings, updateUnit,
     <div className="flex h-full w-full relative overflow-hidden bg-zinc-50/50">
       <div className="flex-1 flex flex-col w-full h-full overflow-hidden">
         {/* Header */}
-        <div className="border-b border-zinc-200 bg-white px-8 py-5 shadow-sm shrink-0">
+        <div className="border-b border-zinc-200 bg-white px-8 py-5 shadow-sm shrink-0 relative overflow-hidden">
           <div className="flex items-center gap-2 mb-3">
             <button 
               onClick={onBack}
-              className="flex items-center gap-1.5 text-[13px] font-medium text-zinc-500 hover:text-zinc-900 transition"
+              className="flex items-center gap-1.5 text-[13px] font-medium text-zinc-400 hover:text-zinc-900 transition font-['Manrope']"
             >
               <ArrowLeft size={16} />
               Back to Properties
@@ -58,24 +58,24 @@ export default function PropertyDetail({ building, units, buildings, updateUnit,
           
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-[24px] font-semibold text-zinc-900 tracking-[-0.02em]">{building.name}</h1>
-              <p className="mt-1 text-[14px] text-zinc-500">{building.address || "No address provided"}</p>
+              <h1 className="text-[24px] font-[700] text-[#0b3860] tracking-[-0.02em] font-['Sora']">{building.name}</h1>
+              <p className="mt-1 text-[14px] text-zinc-400 font-['Manrope']">{building.address || "No address provided"}</p>
             </div>
             
             <div className="flex items-center gap-3">
               <button
                 onClick={onDeleteProperty}
-                className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-5 py-2.5 text-[14px] font-semibold text-red-700 transition hover:bg-red-100 shadow-sm"
+                className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-5 py-2.5 text-[13px] font-[700] text-red-700 transition hover:bg-red-100 shadow-sm font-['Manrope']"
               >
-                <Trash2 size={18} />
-                Delete Property
+                <Trash2 size={16} />
+                Delete
               </button>
               
               <button
                 onClick={onLaunch3D}
-                className="flex items-center gap-2 rounded-xl bg-[var(--color-blue-600)] px-5 py-2.5 text-[14px] font-semibold text-white transition hover:bg-[var(--color-blue-700)] shadow-sm"
+                className="flex items-center gap-2 rounded-xl bg-[#0b3860] px-5 py-2.5 text-[13px] font-[700] text-white transition hover:bg-[#051b30] shadow-sm font-['Manrope']"
               >
-                <Box size={18} />
+                <Box size={16} />
                 Launch 3D View
               </button>
             </div>
@@ -88,7 +88,7 @@ export default function PropertyDetail({ building, units, buildings, updateUnit,
               const active = activeTab === tab.key;
               return (
                 <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-semibold rounded-t-xl border border-b-0 transition ${active ? "bg-white text-[#0b3860] border-zinc-200 shadow-sm" : "bg-transparent text-zinc-500 border-transparent hover:text-zinc-700 hover:bg-zinc-100"}`}>
+                  className={`flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-[700] rounded-t-xl border border-b-0 transition font-['Manrope'] ${active ? "bg-white text-[#0b3860] border-zinc-200 shadow-sm" : "bg-transparent text-zinc-400 border-transparent hover:text-zinc-700 hover:bg-zinc-100"}`}>
                   {tab.icon}
                   {tab.label}
                   {badge !== null && (

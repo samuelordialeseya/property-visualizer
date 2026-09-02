@@ -6,7 +6,7 @@ import {
   Building, User, Package, CreditCard
 } from "lucide-react";
 import {
-  useMaintenanceTickets,
+  useMaintenanceTickets, useStaff,
   addMaintenanceTicketDoc, updateMaintenanceTicketDoc, deleteMaintenanceTicketDoc,
   uploadFile
 } from "@/hooks/useFirestore";
@@ -42,7 +42,7 @@ function statusCfg(key) { return STATUSES.find(s => s.key === key) || STATUSES[0
 function priorityCfg(key) { return PRIORITIES.find(p => p.key === key) || PRIORITIES[2]; }
 
 // ─── New / Edit Ticket Modal ──────────────────────────────────────────────────
-function TicketModal({ buildingId, units, userId, ticket, onClose }) {
+function TicketModal({ buildingId, units, userId, ticket, onClose, staffList }) {
   const editing = !!ticket;
   const [unitId, setUnitId] = useState(ticket?.unit_id || "");
   const [unitLabel, setUnitLabel] = useState(ticket?.unit_label || "");
@@ -51,6 +51,7 @@ function TicketModal({ buildingId, units, userId, ticket, onClose }) {
   const [priority, setPriority] = useState(ticket?.priority || "medium");
   const [workforce, setWorkforce] = useState(ticket?.workforce || "diy");
   const [vendorName, setVendorName] = useState(ticket?.vendor_name || "");
+  const [assignedStaffId, setAssignedStaffId] = useState(ticket?.assigned_staff_id || "");
   const [materialCost, setMaterialCost] = useState(ticket?.material_cost ?? "");
   const [laborCost, setLaborCost] = useState(ticket?.labor_cost ?? "");
   const [billingType, setBillingType] = useState(ticket?.billing_type || "landlord_expense");
@@ -88,7 +89,8 @@ function TicketModal({ buildingId, units, userId, ticket, onClose }) {
       description: description.trim(),
       priority,
       workforce,
-      vendor_name: vendorName.trim(),
+      vendor_name: workforce === "vendor" ? vendorName.trim() : null,
+      assigned_staff_id: workforce === "staff" ? assignedStaffId : null,
       material_cost: Number(materialCost) || 0,
       labor_cost: Number(laborCost) || 0,
       total_cost: total,
@@ -157,7 +159,7 @@ function TicketModal({ buildingId, units, userId, ticket, onClose }) {
             <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">Who Will Handle It?</label>
             <div className="grid grid-cols-3 gap-2">
               {WORKFORCE_TYPES.map(w => (
-                <button key={w.key} type="button" onClick={() => setWorkforce(w.key)}
+                <button key={w.key} type="button" onClick={() => { setWorkforce(w.key); if(w.key !== "staff") setAssignedStaffId(""); }}
                   className={`rounded-xl border p-3 text-left transition ${workforce === w.key ? "border-[#2270b8] bg-[#2270b8]/5" : "border-zinc-200 hover:border-zinc-300"}`}>
                   <div className="text-[12px] font-bold text-zinc-900">{w.label}</div>
                   <div className="text-[10px] text-zinc-500 mt-0.5">{w.desc}</div>
@@ -165,6 +167,17 @@ function TicketModal({ buildingId, units, userId, ticket, onClose }) {
               ))}
             </div>
           </div>
+
+          {workforce === "staff" && staffList && staffList.length > 0 && (
+            <div>
+              <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Assign to Staff Member *</label>
+              <select required value={assignedStaffId} onChange={e => setAssignedStaffId(e.target.value)}
+                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-[13px] outline-none focus:border-[#2270b8] transition">
+                <option value="">Select staff member...</option>
+                {staffList.map(s => <option key={s.id} value={s.id}>{s.name} ({s.role})</option>)}
+              </select>
+            </div>
+          )}
 
           {workforce === "vendor" && (
             <div>
@@ -243,7 +256,7 @@ function TicketModal({ buildingId, units, userId, ticket, onClose }) {
 }
 
 // ─── Ticket Card ──────────────────────────────────────────────────────────────
-function TicketCard({ ticket, onEdit, onDelete, onStatusChange }) {
+function TicketCard({ ticket, onEdit, onDelete, onStatusChange, staffList }) {
   const sc = statusCfg(ticket.status);
   const pc = priorityCfg(ticket.priority);
   const billing = BILLING_TYPES.find(b => b.key === ticket.billing_type);
@@ -293,7 +306,7 @@ function TicketCard({ ticket, onEdit, onDelete, onStatusChange }) {
               <span>{ticket.created_at ? new Date(ticket.created_at).toLocaleDateString("en-PH", { month: "short", day: "numeric" }) : "—"}</span>
               {ticket.workforce === "vendor" && ticket.vendor_name && <span>· {ticket.vendor_name}</span>}
               {ticket.workforce === "diy" && <span>· DIY</span>}
-              {ticket.workforce === "staff" && <span>· Staff</span>}
+              {ticket.workforce === "staff" && <span>· {staffList?.find(s => s.id === ticket.assigned_staff_id)?.name || "Staff"}</span>}
             </div>
             {ticket.description && <p className="text-[12px] text-zinc-500 mt-1 line-clamp-2">{ticket.description}</p>}
           </div>
@@ -424,6 +437,7 @@ function TicketCard({ ticket, onEdit, onDelete, onStatusChange }) {
 export default function MaintenanceTab({ building, units, userId }) {
   const buildingId = building?.id;
   const { tickets, loading } = useMaintenanceTickets(buildingId);
+  const { staff } = useStaff(userId, buildingId);
   const [showModal, setShowModal] = useState(false);
   const [editingTicket, setEditingTicket] = useState(null);
   const [unitFilter, setUnitFilter] = useState("all");
@@ -458,17 +472,17 @@ export default function MaintenanceTab({ building, units, userId }) {
   return (
     <div className="flex flex-col h-full min-h-0 overflow-hidden">
       {/* Summary Stats */}
-      <div className="grid grid-cols-3 gap-4 px-8 py-5 border-b border-zinc-100 shrink-0 bg-white">
+      <div className="grid grid-cols-3 gap-4 px-8 py-5 border-b border-zinc-100 shrink-0 bg-[#fafafa]">
         {[
-          { icon: <Wrench size={18} className="text-[#2270b8]" />, label: "Open Tickets", value: openTickets.length, color: "bg-blue-50" },
-          { icon: <AlertTriangle size={18} className="text-amber-600" />, label: "Urgent / High", value: tickets.filter(t => ["urgent","high"].includes(t.priority) && t.status !== "settled").length, color: "bg-amber-50" },
-          { icon: <DollarSign size={18} className="text-green-600" />, label: "Pending Cost", value: `₱${pendingCost.toLocaleString()}`, color: "bg-green-50" },
-        ].map(({ icon, label, value, color }) => (
-          <div key={label} className={`rounded-2xl ${color} px-5 py-4 flex items-center gap-4`}>
-            <div className="p-2.5 bg-white rounded-xl shadow-sm shrink-0">{icon}</div>
+          { icon: <Wrench size={16} className="text-[#2270b8]" />, label: "Open Tickets", value: openTickets.length, iconBg: "bg-[#e1ebf4]" },
+          { icon: <AlertTriangle size={16} className="text-amber-600" />, label: "Urgent / High", value: tickets.filter(t => ["urgent","high"].includes(t.priority) && t.status !== "settled").length, iconBg: "bg-amber-100" },
+          { icon: <DollarSign size={16} className="text-green-600" />, label: "Pending Cost", value: `₱${pendingCost.toLocaleString()}`, iconBg: "bg-green-100" },
+        ].map(({ icon, label, value, iconBg }) => (
+          <div key={label} className="rounded-2xl bg-white px-5 py-4 flex items-center gap-4 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08)] border border-zinc-100 relative overflow-hidden">
+            <div className={`p-2.5 ${iconBg} rounded-xl shadow-sm shrink-0`}>{icon}</div>
             <div>
-              <div className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider font-['Manrope']">{label}</div>
-              <div className="text-[20px] font-bold text-zinc-900 font-['Sora'] leading-tight">{value}</div>
+              <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider font-['Manrope']">{label}</div>
+              <div className="text-[20px] font-[800] text-zinc-900 font-['Sora'] leading-tight">{value}</div>
             </div>
           </div>
         ))}
@@ -476,22 +490,22 @@ export default function MaintenanceTab({ building, units, userId }) {
 
       {/* Filter Bar */}
       <div className="flex items-center gap-3 px-8 py-3 border-b border-zinc-100 bg-white shrink-0 flex-wrap">
-        <Filter size={14} className="text-zinc-400 shrink-0" />
+        <Filter size={14} className="text-zinc-300 shrink-0" />
         <select value={unitFilter} onChange={e => setUnitFilter(e.target.value)}
-          className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-medium text-zinc-600 outline-none focus:border-[#2270b8]">
+          className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-[600] text-zinc-600 outline-none focus:border-[#2270b8] font-['Manrope']">
           <option value="all">All Units</option>
           <option value="common_area">Common Area</option>
           {units.map(u => <option key={u.id} value={u.id}>{u.unit_label}</option>)}
         </select>
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-          className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-medium text-zinc-600 outline-none focus:border-[#2270b8]">
+          className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-[600] text-zinc-600 outline-none focus:border-[#2270b8] font-['Manrope']">
           <option value="active">Active Tickets</option>
           <option value="settled">Settled Tickets</option>
           <option value="all">All History</option>
         </select>
         <div className="flex-1" />
         <button onClick={() => { setEditingTicket(null); setShowModal(true); }}
-          className="flex items-center gap-2 bg-[#0b3860] hover:bg-[#154e83] text-white px-4 py-2 rounded-xl text-[12px] font-bold transition shadow-sm">
+          className="flex items-center gap-2 bg-[#0b3860] hover:bg-[#051b30] text-white px-4 py-2 rounded-xl text-[12px] font-[700] transition shadow-sm font-['Manrope']">
           <Plus size={14} /> Report Issue
         </button>
       </div>
@@ -510,6 +524,7 @@ export default function MaintenanceTab({ building, units, userId }) {
           <TicketCard
             key={t.id}
             ticket={t}
+            staffList={staff}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onStatusChange={() => {}}
@@ -522,6 +537,7 @@ export default function MaintenanceTab({ building, units, userId }) {
           buildingId={buildingId}
           units={units}
           userId={userId}
+          staffList={staff}
           ticket={editingTicket}
           onClose={() => { setShowModal(false); setEditingTicket(null); }}
         />

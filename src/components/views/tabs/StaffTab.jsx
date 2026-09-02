@@ -2,13 +2,13 @@
 import { useState } from "react";
 import {
   Users, Wallet, AlertCircle, Plus, ChevronRight, X, Check, Trash2,
-  Receipt, ArrowDownCircle, ClipboardList, Banknote, User
+  Receipt, ArrowDownCircle, ClipboardList, Banknote, User, Edit2, Wrench
 } from "lucide-react";
 import {
   useStaff, useStaffErrands,
   addStaffDoc, deleteStaffDoc,
   addErrandDoc, giveCashAdvance, settleStaffLedger,
-  uploadFile
+  uploadFile, useMaintenanceTickets
 } from "@/hooks/useFirestore";
 
 const ROLES = ["Caretaker", "Maintenance Tech", "Cleaner", "Security", "Admin", "Other"];
@@ -166,8 +166,7 @@ function LogErrandModal({ staff, userId, onClose }) {
             <div className="grid grid-cols-3 gap-2">
               {[
                 ["material_expense","Materials / Items"],
-                ["errand_fee","Labor / Service"],
-                ["cash_advance","Cash Advance"]
+                ["errand_fee","Labor / Service"]
               ].map(([v,l]) => (
                 <button key={v} type="button" onClick={() => setType(v)}
                   className={`py-2 px-1 rounded-xl text-[11px] font-semibold border transition text-center ${type === v ? "bg-[#0b3860] text-white border-[#0b3860]" : "border-zinc-200 text-zinc-600 hover:bg-zinc-50"}`}>{l}</button>
@@ -201,6 +200,69 @@ function LogErrandModal({ staff, userId, onClose }) {
             <button type="submit" disabled={saving || !title.trim() || !amount}
               className="flex-1 rounded-xl bg-[#2270b8] py-2.5 text-[13px] font-bold text-white hover:bg-[#3186d6] transition disabled:opacity-50">
               {saving ? "Saving…" : "Save Entry"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function EditErrandModal({ errand, staff, onClose }) {
+  const [title, setTitle] = useState(errand.title || "");
+  const [amount, setAmount] = useState(errand.amount || "");
+  const [date, setDate] = useState(errand.date || "");
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    
+    const newAmount = Number(amount) || 0;
+    
+    if (errand.type === "cash_advance" && !errand.is_paid && newAmount !== errand.amount) {
+      const diff = newAmount - errand.amount;
+      const { updateStaffDoc } = await import("@/hooks/useFirestore");
+      await updateStaffDoc(staff.id, { petty_cash_balance: (staff.petty_cash_balance || 0) + diff });
+    }
+    
+    const { updateErrandDoc } = await import("@/hooks/useFirestore");
+    await updateErrandDoc(errand.id, { title: title.trim(), amount: newAmount, date });
+    
+    setSaving(false);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-[400px]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
+          <h2 className="text-[16px] font-bold text-zinc-900 font-['Sora']">Edit Transaction</h2>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition"><X size={16} /></button>
+        </div>
+        <form onSubmit={handleSave} className="px-6 py-5 space-y-4">
+          <div>
+            <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Description *</label>
+            <input required value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Bought replacement faucet"
+              className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-[13px] outline-none focus:border-[#2270b8] transition" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Amount (₱) *</label>
+              <input required type="number" min="0" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00"
+                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-[13px] outline-none focus:border-[#2270b8] transition" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">Date</label>
+              <input type="date" value={date} onChange={e => setDate(e.target.value)}
+                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-[13px] outline-none focus:border-[#2270b8] transition" />
+            </div>
+          </div>
+          <div className="pt-1 flex gap-3">
+            <button type="button" onClick={onClose} className="rounded-xl border border-zinc-200 px-4 py-2.5 text-[13px] font-semibold text-zinc-600 hover:bg-zinc-50 transition">Cancel</button>
+            <button type="submit" disabled={saving || !title.trim() || !amount}
+              className="flex-1 rounded-xl bg-[#0b3860] py-2.5 text-[13px] font-bold text-white hover:bg-[#154e83] transition disabled:opacity-50">
+              {saving ? "Saving…" : "Save Changes"}
             </button>
           </div>
         </form>
@@ -260,11 +322,27 @@ function CashAdvanceModal({ staff, userId, onClose }) {
   );
 }
 
-function StaffLedger({ staff, userId, onClose }) {
+function StaffLedger({ staff, userId, onClose, maintenanceTickets = [] }) {
   const { errands, loading } = useStaffErrands(staff.id);
   const [showErrand, setShowErrand] = useState(false);
   const [showAdvance, setShowAdvance] = useState(false);
+  const [editingErrand, setEditingErrand] = useState(null);
+  const [deletingErrandId, setDeletingErrandId] = useState(null);
   const [settling, setSettling] = useState(false);
+
+  const assignedTickets = maintenanceTickets.filter(t => t.assigned_staff_id === staff.id);
+
+  const handleDeleteErrand = async (errand) => {
+    if (!confirm("Delete this transaction?")) return;
+    setDeletingErrandId(errand.id);
+    if (errand.type === "cash_advance" && !errand.is_paid) {
+      const { updateStaffDoc } = await import("@/hooks/useFirestore");
+      await updateStaffDoc(staff.id, { petty_cash_balance: (staff.petty_cash_balance || 0) - (errand.amount || 0) });
+    }
+    const { deleteErrandDoc } = await import("@/hooks/useFirestore");
+    await deleteErrandDoc(errand.id);
+    setDeletingErrandId(null);
+  };
 
   // Only calculate for ACTIVE / UNSETTLED transactions
   const unsettledErrands = errands.filter(e => !e.is_paid);
@@ -296,31 +374,47 @@ function StaffLedger({ staff, userId, onClose }) {
         <button onClick={onClose} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition" title="Close"><X size={16} /></button>
       </div>
 
-      {/* Settlement Calculator Summary Box */}
-      <div className="mx-5 mt-3 rounded-2xl bg-[#0b3860] p-3.5 text-white shrink-0 shadow-sm">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-white/60 font-['Manrope']">Settlement & Expense Calculator</span>
-          <span className="text-[10px] font-semibold text-white/50">{unsettledIds.length} pending</span>
+      {/* Simple Conversational Summary Box */}
+      <div className="mx-5 mt-3 rounded-2xl bg-[#0b3860] p-4 text-white shrink-0 shadow-sm">
+        <div className="flex items-center justify-between mb-3 border-b border-white/10 pb-2">
+          <span className="text-[12px] font-bold text-white/80 font-['Manrope']">Current Cash Balance</span>
+          <span className="text-[10px] font-semibold text-white/50">{unsettledIds.length} pending items</span>
         </div>
-        <div className="grid grid-cols-3 gap-2 mb-2.5 bg-white/10 p-2.5 rounded-xl">
-          {[
-            ["₱" + totalAdvance.toLocaleString(), "Total Advances"],
-            ["₱" + totalReceipts.toLocaleString(), "Receipts / Expenses"],
-            [
-              (netBalance > 0 ? "₱" : netBalance < 0 ? "-₱" : "₱") + Math.abs(netBalance).toLocaleString(),
-              netBalance > 0 ? "Due Back (Change)" : netBalance < 0 ? "Reimburse (Staff Paid)" : "Balanced (₱0)"
-            ]
-          ].map(([v, l], i) => (
-            <div key={l} className="text-center">
-              <div className={`text-[15px] font-bold font-['Sora'] leading-tight ${i === 2 && netBalance > 0 ? "text-amber-300" : i === 2 && netBalance < 0 ? "text-green-300" : "text-white"}`}>{v}</div>
-              <div className="text-[9.5px] text-white/70 leading-tight mt-0.5">{l}</div>
-            </div>
-          ))}
+        
+        <div className="space-y-1 mb-4 font-['Manrope'] text-[13px]">
+          <div className="flex justify-between">
+            <span className="text-white/70">You gave {staff.name.split(' ')[0]}:</span>
+            <span className="font-bold">₱{totalAdvance.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-white/70">{staff.name.split(' ')[0]} spent:</span>
+            <span className="font-bold">₱{totalReceipts.toLocaleString()}</span>
+          </div>
+          
+          <div className="border-t border-white/20 mt-2 pt-2">
+            {netBalance > 0 ? (
+              <div className="flex justify-between items-center text-amber-300">
+                <span className="font-bold text-[14px]">{staff.name.split(' ')[0]} needs to return:</span>
+                <span className="font-bold text-[18px] font-['Sora']">₱{Math.abs(netBalance).toLocaleString()}</span>
+              </div>
+            ) : netBalance < 0 ? (
+              <div className="flex justify-between items-center text-green-300">
+                <span className="font-bold text-[14px]">You need to pay {staff.name.split(' ')[0]}:</span>
+                <span className="font-bold text-[18px] font-['Sora']">₱{Math.abs(netBalance).toLocaleString()}</span>
+              </div>
+            ) : (
+              <div className="flex justify-between items-center text-white/90">
+                <span className="font-bold text-[14px]">Balance is exactly zero.</span>
+                <span className="font-bold text-[18px] font-['Sora']">₱0</span>
+              </div>
+            )}
+          </div>
         </div>
+
         <button onClick={async () => { setSettling(true); await settleStaffLedger(staff.id, unsettledIds); setSettling(false); }}
           disabled={settling || unsettledIds.length === 0}
-          className="w-full py-2 rounded-xl bg-white/15 hover:bg-white/25 text-[11px] font-bold transition disabled:opacity-40 flex items-center justify-center gap-1.5 cursor-pointer">
-          <Check size={13} /> {settling ? "Settling…" : unsettledIds.length === 0 ? "✓ All Accounts Settled" : `Settle & Mark Paid (${unsettledIds.length})`}
+          className="w-full py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-[12px] font-bold transition disabled:opacity-40 flex items-center justify-center gap-1.5 cursor-pointer">
+          <Check size={14} /> {settling ? "Clearing..." : unsettledIds.length === 0 ? "✓ All Settled" : "Clear this balance (Mark as Settled)"}
         </button>
       </div>
 
@@ -355,11 +449,23 @@ function StaffLedger({ staff, userId, onClose }) {
         ) : errands.map(e => {
           const cfg = TYPE_CFG[e.type] || TYPE_CFG.errand_fee;
           return (
-            <div key={e.id} className={`rounded-xl border p-3 flex items-start gap-3 transition ${e.is_paid ? "border-zinc-100 bg-zinc-50/70" : "border-zinc-200 bg-white shadow-xs hover:border-zinc-300"}`}>
+            <div key={e.id} className={`group rounded-xl border p-3 flex items-start gap-3 transition ${e.is_paid ? "border-zinc-100 bg-zinc-50/70" : "border-zinc-200 bg-white shadow-xs hover:border-zinc-300"}`}>
               <div className="mt-0.5 shrink-0">{cfg.icon}</div>
               <div className="flex-1 min-w-0">
                 <div className="text-[13px] font-semibold text-zinc-800 truncate">{e.title}</div>
                 <div className="text-[11px] text-zinc-400">{e.date} · {cfg.label}</div>
+                
+                {/* Action Buttons */}
+                <div className="mt-2 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => setEditingErrand(e)}
+                    className="flex items-center gap-1 text-[10px] font-bold text-zinc-500 hover:text-[#2270b8] transition">
+                    <Edit2 size={10} /> Edit
+                  </button>
+                  <button onClick={() => handleDeleteErrand(e)} disabled={deletingErrandId === e.id}
+                    className="flex items-center gap-1 text-[10px] font-bold text-zinc-500 hover:text-red-600 transition disabled:opacity-50">
+                    <Trash2 size={10} /> {deletingErrandId === e.id ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
               </div>
               <div className="text-right shrink-0">
                 <div className={`text-[13px] font-bold ${cfg.color}`}>₱{(e.amount || 0).toLocaleString()}</div>
@@ -375,8 +481,34 @@ function StaffLedger({ staff, userId, onClose }) {
         })}
       </div>
 
+      {/* Assigned Maintenance Tasks */}
+      <div className="px-5 pb-6 shrink-0">
+        <div className="flex items-center justify-between mb-3 border-t border-zinc-100 pt-4">
+          <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider font-['Manrope']">
+            Assigned Maintenance Tasks ({assignedTickets.length})
+          </span>
+        </div>
+        {assignedTickets.length === 0 ? (
+          <div className="py-4 text-center text-[13px] text-zinc-400 border border-dashed border-zinc-200 rounded-xl bg-zinc-50/50">No assigned tasks</div>
+        ) : assignedTickets.map(t => (
+          <div key={t.id} className="group rounded-xl border border-zinc-200 bg-white p-3 flex items-start gap-3 shadow-xs mb-2">
+            <div className="mt-0.5 shrink-0 text-[#2270b8]"><Wrench size={15} /></div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-semibold text-zinc-800 truncate">{t.title}</div>
+              <div className="text-[11px] text-zinc-400 mt-0.5">{t.unit_label || "Common Area"} · {t.created_at ? new Date(t.created_at).toLocaleDateString("en-PH") : ""}</div>
+            </div>
+            <div className="text-right shrink-0">
+              <div className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${t.status === 'settled' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                {t.status === 'settled' ? "SETTLED" : "ACTIVE"}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {showErrand && <LogErrandModal staff={staff} userId={userId} onClose={() => setShowErrand(false)} />}
       {showAdvance && <CashAdvanceModal staff={staff} userId={userId} onClose={() => setShowAdvance(false)} />}
+      {editingErrand && <EditErrandModal errand={editingErrand} staff={staff} onClose={() => setEditingErrand(null)} />}
     </div>
   );
 }
@@ -384,6 +516,7 @@ function StaffLedger({ staff, userId, onClose }) {
 export default function StaffTab({ building, buildings, userId }) {
   const buildingId = building?.id;
   const { staff, loading } = useStaff(userId, buildingId);
+  const { tickets: maintenanceTickets } = useMaintenanceTickets(buildingId);
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
@@ -394,17 +527,17 @@ export default function StaffTab({ building, buildings, userId }) {
   return (
     <div className="flex flex-col h-full min-h-0 overflow-hidden">
       {/* Top Stat Cards */}
-      <div className="grid grid-cols-3 gap-4 px-8 py-3.5 border-b border-zinc-100 shrink-0 bg-white">
+      <div className="grid grid-cols-3 gap-4 px-8 py-5 border-b border-zinc-100 shrink-0 bg-[#fafafa]">
         {[
-          { icon: <Users size={18} className="text-[#2270b8]" />, label: "Active Staff", value: staff.length, color: "bg-blue-50" },
-          { icon: <Wallet size={18} className="text-green-600" />, label: "Monthly Payroll", value: `₱${totalPayroll.toLocaleString()}`, color: "bg-green-50" },
-          { icon: <AlertCircle size={18} className="text-amber-600" />, label: "Cash on Hand / Advances", value: `₱${totalPettyCash.toLocaleString()}`, color: "bg-amber-50" },
-        ].map(({ icon, label, value, color }) => (
-          <div key={label} className={`rounded-2xl ${color} px-5 py-3.5 flex items-center gap-4`}>
-            <div className="p-2.5 bg-white rounded-xl shadow-sm shrink-0">{icon}</div>
+          { icon: <Users size={16} className="text-[#2270b8]" />, label: "Active Staff", value: staff.length, iconBg: "bg-[#e1ebf4]" },
+          { icon: <Wallet size={16} className="text-green-600" />, label: "Monthly Payroll", value: `₱${totalPayroll.toLocaleString()}`, iconBg: "bg-green-100" },
+          { icon: <AlertCircle size={16} className="text-amber-600" />, label: "Cash on Hand / Advances", value: `₱${totalPettyCash.toLocaleString()}`, iconBg: "bg-amber-100" },
+        ].map(({ icon, label, value, iconBg }) => (
+          <div key={label} className="rounded-2xl bg-white px-5 py-4 flex items-center gap-4 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08)] border border-zinc-100 relative overflow-hidden">
+            <div className={`p-2.5 ${iconBg} rounded-xl shadow-sm shrink-0`}>{icon}</div>
             <div>
-              <div className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider font-['Manrope']">{label}</div>
-              <div className="text-[19px] font-bold text-zinc-900 font-['Sora'] leading-tight">{value}</div>
+              <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider font-['Manrope']">{label}</div>
+              <div className="text-[19px] font-[800] text-zinc-900 font-['Sora'] leading-tight">{value}</div>
             </div>
           </div>
         ))}
@@ -467,9 +600,10 @@ export default function StaffTab({ building, buildings, userId }) {
 
         {/* Staff Ledger Right Column */}
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden bg-white">
-          {selectedStaff ? (
-            <StaffLedger staff={selectedStaff} userId={userId} onClose={() => setSelectedStaff(null)} />
-          ) : (
+          {selectedStaff ? (() => {
+            const activeStaff = staff.find(s => s.id === selectedStaff.id) || selectedStaff;
+            return <StaffLedger staff={activeStaff} userId={userId} onClose={() => setSelectedStaff(null)} maintenanceTickets={maintenanceTickets} />;
+          })() : (
             <div className="flex flex-col items-center justify-center h-full text-center text-zinc-400 gap-3">
               <div className="p-4 bg-zinc-100 rounded-full"><User size={28} className="text-zinc-300" /></div>
               <div>
