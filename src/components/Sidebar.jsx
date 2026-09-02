@@ -1,6 +1,10 @@
 import { Home, Building2, Settings, LogOut, ChevronRight, ChevronLeft, PanelLeft } from "lucide-react";
+import { useUserProfile } from "@/hooks/useFirestore";
 
-export default function Sidebar({ activeView, setActiveView, onLogout, collapsed, onToggleCollapse }) {
+export default function Sidebar({ user, activeView, setActiveView, onLogout, collapsed, onToggleCollapse }) {
+  const { profile } = useUserProfile(user?.uid);
+  const managerName = profile?.manager_name || user?.email?.split('@')[0] || "User";
+  const initial = managerName.charAt(0).toUpperCase();
   const navItems = [
     { id: "dashboard",  label: "Dashboard",  icon: Home },
     { id: "properties", label: "Properties", icon: Building2 },
@@ -69,18 +73,22 @@ export default function Sidebar({ activeView, setActiveView, onLogout, collapsed
         })}
       </nav>
 
-      {/* Footer / Logout */}
-      <div className="border-t border-zinc-100 p-2">
-        <button
-          onClick={onLogout}
-          title={collapsed ? "Log out" : undefined}
-          className={`flex w-full items-center rounded-xl border border-zinc-200 bg-white text-zinc-600 shadow-sm transition hover:bg-zinc-50 hover:text-zinc-900 ${
-            collapsed ? "justify-center px-0 py-3" : "gap-3 px-4 py-2.5"
-          }`}
+      {/* Footer / Profile */}
+      <div className="border-t border-zinc-200 p-3 mt-auto">
+        <div 
+          onClick={() => setActiveView("settings")}
+          title={collapsed ? "Profile Settings" : undefined}
+          className={`flex items-center ${collapsed ? "justify-center" : "gap-3"} cursor-pointer hover:bg-zinc-200/50 p-2 rounded-xl transition`}
         >
-          <LogOut size={16} className="shrink-0 text-zinc-400" />
-          {!collapsed && <span className="text-[13px] font-semibold whitespace-nowrap">Log out</span>}
-        </button>
+          <div className="h-8 w-8 bg-[#0b3860] rounded-full flex items-center justify-center text-white text-[13px] font-bold font-['Sora'] shadow-sm shrink-0">
+            {initial}
+          </div>
+          {!collapsed && (
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-bold text-zinc-900 truncate">{managerName}</div>
+            </div>
+          )}
+        </div>
       </div>
     </aside>
   );

@@ -11,6 +11,7 @@ import PropertiesList from "@/components/views/PropertiesList";
 import PropertyDetail from "@/components/views/PropertyDetail";
 import Visualizer3D from "@/components/Visualizer3D";
 import UnitPanel from "@/components/UnitPanel";
+import SettingsTab from "@/components/views/SettingsTab";
 
 export default function Home() {
   const { user, loading: authLoading, logout } = useAuth();
@@ -84,6 +85,7 @@ export default function Home() {
   return (
     <main className="flex h-screen overflow-hidden bg-zinc-100 font-sans">
       <Sidebar
+        user={user}
         activeView={activeView}
         setActiveView={handleSetActiveView}
         onLogout={logout}
@@ -108,6 +110,10 @@ export default function Home() {
             units={units} 
             onSelectProperty={handleSelectProperty} 
           />
+        )}
+
+        {activeView === "settings" && (
+          <SettingsTab user={user} buildings={buildings} units={units} />
         )}
 
         {activeView === "property_detail" && selectedBuilding && (
@@ -188,11 +194,7 @@ export default function Home() {
           </div>
         )}
 
-        {activeView === "settings" && (
-          <div className="flex h-full items-center justify-center text-zinc-500">
-            Settings Page (Coming Soon)
-          </div>
-        )}
+
       </div>
     </main>
   );

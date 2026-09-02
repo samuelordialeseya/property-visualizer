@@ -341,3 +341,31 @@ export const deleteMaintenanceTicketDoc = async (ticketId) => {
   await deleteDoc(doc(db, "maintenance", ticketId));
 };
 
+// ─── User Profile Hooks ───────────────────────────────────────────────────────
+
+export function useUserProfile(userId) {
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!userId) { setProfile(null); setLoading(false); return; }
+    const docRef = doc(db, "users", userId);
+    const unsubscribe = onSnapshot(docRef, (snapshot) => {
+      if (snapshot.exists()) {
+        setProfile({ id: snapshot.id, ...snapshot.data() });
+      } else {
+        setProfile({ id: userId, default_currency: "PHP" }); // default fallback
+      }
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, [userId]);
+
+  return { profile, loading };
+}
+
+export const updateUserProfile = async (userId, data) => {
+  const docRef = doc(db, "users", userId);
+  await setDoc(docRef, data, { merge: true });
+};
+

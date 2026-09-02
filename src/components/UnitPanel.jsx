@@ -13,45 +13,44 @@ const MONTHS = ["January","February","March","April","May","June","July","August
 
 const PAYMENT_TYPES = [
   { value: "monthly_rent", label: "Monthly Rent" },
+  { value: "electric",     label: "Electric Bill" },
+  { value: "water",        label: "Water Bill" },
+  { value: "internet",     label: "Internet / Cable" },
+  { value: "dues",         label: "Association Dues" },
+  { value: "garbage",      label: "Garbage / Waste" },
+  { value: "parking",      label: "Parking" },
   { value: "maintenance",  label: "Maintenance / Repair" },
   { value: "late_fee",     label: "Late Fee" },
   { value: "other",        label: "Other" },
-];
-
-const BILL_TYPES = [
-  { value: "electric",   label: "Electric",         icon: Zap,          color: "text-yellow-600", bg: "bg-yellow-50" },
-  { value: "water",      label: "Water",            icon: Droplets,     color: "text-sky-600",    bg: "bg-sky-50" },
-  { value: "internet",   label: "Internet / Cable", icon: Wifi,         color: "text-indigo-600", bg: "bg-indigo-50" },
-  { value: "parking",    label: "Parking",          icon: Car,          color: "text-zinc-600",   bg: "bg-zinc-100" },
-  { value: "dues",       label: "Association Dues", icon: Building2,    color: "text-purple-600", bg: "bg-purple-50" },
-  { value: "garbage",    label: "Garbage / Waste",  icon: Trash2,       color: "text-green-600",  bg: "bg-green-50" },
-  { value: "other",      label: "Other",            icon: Receipt,      color: "text-zinc-500",   bg: "bg-zinc-50" },
 ];
 
 const currentYear  = new Date().getFullYear();
 const currentMonth = new Date().getMonth(); // 0-indexed
 
 /**
- * Given a lease start date string (YYYY-MM-DD) and a payment history array,
- * returns a combined timeline: paid entries + missed-month placeholders.
- * Only monthly_rent type matters for missed detection.
+ * Given a lease start date string (YYYY-MM-DD) and a payment history array (which we now treat as monthly statements),
+ * returns a combined timeline: generated statements + missing month placeholders.
  */
-function buildTimeline(leaseStart, paymentHistory, dueDay) {
-  if (!leaseStart) return paymentHistory.slice();
+function buildStatements(leaseStart, statements, dueDay) {
+  if (!leaseStart) return statements.slice();
 
   const start = new Date(leaseStart);
   const today = new Date();
   const todayDay = today.getDate();
   const dueDayNum = parseInt(dueDay || "1", 10);
 
-  // Collect all paid months (for monthly rent only)
-  const paidSet = new Set(
-    paymentHistory
-      .filter(p => !p.payment_type || p.payment_type === "monthly_rent")
-      .map(p => `${p.year}-${p.month}`)
-  );
+  // Collect existing statements by id
+  const existingMap = new Map();
+  statements.forEach(s => {
+    existingMap.set(`${s.year}-${s.month}`, s);
+  });
 
-  const entries = [...paymentHistory];
+  const entries = [];
+  
+  // Also include any statements that somehow exist before the lease start or after today (edge cases)
+  statements.forEach(s => {
+    entries.push(s);
+  });
 
   // Walk from lease start to current month
   let y = start.getFullYear();
@@ -67,13 +66,13 @@ function buildTimeline(leaseStart, paymentHistory, dueDay) {
       break;
     }
 
-    if (!paidSet.has(key)) {
+    if (!existingMap.has(key)) {
+      // Add placeholder for missing bill
       entries.push({
-        id: `missed-${key}`,
+        id: `missing-${key}`,
         month: monthName,
         year: String(y),
-        missed: true,
-        payment_type: "monthly_rent",
+        is_missing: true, // Needs to be billed
         recorded_at: new Date(y, m, dueDayNum).toISOString(),
       });
     }
@@ -82,8 +81,10 @@ function buildTimeline(leaseStart, paymentHistory, dueDay) {
     if (m > 11) { m = 0; y++; }
   }
 
-  // Sort newest first
-  return entries.sort((a, b) => {
+  // Sort newest first, filter out duplicates by id
+  const uniqueEntries = Array.from(new Map(entries.map(e => [e.id, e])).values());
+  
+  return uniqueEntries.sort((a, b) => {
     const da = new Date(b.recorded_at || 0);
     const db = new Date(a.recorded_at || 0);
     return da - db;
@@ -121,31 +122,29 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
   const [tenantPhotoUrl, setTenantPhotoUrl] = useState("");
   const [photoFile,     setPhotoFile]     = useState(null);
 
-  // ── Smart Bills ────────────────────────────────────────────────────────────
-  const [smartBills,    setSmartBills]    = useState([]);
-  const [showBillForm,  setShowBillForm]  = useState(false);
-  const [billType,      setBillType]      = useState("electric");
-  const [billLabel,     setBillLabel]     = useState("");
-  const [billAmount,    setBillAmount]    = useState("");
-  const [billFreq,      setBillFreq]      = useState("monthly");
-  const [billNotes,     setBillNotes]     = useState("");
-  const [billSaving,    setBillSaving]    = useState(false);
-  const [editBillId,    setEditBillId]    = useState(null);
 
-  // ── Payment history ───────────────────────────────────────────────────────
-  const [paymentHistory, setPaymentHistory] = useState([]); // [{id, month, year, amount, method, date_paid, screenshot_url}]
 
-  // ── Record-payment form ───────────────────────────────────────────────────
+  // ── Payment history (Monthly Statements) ───────────────────────────────────────────────────────
+  const [paymentHistory, setPaymentHistory] = useState([]);
+
+  // ── Create Bill Form State ──────────────────────────────────────────────
+  const [showBillForm, setShowBillForm] = useState(false);
+  const [billMonth, setBillMonth]       = useState("");
+  const [billYear, setBillYear]         = useState("");
+  const [billRent, setBillRent]         = useState(0);
+  const [billElectric, setBillElectric] = useState("");
+  const [billWater, setBillWater]       = useState("");
+  const [billOther, setBillOther]       = useState("");
+  const [billNotes, setBillNotes]       = useState("");
+
+  // ── Record Payment Form State ───────────────────────────────────────────
   const [showPayForm,    setShowPayForm]   = useState(false);
-  const [payMonth,       setPayMonth]      = useState(MONTHS[currentMonth]);
-  const [payYear,        setPayYear]       = useState(String(currentYear));
-  const [payAmount,      setPayAmount]     = useState("");
+  const [payTargetId,    setPayTargetId]   = useState(null); // The ID of the statement being paid
   const [payMethod,      setPayMethod]     = useState("Cash");
-  const [payType,        setPayType]       = useState("monthly_rent");
-  const [payDesc,        setPayDesc]       = useState("");
   const [payDatePaid,    setPayDatePaid]   = useState("");
   const [payFile,        setPayFile]       = useState(null);
   const [payFilePrev,    setPayFilePrev]   = useState(null);
+
   const [recordingSave,  setRecordingSave] = useState(false);
   const [expandedPayId,  setExpandedPayId] = useState(null);
 
@@ -167,7 +166,6 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
       setTenantPhotoUrl(unit.tenant?.tenant_photo_url ?? "");
       setPhotoFile(null);
       setPaymentHistory(unit.payment_history ?? []);
-      setSmartBills(unit.smart_bills ?? []);
       setIsEditing(false);
       setShowPayForm(false);
       setShowBillForm(false);
@@ -205,94 +203,96 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
     setIsEditing(false);
   };
 
-  // ── Smart Bill helpers ────────────────────────────────────────────────────
-  const handleAddBill = async (e) => {
+
+
+  // ── Create a Monthly Bill ──────────────────────────────────────────────
+  const handleCreateBill = async (e) => {
     e.preventDefault();
-    setBillSaving(true);
-    const cfg = BILL_TYPES.find(b => b.value === billType);
+    setSaving(true);
+    
     const newBill = {
-      id: `bill-${Date.now()}`,
-      type: billType,
-      label: billLabel.trim() || cfg?.label || "Bill",
-      amount: Number(billAmount) || 0,
-      frequency: billFreq,
-      notes: billNotes.trim(),
-      created_at: new Date().toISOString(),
+      id: `${billYear}-${billMonth}`,
+      month: billMonth,
+      year: billYear,
+      rent_amount: Number(billRent) || 0,
+      electric_amount: Number(billElectric) || 0,
+      water_amount: Number(billWater) || 0,
+      other_amount: Number(billOther) || 0,
+      notes: billNotes,
+      recorded_at: new Date().toISOString(),
     };
-    const updated = editBillId
-      ? smartBills.map(b => b.id === editBillId ? { ...newBill, id: editBillId } : b)
-      : [...smartBills, newBill];
-    await updateUnit(unit.ref, { smart_bills: updated });
-    setSmartBills(updated);
-    setBillLabel(""); setBillAmount(""); setBillNotes(""); setBillFreq("monthly"); setBillType("electric");
-    setShowBillForm(false); setEditBillId(null); setBillSaving(false);
+    
+    const existingIndex = paymentHistory.findIndex(p => p.id === newBill.id);
+    let updated;
+    if (existingIndex >= 0) {
+      updated = [...paymentHistory];
+      updated[existingIndex] = { ...updated[existingIndex], ...newBill };
+    } else {
+      newBill.is_paid = false;
+      newBill.date_paid = "";
+      newBill.method = "";
+      newBill.screenshot_url = "";
+      updated = [newBill, ...paymentHistory];
+    }
+    
+    await updateUnit(unit.ref, { payment_history: updated });
+    setPaymentHistory(updated);
+    
+    setShowBillForm(false);
+    setSaving(false);
   };
 
-  const handleDeleteBill = async (billId) => {
-    if (!confirm("Remove this bill?")) return;
-    const updated = smartBills.filter(b => b.id !== billId);
-    await updateUnit(unit.ref, { smart_bills: updated });
-    setSmartBills(updated);
-  };
-
-  const handleEditBill = (bill) => {
-    setEditBillId(bill.id);
-    setBillType(bill.type);
-    setBillLabel(bill.label);
-    setBillAmount(String(bill.amount));
-    setBillFreq(bill.frequency || "monthly");
-    setBillNotes(bill.notes || "");
-    setShowBillForm(true);
-  };
-
-  // ── Record a payment ──────────────────────────────────────────────────────
+  // ── Record Payment for a Bill ──────────────────────────────────────────
   const handleRecordPayment = async (e) => {
     e.preventDefault();
     setRecordingSave(true);
-
+    
     let screenshotUrl = "";
     if (payFile) {
       screenshotUrl = await uploadFile(
-        `units/${unit.id}/payments/${payYear}_${payMonth}_${Date.now()}`,
+        `units/${unit.id}/payments/${payTargetId}_${Date.now()}`,
         payFile
       );
     }
-
-    const newEntry = {
-      id: `${payYear}-${payMonth}-${Date.now()}`,
-      month: payMonth,
-      year: payYear,
-      payment_type: payType,
-      description: payDesc,
-      amount: Number(payAmount) || 0,
-      method: payMethod,
-      date_paid: payDatePaid,
-      screenshot_url: screenshotUrl,
-      recorded_at: new Date().toISOString(),
-    };
-
-    const updated = [newEntry, ...paymentHistory];
+    
+    const updated = paymentHistory.map(p => {
+      if (p.id === payTargetId) {
+        return {
+          ...p,
+          is_paid: true,
+          date_paid: payDatePaid,
+          method: payMethod,
+          screenshot_url: screenshotUrl || p.screenshot_url,
+        };
+      }
+      return p;
+    });
+    
     await updateUnit(unit.ref, { payment_history: updated });
     setPaymentHistory(updated);
-
-    // If recording a rent payment, flip overdue → occupied
-    if (status === "overdue" && payType === "monthly_rent") {
-      await updateUnit(unit.ref, { status: "occupied", payment_history: updated });
+    
+    if (status === "overdue") {
+      await updateUnit(unit.ref, { status: "occupied" });
       setStatus("occupied");
     }
-
-    setPayAmount(""); setPayDatePaid(""); setPayFile(null); setPayFilePrev(null);
-    setPayDesc(""); setPayType("monthly_rent");
-    setPayMonth(MONTHS[currentMonth]); setPayYear(String(currentYear));
+    
     setShowPayForm(false);
+    setPayTargetId(null);
+    setPayDatePaid("");
+    setPayFile(null);
+    setPayFilePrev(null);
     setRecordingSave(false);
   };
 
-  // ── Mark a missed month as overdue ────────────────────────────────────────
-  const handleMarkOverdue = async () => {
-    await updateUnit(unit.ref, { status: "overdue" });
-    setStatus("overdue");
+  // ── Delete a Statement ──────────────────────────────────────────────────
+  const handleDeleteStatement = async (statementId) => {
+    if (!confirm("Are you sure you want to delete this statement?")) return;
+    const updated = paymentHistory.filter(p => p.id !== statementId);
+    await updateUnit(unit.ref, { payment_history: updated });
+    setPaymentHistory(updated);
   };
+
+
 
   if (!unit) return null;
 
@@ -363,35 +363,23 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
         {/* ── READ-ONLY VIEW ─────────────────────────────────────────────── */}
         {!isEditing && (
           <>
-            {/* Rent + Smart Bill total */}
-            {(() => {
-              const monthlyExtras = smartBills.filter(b => b.frequency === "monthly").reduce((s, b) => s + (b.amount || 0), 0);
-              const totalMonthly = (Number(unit.monthly_rent) || 0) + monthlyExtras;
-              return (
-                <div className="rounded-xl bg-[var(--color-blue-50)] shadow-md shadow-[var(--color-blue-100)] px-4 py-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-[10px] font-semibold tracking-[0.08em] text-[var(--color-blue-600)] uppercase">Monthly Rent</div>
-                      <div className="text-[22px] font-bold text-[var(--color-blue-700)] leading-tight">
-                        ₱{(Number(unit.monthly_rent) || 0).toLocaleString()}
-                      </div>
-                    </div>
-                    <div className="text-right flex flex-col items-end gap-1">
-                      <div className="text-[10px] font-semibold tracking-[0.08em] text-[var(--color-blue-600)] uppercase">Due Day</div>
-                      <div className="text-[15px] font-semibold text-[var(--color-blue-700)]">
-                        {unit.tenant?.rent_due_date ? `Day ${unit.tenant.rent_due_date}` : "—"}
-                      </div>
-                    </div>
+            {/* Rent Card */}
+            <div className="rounded-xl bg-[var(--color-blue-50)] shadow-md shadow-[var(--color-blue-100)] px-4 py-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] font-semibold tracking-[0.08em] text-[var(--color-blue-600)] uppercase">Monthly Rent</div>
+                  <div className="text-[22px] font-bold text-[var(--color-blue-700)] leading-tight">
+                    ₱{(Number(unit.monthly_rent) || 0).toLocaleString()}
                   </div>
-                  {monthlyExtras > 0 && (
-                    <div className="mt-2.5 pt-2.5 border-t border-[var(--color-blue-200)] flex items-center justify-between">
-                      <div className="text-[10px] text-[var(--color-blue-600)] font-semibold uppercase tracking-wide">Total w/ Bills</div>
-                      <div className="text-[14px] font-bold text-[var(--color-blue-800)]">₱{totalMonthly.toLocaleString()}<span className="text-[10px] font-medium text-[var(--color-blue-500)] ml-1">(+₱{monthlyExtras.toLocaleString()} extras)</span></div>
-                    </div>
-                  )}
                 </div>
-              );
-            })()}
+                <div className="text-right flex flex-col items-end gap-1">
+                  <div className="text-[10px] font-semibold tracking-[0.08em] text-[var(--color-blue-600)] uppercase">Due Day</div>
+                  <div className="text-[15px] font-semibold text-[var(--color-blue-700)]">
+                    {unit.tenant?.rent_due_date ? `Day ${unit.tenant.rent_due_date}` : "—"}
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Tenant info */}
             {unit.status !== "vacant" && unit.tenant ? (
@@ -413,375 +401,216 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
               </div>
             )}
 
-            {/* ── SMART BILLS ──────────────────────────────────────────── */}
+
+            {/* ── MONTHLY STATEMENTS ──────────────────────────────────────── */}
             {unit.status !== "vacant" && (
               <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="text-[12px] font-semibold tracking-[0.06em] text-zinc-500 uppercase flex items-center gap-1.5">
-                    <CreditCard size={13} className="text-zinc-400" /> Smart Bills
-                  </div>
-                  <button
-                    onClick={() => { setShowBillForm(v => !v); setEditBillId(null); setBillLabel(""); setBillAmount(""); setBillNotes(""); setBillFreq("monthly"); setBillType("electric"); }}
-                    className="flex items-center gap-1 rounded-full bg-zinc-100 hover:bg-zinc-200 px-3 py-1 text-[11px] font-semibold text-zinc-600 transition"
-                  >
-                    <Plus size={11} />{showBillForm && !editBillId ? "Cancel" : "Add Bill"}
-                  </button>
+                <div className="flex items-center justify-between mb-3 border-t border-zinc-100 pt-6 mt-2">
+                  <div className="text-[12px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Monthly Statements</div>
                 </div>
 
-                {/* Add / Edit Bill Form */}
+                {/* Create Bill Form */}
                 {showBillForm && (
-                  <form onSubmit={handleAddBill} className="mb-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 space-y-3">
-                    <div className="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider">
-                      {editBillId ? "Edit Bill" : "New Smart Bill"}
+                  <form onSubmit={handleCreateBill} className="mb-4 rounded-2xl border border-[var(--color-blue-200)] bg-[var(--color-blue-50)] p-4 space-y-3">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-blue-700)]">
+                      Create Bill: {billMonth} {billYear}
                     </div>
-
-                    {/* Bill type picker */}
-                    <div>
-                      <label className="mb-1.5 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Bill Type</label>
-                      <div className="grid grid-cols-4 gap-1.5">
-                        {BILL_TYPES.map(bt => {
-                          const Icon = bt.icon;
-                          return (
-                            <button key={bt.value} type="button" onClick={() => { setBillType(bt.value); if (!billLabel || BILL_TYPES.find(x => x.label === billLabel)) setBillLabel(bt.label); }}
-                              className={`flex flex-col items-center gap-1 py-2 rounded-xl border text-center transition text-[9.5px] font-semibold ${
-                                billType === bt.value
-                                  ? `${bt.bg} border-current ${bt.color} ring-1 ring-current`
-                                  : "border-zinc-200 bg-white text-zinc-500 hover:bg-zinc-50"
-                              }`}>
-                              <Icon size={14} />{bt.label.split(" ")[0]}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Label override */}
-                    <div>
-                      <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Bill Name / Label</label>
-                      <input type="text" required value={billLabel} onChange={e => setBillLabel(e.target.value)}
-                        placeholder="e.g. Meralco, MAYNILAD, PLDT"
-                        className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)] transition" />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      {/* Amount */}
+                    
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Amount (₱)</label>
-                        <input type="number" min="0" required value={billAmount} onChange={e => setBillAmount(e.target.value)}
-                          placeholder="e.g. 1200"
-                          className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)] transition" />
-                      </div>
-                      {/* Frequency */}
-                      <div>
-                        <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Frequency</label>
-                        <div className="flex gap-1.5 h-[34px]">
-                          {[["monthly","Monthly"],["once","One-time"]].map(([v,l]) => (
-                            <button key={v} type="button" onClick={() => setBillFreq(v)}
-                              className={`flex-1 rounded-xl text-[11px] font-semibold border transition ${
-                                billFreq === v ? "bg-[#0b3860] text-white border-[#0b3860]" : "border-zinc-200 bg-white text-zinc-500 hover:bg-zinc-50"
-                              }`}>{l}</button>
-                          ))}
+                        <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Rent (Fixed)</label>
+                        <div className="w-full rounded-xl border border-zinc-200 bg-zinc-100 px-3 py-2 text-[12px] text-zinc-500 cursor-not-allowed">
+                          ₱{Number(billRent).toLocaleString()}
                         </div>
                       </div>
+                      <div>
+                        <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Electric Bill</label>
+                        <input type="number" min="0" value={billElectric} onChange={(e) => setBillElectric(e.target.value)} placeholder="0" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]" />
+                      </div>
                     </div>
-
-                    {/* Notes */}
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Water Bill</label>
+                        <input type="number" min="0" value={billWater} onChange={(e) => setBillWater(e.target.value)} placeholder="0" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]" />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Other / Extras</label>
+                        <input type="number" min="0" value={billOther} onChange={(e) => setBillOther(e.target.value)} placeholder="0" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]" />
+                      </div>
+                    </div>
+                    
                     <div>
-                      <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Notes (optional)</label>
-                      <input type="text" value={billNotes} onChange={e => setBillNotes(e.target.value)}
-                        placeholder="e.g. Separate meter, included in rent…"
-                        className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)] transition" />
+                      <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Notes (Optional)</label>
+                      <input type="text" value={billNotes} onChange={(e) => setBillNotes(e.target.value)} placeholder="e.g. Broken faucet repair included in Others" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]" />
                     </div>
-
-                    <div className="flex gap-2 pt-1">
-                      <button type="submit" disabled={billSaving}
-                        className="flex-1 rounded-xl bg-[var(--color-blue-600)] py-2 text-[12px] font-semibold text-white hover:bg-[var(--color-blue-700)] transition disabled:opacity-50">
-                        {billSaving ? "Saving…" : editBillId ? "Update Bill" : "Add Bill"}
-                      </button>
-                      <button type="button" onClick={() => { setShowBillForm(false); setEditBillId(null); }}
-                        className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-500 hover:bg-zinc-50">
-                        Cancel
-                      </button>
+                    
+                    <div className="pt-2 flex items-center justify-between border-t border-[var(--color-blue-100)]">
+                      <div className="text-[12px] font-semibold text-[var(--color-blue-700)]">Total: ₱{(Number(billRent) + (Number(billElectric)||0) + (Number(billWater)||0) + (Number(billOther)||0)).toLocaleString()}</div>
+                      <div className="flex gap-2">
+                        <button type="button" onClick={() => setShowBillForm(false)} className="px-3 py-1.5 rounded-xl text-[11px] font-semibold text-zinc-500 hover:bg-zinc-100 transition">Cancel</button>
+                        <button type="submit" disabled={saving} className="px-4 py-1.5 rounded-xl bg-[var(--color-blue-600)] hover:bg-[var(--color-blue-700)] text-white text-[11px] font-semibold transition disabled:opacity-50">Save Bill</button>
+                      </div>
                     </div>
                   </form>
                 )}
 
-                {/* Bills List */}
-                {smartBills.length === 0 && !showBillForm ? (
-                  <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-4 text-center text-[12px] text-zinc-400">
-                    No extra bills added. Click <strong>Add Bill</strong> to track electric, water, etc.
-                  </div>
-                ) : smartBills.length > 0 && (
-                  <div className="space-y-1.5">
-                    {smartBills.map(bill => {
-                      const cfg = BILL_TYPES.find(b => b.value === bill.type) || BILL_TYPES[BILL_TYPES.length - 1];
-                      const Icon = cfg.icon;
-                      return (
-                        <div key={bill.id} className="flex items-center gap-3 rounded-xl border border-zinc-100 bg-white px-3 py-2.5 hover:border-zinc-200 transition group">
-                          <div className={`p-1.5 rounded-lg ${cfg.bg} shrink-0`}>
-                            <Icon size={13} className={cfg.color} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-[13px] font-semibold text-zinc-900 leading-tight truncate">{bill.label}</div>
-                            {bill.notes && <div className="text-[10px] text-zinc-400 truncate">{bill.notes}</div>}
-                          </div>
-                          <div className="text-right shrink-0">
-                            <div className="text-[13px] font-bold text-zinc-800">₱{(bill.amount || 0).toLocaleString()}</div>
-                            <span className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded-full ${
-                              bill.frequency === "monthly" ? "bg-blue-50 text-blue-600" : "bg-zinc-100 text-zinc-500"
-                            }`}>{bill.frequency === "monthly" ? "Monthly" : "One-time"}</span>
-                          </div>
-                          <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition">
-                            <button onClick={() => handleEditBill(bill)} className="p-1 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 transition" title="Edit">
-                              <Pencil size={11} />
-                            </button>
-                            <button onClick={() => handleDeleteBill(bill.id)} className="p-1 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-500 transition" title="Remove">
-                              <X size={11} />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                    {/* Monthly total row */}
-                    {smartBills.some(b => b.frequency === "monthly") && (
-                      <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-100 mt-1">
-                        <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wide">Total Monthly Bills</span>
-                        <span className="text-[13px] font-bold text-zinc-800">
-                          ₱{smartBills.filter(b => b.frequency === "monthly").reduce((s, b) => s + (b.amount || 0), 0).toLocaleString()}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ── PAYMENT HISTORY ──────────────────────────────────────── */}
-            {unit.status !== "vacant" && (
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="text-[12px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Payment History</div>
-                  <button
-                    onClick={() => setShowPayForm((v) => !v)}
-                    className="flex items-center gap-1 rounded-full bg-[var(--color-blue-600)] px-3 py-1 text-[11px] font-semibold text-white transition hover:bg-[var(--color-blue-700)]"
-                  >
-                    <Plus size={11} />
-                    Record Payment
-                  </button>
-                </div>
-
+                {/* Record Payment Form */}
                 {showPayForm && (
-                  <form
-                    onSubmit={handleRecordPayment}
-                    className="mb-4 rounded-2xl border border-[var(--color-blue-200)] bg-[var(--color-blue-50)] p-4 space-y-3"
-                  >
-                    <div className="text-[11px] font-semibold text-[var(--color-blue-700)] uppercase tracking-wider">New Payment Entry</div>
-
-                    {/* Payment type */}
-                    <div>
-                      <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Payment Type</label>
-                      <select
-                        className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]"
-                        value={payType}
-                        onChange={(e) => setPayType(e.target.value)}
-                      >
-                        {PAYMENT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                      </select>
-                    </div>
-
-                    {/* Month / Year — only for monthly rent */}
-                    {payType === "monthly_rent" && (
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">For Month</label>
-                          <select
-                            className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]"
-                            value={payMonth}
-                            onChange={(e) => setPayMonth(e.target.value)}
-                          >
-                            {MONTHS.map((m) => <option key={m}>{m}</option>)}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Year</label>
-                          <input
-                            type="number" min="2020" max="2040"
-                            className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]"
-                            value={payYear}
-                            onChange={(e) => setPayYear(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Description — for non-rent types */}
-                    {payType !== "monthly_rent" && (
+                  <form onSubmit={handleRecordPayment} className="mb-4 rounded-2xl border border-green-200 bg-green-50 p-4 space-y-3">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-green-700">Record Payment</div>
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Description</label>
-                        <input
-                          type="text"
-                          className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]"
-                          value={payDesc}
-                          onChange={(e) => setPayDesc(e.target.value)}
-                          placeholder="e.g. Broken faucet repair"
-                          required
-                        />
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Amount (₱)</label>
-                        <input
-                          type="number" min="0" required
-                          className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]"
-                          value={payAmount}
-                          onChange={(e) => setPayAmount(e.target.value)}
-                          placeholder="e.g. 15000"
-                        />
+                        <label className="mb-1 block text-[10px] font-semibold text-green-700/70 uppercase tracking-wider">Date Paid</label>
+                        <input type="date" required value={payDatePaid} onChange={(e) => setPayDatePaid(e.target.value)} className="w-full rounded-xl border border-green-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-green-500" />
                       </div>
                       <div>
-                        <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Date Paid</label>
-                        <input
-                          type="date" required
-                          className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]"
-                          value={payDatePaid}
-                          onChange={(e) => setPayDatePaid(e.target.value)}
-                        />
+                        <label className="mb-1 block text-[10px] font-semibold text-green-700/70 uppercase tracking-wider">Payment Method</label>
+                        <select value={payMethod} onChange={(e) => setPayMethod(e.target.value)} className="w-full rounded-xl border border-green-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-green-500">
+                          <option>Cash</option>
+                          <option>GCash</option>
+                          <option>Bank Transfer</option>
+                          <option>Check</option>
+                        </select>
                       </div>
                     </div>
                     <div>
-                      <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Payment Method</label>
-                      <select
-                        className="w-full rounded-xl border border-zinc-200 bg-white px-2 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]"
-                        value={payMethod}
-                        onChange={(e) => setPayMethod(e.target.value)}
-                      >
-                        <option>Cash</option>
-                        <option>GCash</option>
-                        <option>Bank Transfer</option>
-                        <option>Check</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Receipt / Screenshot</label>
-                      <input
-                        type="file" accept="image/*"
-                        className="w-full text-[11px] text-zinc-600 file:mr-2 file:rounded-full file:border-0 file:bg-white file:px-2 file:py-1 file:text-[11px] file:font-semibold file:text-zinc-700"
-                        onChange={(e) => {
-                          const f = e.target.files[0];
-                          setPayFile(f);
-                          setPayFilePrev(f ? URL.createObjectURL(f) : null);
-                        }}
-                      />
-                      {payFilePrev && (
-                        <img src={payFilePrev} alt="Receipt preview" className="mt-2 h-20 w-full rounded-xl object-cover border border-zinc-200" />
-                      )}
+                      <label className="mb-1 block text-[10px] font-semibold text-green-700/70 uppercase tracking-wider">Receipt / Screenshot</label>
+                      <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files[0]; setPayFile(f); setPayFilePrev(f ? URL.createObjectURL(f) : null); }} className="w-full text-[11px] text-green-700 file:mr-2 file:rounded-full file:border-0 file:bg-white file:px-2 file:py-1 file:text-[11px] file:font-semibold file:text-green-700" />
+                      {payFilePrev && <img src={payFilePrev} alt="Receipt preview" className="mt-2 h-20 w-full rounded-xl object-cover border border-green-200" />}
                     </div>
                     <div className="flex gap-2 pt-1">
-                      <button
-                        type="submit"
-                        disabled={recordingSave}
-                        className="flex-1 rounded-xl bg-[var(--color-blue-600)] py-2 text-[12px] font-semibold text-white transition hover:bg-[var(--color-blue-700)] disabled:opacity-50"
-                      >
-                        {recordingSave ? "Saving…" : "Record Payment"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowPayForm(false)}
-                        className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] font-semibold text-zinc-500 hover:bg-zinc-50"
-                      >
-                        Cancel
-                      </button>
+                      <button type="button" onClick={() => { setShowPayForm(false); setPayTargetId(null); }} className="px-3 py-1.5 rounded-xl text-[11px] font-semibold text-zinc-500 hover:bg-zinc-100 transition border border-transparent bg-white">Cancel</button>
+                      <button type="submit" disabled={recordingSave} className="flex-1 rounded-xl bg-green-600 hover:bg-green-700 text-white py-2 text-[12px] font-semibold transition disabled:opacity-50">Confirm Payment</button>
                     </div>
                   </form>
                 )}
 
-                {/* History list — includes missed months */}
+                {/* History list — statements */}
                 {(() => {
-                  const timeline = buildTimeline(
+                  const statements = buildStatements(
                     unit.tenant?.lease_start,
                     paymentHistory,
                     unit.tenant?.rent_due_date
                   );
-                  const nonRentEntries = paymentHistory.filter(p => p.payment_type && p.payment_type !== "monthly_rent");
-                  const allEntries = timeline;
 
-                  if (allEntries.length === 0) return (
+                  if (statements.length === 0) return (
                     <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-5 text-center text-[12px] text-zinc-400">
-                      No payments recorded yet.
+                      No statements found.
                     </div>
                   );
 
                   return (
-                    <div className="space-y-2">
-                      {allEntries.map((p) => {
-                        const isMissed = p.missed;
-                        const typeLabel = PAYMENT_TYPES.find(t => t.value === p.payment_type)?.label ?? "Monthly Rent";
-                        const title = p.payment_type === "monthly_rent" || !p.payment_type
-                          ? `${p.month} ${p.year}`
-                          : p.description || typeLabel;
-                        const sub = p.payment_type === "monthly_rent" || !p.payment_type
-                          ? (isMissed ? "No payment recorded" : `₱${(p.amount || 0).toLocaleString()} · ${p.method}`)
-                          : `₱${(p.amount || 0).toLocaleString()} · ${p.method} · ${p.date_paid || ""}`;
+                    <div className="space-y-3">
+                      {statements.map((s) => {
+                        const total = (Number(s.rent_amount)||0) + (Number(s.electric_amount)||0) + (Number(s.water_amount)||0) + (Number(s.other_amount)||0);
+                        
+                        if (s.is_missing) {
+                          return (
+                            <div key={s.id} className="rounded-xl border border-dashed border-orange-200 bg-orange-50 px-4 py-3 flex items-center justify-between">
+                              <div>
+                                <div className="text-[13px] font-semibold text-orange-800">{s.month} {s.year}</div>
+                                <div className="text-[11px] text-orange-600">Not billed yet</div>
+                              </div>
+                              <button
+                                onClick={() => { setBillMonth(s.month); setBillYear(s.year); setBillRent(unit.monthly_rent || 0); setShowBillForm(true); setShowPayForm(false); }}
+                                className="rounded-full bg-orange-100 px-3 py-1 text-[11px] font-semibold text-orange-700 hover:bg-orange-200 transition"
+                              >
+                                Create Bill
+                              </button>
+                            </div>
+                          );
+                        }
 
                         return (
-                          <div key={p.id} className={`rounded-xl border overflow-hidden ${
-                            isMissed ? "border-orange-200 bg-orange-50" : "border-zinc-100 bg-zinc-50"
-                          }`}>
-                          <div
-                              type="button"
-                              onClick={() => !isMissed && setExpandedPayId(expandedPayId === p.id ? null : p.id)}
-                              className={`w-full flex items-center justify-between px-4 py-3 text-left transition select-none ${
-                                isMissed ? "cursor-default" : "hover:bg-zinc-100 cursor-pointer"
-                              }`}
-                            >
+                          <div key={s.id} className={`rounded-xl border overflow-hidden ${!s.is_paid ? "border-orange-200 bg-orange-50" : "border-zinc-100 bg-zinc-50"}`}>
+                            <div type="button" onClick={() => setExpandedPayId(expandedPayId === s.id ? null : s.id)} className={`w-full flex items-center justify-between px-4 py-3 text-left transition select-none cursor-pointer hover:bg-zinc-100/50`}>
                               <div>
-                                <div className={`text-[13px] font-semibold ${ isMissed ? "text-orange-800" : "text-zinc-900"}`}>
-                                  {title}
-                                  {p.payment_type && p.payment_type !== "monthly_rent" && (
-                                    <span className="ml-2 text-[10px] font-medium text-zinc-400">{typeLabel}</span>
-                                  )}
+                                <div className={`text-[13px] font-semibold ${ !s.is_paid ? "text-orange-800" : "text-zinc-900"}`}>{s.month} {s.year}</div>
+                                <div className={`text-[11px] font-bold ${ !s.is_paid ? "text-orange-600" : "text-zinc-500"}`}>
+                                  ₱{total.toLocaleString()} {s.is_paid ? `· Paid on ${s.date_paid}` : ""}
                                 </div>
-                                <div className={`text-[11px] ${ isMissed ? "text-orange-600" : "text-zinc-500"}`}>{sub}</div>
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
-                                {isMissed ? (
+                                {!s.is_paid ? (
                                   <>
-                                    <span className="rounded-full bg-orange-100 border border-orange-300 px-2 py-0.5 text-[10px] font-semibold text-orange-700">MISSED</span>
-                                    {status !== "overdue" && (
-                                      <button
-                                        type="button"
-                                        onClick={(e) => { e.stopPropagation(); handleMarkOverdue(); }}
-                                        className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-white transition hover:bg-red-600"
-                                      >
-                                        Mark Overdue
-                                      </button>
-                                    )}
+                                    <span className="rounded-full bg-orange-100 border border-orange-300 px-2 py-0.5 text-[10px] font-semibold text-orange-700">UNPAID</span>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => { e.stopPropagation(); setPayTargetId(s.id); setShowPayForm(true); setShowBillForm(false); setPayDatePaid(new Date().toISOString().split('T')[0]); }}
+                                      className="rounded-full bg-green-500 px-2 py-0.5 text-[10px] font-semibold text-white transition hover:bg-green-600"
+                                    >
+                                      Mark Paid
+                                    </button>
                                   </>
                                 ) : (
                                   <>
-                                    <span className="rounded-full bg-[var(--color-blue-50)] border border-[var(--color-blue-200)] px-2 py-0.5 text-[10px] font-semibold text-[var(--color-blue-700)]">PAID</span>
-                                    {expandedPayId === p.id ? <ChevronUp size={14} className="text-zinc-400" /> : <ChevronDown size={14} className="text-zinc-400" />}
+                                    <span className="rounded-full bg-green-100 border border-green-300 px-2 py-0.5 text-[10px] font-semibold text-green-700">PAID</span>
+                                    {expandedPayId === s.id ? <ChevronUp size={14} className="text-zinc-400" /> : <ChevronDown size={14} className="text-zinc-400" />}
                                   </>
                                 )}
                               </div>
                             </div>
-                            {!isMissed && expandedPayId === p.id && (
-                              <div className="px-4 pb-3 space-y-2 border-t border-zinc-100">
-                                <div className="grid grid-cols-2 gap-2 pt-2">
-                                  <Field label="Date Paid" value={p.date_paid} />
-                                  <Field label="Method" value={p.method} />
+                            
+                            {expandedPayId === s.id && (
+                              <div className="px-4 pb-3 pt-2 space-y-3 border-t border-zinc-100/50 bg-white">
+                                {/* Bill Breakdown */}
+                                <div>
+                                  <div className="text-[10px] font-semibold tracking-[0.08em] text-zinc-400 uppercase mb-1">Bill Breakdown</div>
+                                  <div className="grid grid-cols-2 gap-2 bg-zinc-50 p-2 rounded-lg text-[11px]">
+                                    <div className="flex justify-between">
+                                      <span className="text-zinc-500">Rent:</span><span className="font-semibold text-zinc-700">₱{(Number(s.rent_amount)||0).toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-zinc-500">Electric:</span><span className="font-semibold text-zinc-700">₱{(Number(s.electric_amount)||0).toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-zinc-500">Water:</span><span className="font-semibold text-zinc-700">₱{(Number(s.water_amount)||0).toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-zinc-500">Other:</span><span className="font-semibold text-zinc-700">₱{(Number(s.other_amount)||0).toLocaleString()}</span>
+                                    </div>
+                                  </div>
                                 </div>
-                                {p.description && <Field label="Description" value={p.description} />}
-                                {p.screenshot_url && (
+                                {s.notes && (
                                   <div>
-                                    <div className="text-[10px] font-semibold tracking-[0.08em] text-zinc-400 uppercase mb-1">Receipt</div>
-                                    <a href={p.screenshot_url} target="_blank" rel="noopener noreferrer">
-                                      <img src={p.screenshot_url} alt="Receipt" className="h-28 w-full rounded-xl object-cover border border-zinc-200 hover:opacity-90 transition" />
-                                    </a>
+                                    <div className="text-[10px] font-semibold tracking-[0.08em] text-zinc-400 uppercase mb-0.5">Notes</div>
+                                    <div className="text-[11px] text-zinc-600">{s.notes}</div>
                                   </div>
                                 )}
+                                {s.is_paid && (
+                                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-zinc-100">
+                                    <Field label="Method" value={s.method} />
+                                    {s.screenshot_url && (
+                                      <div>
+                                        <div className="text-[10px] font-semibold tracking-[0.08em] text-zinc-400 uppercase mb-1">Receipt</div>
+                                        <a href={s.screenshot_url} target="_blank" rel="noopener noreferrer">
+                                          <img src={s.screenshot_url} alt="Receipt" className="h-16 w-full rounded-lg object-cover border border-zinc-200 hover:opacity-90 transition" />
+                                        </a>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                <div className="flex justify-end gap-3 pt-2">
+                                  <button onClick={() => {
+                                    setBillMonth(s.month);
+                                    setBillYear(s.year);
+                                    setBillRent(s.rent_amount || 0);
+                                    setBillElectric(s.electric_amount || "");
+                                    setBillWater(s.water_amount || "");
+                                    setBillOther(s.other_amount || "");
+                                    setBillNotes(s.notes || "");
+                                    setShowBillForm(true);
+                                    setShowPayForm(false);
+                                    setExpandedPayId(null);
+                                    window.scrollTo({ top: 0, behavior: "smooth" });
+                                  }} className="flex items-center gap-1 text-[10px] font-semibold text-[var(--color-blue-600)] hover:text-[var(--color-blue-800)] transition">
+                                    <Pencil size={12} /> Edit Bill
+                                  </button>
+                                  <button onClick={() => handleDeleteStatement(s.id)} className="flex items-center gap-1 text-[10px] font-semibold text-red-500 hover:text-red-700 transition">
+                                    <Trash2 size={12} /> Delete Bill
+                                  </button>
+                                </div>
                               </div>
                             )}
                           </div>
