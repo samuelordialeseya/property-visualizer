@@ -131,8 +131,13 @@ export function useBuildings(userId) {
 
   const deleteBuilding = async (buildingId) => {
     const unitsSnap = await getDocs(collection(db, "buildings", buildingId, "units"));
-    const deletePromises = unitsSnap.docs.map(uDoc => deleteDoc(uDoc.ref));
-    await Promise.all(deletePromises);
+    await Promise.all(unitsSnap.docs.map(uDoc => deleteDoc(uDoc.ref)));
+    try {
+      const docsSnap = await getDocs(collection(db, "buildings", buildingId, "documents"));
+      await Promise.all(docsSnap.docs.map(dDoc => deleteDoc(dDoc.ref)));
+    } catch (e) {
+      console.warn("Could not delete documents for building:", e);
+    }
     await deleteDoc(doc(db, "buildings", buildingId));
   };
 
@@ -428,4 +433,109 @@ export const updateUserProfile = async (userId, data) => {
   const docRef = doc(db, "users", userId);
   await setDoc(docRef, data, { merge: true });
 };
+
+export const deleteUserData = async (userId, includeBuildings = true) => {
+  if (!userId) return;
+
+  // 1. Delete user profile document
+  try {
+    await deleteDoc(doc(db, "users", userId));
+  } catch (e) {
+    console.warn("Could not delete user profile doc:", e);
+  }
+
+  // 2. Optionally clean up user buildings, units, staff, errands, maintenance, documents
+  if (includeBuildings) {
+    try {
+      const bSnap = await getDocs(query(collection(db, "buildings"), where("user_id", "==", userId)));
+      for (const bDoc of bSnap.docs) {
+        const unitsSnap = await getDocs(collection(db, "buildings", bDoc.id, "units"));
+        await Promise.all(unitsSnap.docs.map((u) => deleteDoc(u.ref)));
+        const docsSnap = await getDocs(collection(db, "buildings", bDoc.id, "documents"));
+        await Promise.all(docsSnap.docs.map((d) => deleteDoc(d.ref)));
+        await deleteDoc(bDoc.ref);
+      }
+    } catch (e) {
+      console.warn("Could not delete buildings for user:", e);
+    }
+
+    try {
+      const staffSnap = await getDocs(query(collection(db, "staff"), where("user_id", "==", userId)));
+      await Promise.all(staffSnap.docs.map((s) => deleteDoc(s.ref)));
+    } catch (e) {
+      console.warn("Could not delete staff for user:", e);
+    }
+
+    try {
+      const errandsSnap = await getDocs(query(collection(db, "errands"), where("user_id", "==", userId)));
+      await Promise.all(errandsSnap.docs.map((ed) => deleteDoc(ed.ref)));
+    } catch (e) {
+      console.warn("Could not delete errands for user:", e);
+    }
+
+    try {
+      const maintSnap = await getDocs(query(collection(db, "maintenance"), where("user_id", "==", userId)));
+      await Promise.all(maintSnap.docs.map((m) => deleteDoc(m.ref)));
+    } catch (e) {
+      console.warn("Could not delete maintenance for user:", e);
+    }
+  }
+};
+
+// --- Property Documents Suite ---
+export function usePropertyDocuments(buildingId) {
+  const [documents, setDocuments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!buildingId) {
+      setDocuments([]);
+      setLoading(false);
+      return;
+    }
+
+    const q = query(
+      collection(db, "buildings", buildingId, "documents"),
+      orderBy("created_at", "desc")
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const docs = snapshot.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        }));
+        setDocuments(docs);
+        setLoading(false);
+      },
+      (error) => {
+        console.warn("Property documents listener error:", error.message);
+        setDocuments([]);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [buildingId]);
+
+  return { documents, loading };
+}
+
+export const addPropertyDocument = async (buildingId, data) => {
+  return await addDoc(collection(db, "buildings", buildingId, "documents"), {
+    ...data,
+    created_at: new Date().toISOString(),
+  });
+};
+
+export const updatePropertyDocument = async (buildingId, docId, data) => {
+  return await updateDoc(doc(db, "buildings", buildingId, "documents", docId), data);
+};
+
+export const deletePropertyDocument = async (buildingId, docId) => {
+  return await deleteDoc(doc(db, "buildings", buildingId, "documents", docId));
+};
+
+
 

@@ -123,6 +123,7 @@ export default function Home() {
             buildings={buildings}
             userId={user?.uid}
             updateUnit={updateUnit}
+            updateBuilding={(data) => updateBuilding(selectedBuilding.id, data)}
             onLaunch3D={() => handleSetActiveView("3d_view")}
             onDeleteProperty={async () => {
               if (confirm(`Are you sure you want to delete ${selectedBuilding.name}? This will permanently delete all units, tenants, and payment records.`)) {

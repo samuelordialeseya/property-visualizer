@@ -1,10 +1,12 @@
 "use client";
 import { useState, useMemo } from "react";
-import { ArrowLeft, Box, Trash2, Wrench, Users } from "lucide-react";
+import { ArrowLeft, Box, Trash2, Wrench, Users, Building2, FileText } from "lucide-react";
 import UnitPanel from "@/components/UnitPanel";
 import StaffTab from "@/components/views/tabs/StaffTab";
 import MaintenanceTab from "@/components/views/tabs/MaintenanceTab";
-import { useMaintenanceTickets, useStaff } from "@/hooks/useFirestore";
+import PropertyOverviewTab from "@/components/views/tabs/PropertyOverviewTab";
+import DocumentsTab from "@/components/views/tabs/DocumentsTab";
+import { useMaintenanceTickets, useStaff, usePropertyDocuments } from "@/hooks/useFirestore";
 
 const STATUS_STYLES = {
   vacant:   { pill: "bg-zinc-100 text-zinc-600",   dot: "bg-zinc-400",   label: "VACANT" },
@@ -13,21 +15,35 @@ const STATUS_STYLES = {
 };
 
 const TABS = [
+  { key: "overview",    label: "Overview",        icon: <Building2 size={14} /> },
   { key: "units",       label: "Units Directory", icon: <Box size={14} /> },
+  { key: "documents",   label: "Documents",       icon: <FileText size={14} /> },
   { key: "maintenance", label: "Maintenance",     icon: <Wrench size={14} /> },
   { key: "staff",       label: "Staff & Payroll", icon: <Users size={14} /> },
 ];
 
-export default function PropertyDetail({ building, units, buildings, updateUnit, onLaunch3D, onDeleteProperty, onBack, userId }) {
-  const [activeTab, setActiveTab] = useState("units");
+export default function PropertyDetail({ 
+  building, 
+  units, 
+  buildings, 
+  updateUnit, 
+  updateBuilding, 
+  onLaunch3D, 
+  onDeleteProperty, 
+  onBack, 
+  userId 
+}) {
+  const [activeTab, setActiveTab] = useState("overview");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState(null);
 
   const { tickets } = useMaintenanceTickets(building?.id);
   const { staff } = useStaff(userId, building?.id);
+  const { documents } = usePropertyDocuments(building?.id);
 
   const openTicketCount = tickets.filter(t => t.status !== "settled").length;
   const staffCount = staff.length;
+  const documentCount = documents.length;
 
   const filteredUnits = useMemo(() => {
     let list = units;
@@ -36,6 +52,8 @@ export default function PropertyDetail({ building, units, buildings, updateUnit,
   }, [units, statusFilter]);
 
   const tabBadge = (key) => {
+    if (key === "units" && units.length > 0) return units.length;
+    if (key === "documents" && documentCount > 0) return documentCount;
     if (key === "maintenance" && openTicketCount > 0) return openTicketCount;
     if (key === "staff" && staffCount > 0) return staffCount;
     return null;
@@ -44,51 +62,50 @@ export default function PropertyDetail({ building, units, buildings, updateUnit,
   return (
     <div className="flex h-full w-full relative overflow-hidden bg-zinc-50/50">
       <div className="flex-1 flex flex-col w-full h-full overflow-hidden">
-        {/* Header */}
-        <div className="border-b border-zinc-200 bg-white px-8 py-5 shadow-sm shrink-0 relative overflow-hidden">
-          <div className="flex items-center gap-2 mb-3">
-            <button 
-              onClick={onBack}
-              className="flex items-center gap-1.5 text-[13px] font-medium text-zinc-400 hover:text-zinc-900 transition font-['Manrope']"
-            >
-              <ArrowLeft size={16} />
-              Back to Properties
-            </button>
-          </div>
-          
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-[24px] font-[700] text-[#0b3860] tracking-[-0.02em] font-['Sora']">{building.name}</h1>
-              <p className="mt-1 text-[14px] text-zinc-400 font-['Manrope']">{building.address || "No address provided"}</p>
+        {/* Header Bar */}
+        <div className="border-b border-zinc-200 bg-white px-8 pt-4 pb-0 shadow-sm shrink-0 relative">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={onBack}
+                className="flex items-center gap-1.5 text-[13px] font-semibold text-zinc-500 hover:text-zinc-900 transition font-['Manrope']"
+              >
+                <ArrowLeft size={16} />
+                Properties
+              </button>
+              <span className="text-zinc-300">/</span>
+              <span className="text-[14px] font-[700] text-[#0b3860] font-['Sora'] truncate max-w-sm">
+                {building.name}
+              </span>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <button
                 onClick={onDeleteProperty}
-                className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-5 py-2.5 text-[13px] font-[700] text-red-700 transition hover:bg-red-100 shadow-sm font-['Manrope']"
+                className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-1.5 text-[12px] font-[700] text-red-700 transition hover:bg-red-100 shadow-sm font-['Manrope']"
               >
-                <Trash2 size={16} />
-                Delete
+                <Trash2 size={14} />
+                Delete Property
               </button>
               
               <button
                 onClick={onLaunch3D}
-                className="flex items-center gap-2 rounded-xl bg-[#0b3860] px-5 py-2.5 text-[13px] font-[700] text-white transition hover:bg-[#051b30] shadow-sm font-['Manrope']"
+                className="flex items-center gap-1.5 rounded-xl bg-[#0b3860] px-4 py-1.5 text-[12px] font-[700] text-white transition hover:bg-[#051b30] shadow-sm font-['Manrope']"
               >
-                <Box size={16} />
-                Launch 3D View
+                <Box size={14} />
+                Launch 3D
               </button>
             </div>
           </div>
 
           {/* Tab Bar */}
-          <div className="flex gap-1 mt-5 -mb-5 px-0">
+          <div className="flex gap-1 -mb-[1px] px-0 overflow-x-auto no-scrollbar">
             {TABS.map(tab => {
               const badge = tabBadge(tab.key);
               const active = activeTab === tab.key;
               return (
                 <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-[700] rounded-t-xl border border-b-0 transition font-['Manrope'] ${active ? "bg-white text-[#0b3860] border-zinc-200 shadow-sm" : "bg-transparent text-zinc-400 border-transparent hover:text-zinc-700 hover:bg-zinc-100"}`}>
+                  className={`flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-[700] rounded-t-xl border border-b-0 transition font-['Manrope'] whitespace-nowrap ${active ? "bg-zinc-50/50 text-[#0b3860] border-zinc-200 shadow-sm" : "bg-transparent text-zinc-400 border-transparent hover:text-zinc-700 hover:bg-zinc-100"}`}>
                   {tab.icon}
                   {tab.label}
                   {badge !== null && (
@@ -103,6 +120,22 @@ export default function PropertyDetail({ building, units, buildings, updateUnit,
         </div>
 
         {/* Tab Content */}
+        {activeTab === "overview" && (
+          <PropertyOverviewTab
+            building={building}
+            units={units}
+            updateBuilding={updateBuilding}
+            onNavigateTab={(tabKey) => setActiveTab(tabKey)}
+            onLaunch3D={onLaunch3D}
+            openTicketCount={openTicketCount}
+            documentCount={documentCount}
+          />
+        )}
+
+        {activeTab === "documents" && (
+          <DocumentsTab building={building} />
+        )}
+
         {activeTab === "units" && (
           <div className="flex-1 overflow-y-auto p-8">
             <div className="rounded-2xl bg-white shadow-[var(--shadow-card)] overflow-hidden">
