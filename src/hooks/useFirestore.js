@@ -42,19 +42,31 @@ export function useBuildings(userId) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!userId) {
+      setBuildings([]);
+      setLoading(false);
+      return;
+    }
     // Fetch all buildings and filter in JS to ensure legacy buildings (without user_id) are still retrieved
     const q = query(collection(db, "buildings"));
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter(b => !userId || b.user_id === userId || !b.user_id); // Include user docs + legacy demo docs
-      
-      // Sort by created_at desc in JS to avoid needing complex composite index in GCP console
-      data.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
-      setBuildings(data);
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(b => !userId || b.user_id === userId || !b.user_id); // Include user docs + legacy demo docs
+        
+        // Sort by created_at desc in JS to avoid needing complex composite index in GCP console
+        data.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+        setBuildings(data);
+        setLoading(false);
+      },
+      (error) => {
+        console.warn("useBuildings snapshot error:", error.message);
+        setLoading(false);
+      }
+    );
     return unsubscribe;
   }, [userId]);
 
@@ -132,23 +144,35 @@ export function useAllUnits(userId) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!userId) {
+      setUnits([]);
+      setLoading(false);
+      return;
+    }
     // Fetch all units from collectionGroup.
     // We remove the where() clause here to bypass the Firebase index requirement, 
     // and instead rely on the JS .filter() below.
     const q = query(collectionGroup(db, "units"));
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs
-        .map(doc => ({
-          id: doc.id,
-          ref: doc.ref,
-          ...doc.data()
-        }))
-        .filter(u => !userId || u.user_id === userId || !u.user_id);
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs
+          .map(doc => ({
+            id: doc.id,
+            ref: doc.ref,
+            ...doc.data()
+          }))
+          .filter(u => !userId || u.user_id === userId || !u.user_id);
 
-      setUnits(data);
-      setLoading(false);
-    });
+        setUnits(data);
+        setLoading(false);
+      },
+      (error) => {
+        console.warn("useAllUnits snapshot error:", error.message);
+        setLoading(false);
+      }
+    );
     return unsubscribe;
   }, [userId]);
 
@@ -181,15 +205,22 @@ export function useBuildingUnits(buildingId) {
       return;
     }
     const q = query(collection(db, "buildings", buildingId, "units"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ref: doc.ref,
-        ...doc.data()
-      }));
-      setUnits(data);
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ref: doc.ref,
+          ...doc.data()
+        }));
+        setUnits(data);
+        setLoading(false);
+      },
+      (error) => {
+        console.warn("useBuildingUnits snapshot error:", error.message);
+        setLoading(false);
+      }
+    );
     return unsubscribe;
   }, [buildingId]);
 
@@ -205,18 +236,25 @@ export function useStaff(userId, buildingId) {
   useEffect(() => {
     if (!userId) { setStaff([]); setLoading(false); return; }
     const q = query(collection(db, "staff"), where("user_id", "==", userId));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      let data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      if (buildingId) {
-        data = data.filter(s =>
-          !s.assigned_properties || s.assigned_properties.length === 0 ||
-          s.assigned_properties.includes(buildingId)
-        );
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        let data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        if (buildingId) {
+          data = data.filter(s =>
+            !s.assigned_properties || s.assigned_properties.length === 0 ||
+            s.assigned_properties.includes(buildingId)
+          );
+        }
+        data.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+        setStaff(data);
+        setLoading(false);
+      },
+      (error) => {
+        console.warn("useStaff snapshot error:", error.message);
+        setLoading(false);
       }
-      data.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-      setStaff(data);
-      setLoading(false);
-    });
+    );
     return unsubscribe;
   }, [userId, buildingId]);
 
@@ -230,13 +268,20 @@ export function useStaffErrands(staffId) {
   useEffect(() => {
     if (!staffId) { setErrands([]); setLoading(false); return; }
     const q = query(collection(db, "errands"), where("staff_id", "==", staffId));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-      setErrands(data);
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+        setErrands(data);
+        setLoading(false);
+      },
+      (error) => {
+        console.warn("useStaffErrands snapshot error:", error.message);
+        setLoading(false);
+      }
+    );
     return unsubscribe;
   }, [staffId]);
 
@@ -310,13 +355,20 @@ export function useMaintenanceTickets(buildingId) {
   useEffect(() => {
     if (!buildingId) { setTickets([]); setLoading(false); return; }
     const q = query(collection(db, "maintenance"), where("building_id", "==", buildingId));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
-      setTickets(data);
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+        setTickets(data);
+        setLoading(false);
+      },
+      (error) => {
+        console.warn("useMaintenanceTickets snapshot error:", error.message);
+        setLoading(false);
+      }
+    );
     return unsubscribe;
   }, [buildingId]);
 
@@ -350,14 +402,22 @@ export function useUserProfile(userId) {
   useEffect(() => {
     if (!userId) { setProfile(null); setLoading(false); return; }
     const docRef = doc(db, "users", userId);
-    const unsubscribe = onSnapshot(docRef, (snapshot) => {
-      if (snapshot.exists()) {
-        setProfile({ id: snapshot.id, ...snapshot.data() });
-      } else {
-        setProfile({ id: userId, default_currency: "PHP" }); // default fallback
+    const unsubscribe = onSnapshot(
+      docRef,
+      (snapshot) => {
+        if (snapshot.exists()) {
+          setProfile({ id: snapshot.id, ...snapshot.data() });
+        } else {
+          setProfile({ id: userId, default_currency: "PHP" }); // default fallback
+        }
+        setLoading(false);
+      },
+      (error) => {
+        console.warn("useUserProfile snapshot error:", error.message);
+        setProfile({ id: userId, default_currency: "PHP" });
+        setLoading(false);
       }
-      setLoading(false);
-    });
+    );
     return unsubscribe;
   }, [userId]);
 

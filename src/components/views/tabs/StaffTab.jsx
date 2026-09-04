@@ -165,9 +165,9 @@ function LogErrandModal({ staff, userId, onClose }) {
             <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">Expense Category</label>
             <div className="grid grid-cols-3 gap-2">
               {[
-                ["material_expense","Materials / Items"],
-                ["errand_fee","Labor / Service"]
-              ].map(([v,l]) => (
+                ["material_expense", "Materials / Items"],
+                ["errand_fee", "Labor / Service"]
+              ].map(([v, l]) => (
                 <button key={v} type="button" onClick={() => setType(v)}
                   className={`py-2 px-1 rounded-xl text-[11px] font-semibold border transition text-center ${type === v ? "bg-[#0b3860] text-white border-[#0b3860]" : "border-zinc-200 text-zinc-600 hover:bg-zinc-50"}`}>{l}</button>
               ))}
@@ -217,18 +217,18 @@ function EditErrandModal({ errand, staff, onClose }) {
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
-    
+
     const newAmount = Number(amount) || 0;
-    
+
     if (errand.type === "cash_advance" && !errand.is_paid && newAmount !== errand.amount) {
       const diff = newAmount - errand.amount;
       const { updateStaffDoc } = await import("@/hooks/useFirestore");
       await updateStaffDoc(staff.id, { petty_cash_balance: (staff.petty_cash_balance || 0) + diff });
     }
-    
+
     const { updateErrandDoc } = await import("@/hooks/useFirestore");
     await updateErrandDoc(errand.id, { title: title.trim(), amount: newAmount, date });
-    
+
     setSaving(false);
     onClose();
   };
@@ -380,7 +380,7 @@ function StaffLedger({ staff, userId, onClose, maintenanceTickets = [] }) {
           <span className="text-[12px] font-bold text-white/80 font-['Manrope']">Current Cash Balance</span>
           <span className="text-[10px] font-semibold text-white/50">{unsettledIds.length} pending items</span>
         </div>
-        
+
         <div className="space-y-1 mb-4 font-['Manrope'] text-[13px]">
           <div className="flex justify-between">
             <span className="text-white/70">You gave {staff.name.split(' ')[0]}:</span>
@@ -390,7 +390,7 @@ function StaffLedger({ staff, userId, onClose, maintenanceTickets = [] }) {
             <span className="text-white/70">{staff.name.split(' ')[0]} spent:</span>
             <span className="font-bold">₱{totalReceipts.toLocaleString()}</span>
           </div>
-          
+
           <div className="border-t border-white/20 mt-2 pt-2">
             {netBalance > 0 ? (
               <div className="flex justify-between items-center text-amber-300">
@@ -454,7 +454,7 @@ function StaffLedger({ staff, userId, onClose, maintenanceTickets = [] }) {
               <div className="flex-1 min-w-0">
                 <div className="text-[13px] font-semibold text-zinc-800 truncate">{e.title}</div>
                 <div className="text-[11px] text-zinc-400">{e.date} · {cfg.label}</div>
-                
+
                 {/* Action Buttons */}
                 <div className="mt-2 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={() => setEditingErrand(e)}

@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { Building2 } from "lucide-react";
 import { updateUserProfile } from "@/hooks/useFirestore";
 
 export default function Login() {
@@ -40,14 +39,13 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-zinc-100 p-6 font-sans">
       <div className="w-full max-w-sm">
         {/* Brand */}
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-[var(--color-blue-600)] text-white shadow-lg">
-            <Building2 size={28} />
-          </div>
-          <h1 className="text-[26px] font-semibold leading-tight tracking-[-0.02em] text-zinc-900">
-            Property Visualizer
-          </h1>
-          <p className="mt-1 text-[13px] text-zinc-500">
+        <div className="mb-8 text-center flex flex-col items-center">
+          <img
+            src="/branding/logo-full.png"
+            alt="Property Visualizer"
+            className="h-28 w-auto max-w-[260px] object-contain select-none mb-3"
+          />
+          <p className="text-[13px] text-zinc-500">
             {isSignUp ? "Create your admin account" : "Admin dashboard — sign in to continue"}
           </p>
         </div>

@@ -27,19 +27,26 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
 
       {/* Brand */}
       <div
-        className={`flex items-center transition-all duration-300 ${
-          collapsed ? "justify-center px-0 py-8" : "gap-3 px-6 py-8"
+        onClick={() => setActiveView("dashboard")}
+        className={`flex items-center cursor-pointer transition-all duration-300 ${
+          collapsed ? "justify-center px-0 pt-10 pb-6" : "justify-center px-4 pt-10 pb-6"
         }`}
+        title="Go to Dashboard"
       >
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--color-blue-600)] text-white shadow-sm">
-          <Building2 size={20} />
-        </div>
-        {!collapsed && (
-          <div className="overflow-hidden">
-            <div className="text-[16px] font-bold leading-tight text-[var(--color-blue-700)] tracking-tight whitespace-nowrap">
-              Property Visualizer
-            </div>
+        {collapsed ? (
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm border border-zinc-200/80 hover:scale-105 transition-transform">
+            <img
+              src="/branding/logo-monogram.png"
+              alt="PV"
+              className="h-7 w-auto object-contain"
+            />
           </div>
+        ) : (
+          <img
+            src="/branding/logo-horizontal.png"
+            alt="Property Visualizer"
+            className="h-[72px] w-auto max-w-[220px] object-contain select-none hover:opacity-90 transition-opacity"
+          />
         )}
       </div>
 
