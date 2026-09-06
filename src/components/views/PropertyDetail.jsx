@@ -45,10 +45,23 @@ export default function PropertyDetail({
   const staffCount = staff.length;
   const documentCount = documents.length;
 
+  const activeUnit = useMemo(() => {
+    if (!selectedUnit) return null;
+    return units.find((u) => u.id === selectedUnit.id) || selectedUnit;
+  }, [units, selectedUnit]);
+
   const filteredUnits = useMemo(() => {
-    let list = units;
+    let list = [...(units || [])];
     if (statusFilter !== "all") list = list.filter((u) => u.status === statusFilter);
-    return list.sort((a, b) => a.position_index - b.position_index);
+    return list.sort((a, b) => {
+      if (a.position_index !== undefined && b.position_index !== undefined) {
+        return a.position_index - b.position_index;
+      }
+      if (a.floor !== b.floor) {
+        return (a.floor || 0) - (b.floor || 0);
+      }
+      return (a.unit_label || "").localeCompare(b.unit_label || "", undefined, { numeric: true });
+    });
   }, [units, statusFilter]);
 
   const tabBadge = (key) => {
@@ -75,7 +88,7 @@ export default function PropertyDetail({
               </button>
               <span className="text-zinc-300">/</span>
               <span className="text-[14px] font-[700] text-[#0b3860] font-['Sora'] truncate max-w-sm">
-                {building.name}
+                {building?.name || "Untitled Property"}
               </span>
             </div>
             
@@ -240,9 +253,9 @@ export default function PropertyDetail({
       </div>
 
       {/* Slide-in Unit Panel */}
-      {selectedUnit && (
+      {activeUnit && (
         <UnitPanel 
-          unit={selectedUnit} 
+          unit={activeUnit} 
           onClose={() => setSelectedUnit(null)} 
           isDrawerMode={true} 
           onNavigateToMaintenance={() => {

@@ -166,6 +166,7 @@ export function useAllUnits(userId) {
           .map(doc => ({
             id: doc.id,
             ref: doc.ref,
+            buildingId: doc.data().buildingId || doc.ref.parent?.parent?.id,
             ...doc.data()
           }))
           .filter(u => !userId || u.user_id === userId || !u.user_id);
@@ -494,10 +495,8 @@ export function usePropertyDocuments(buildingId) {
       return;
     }
 
-    const q = query(
-      collection(db, "buildings", buildingId, "documents"),
-      orderBy("created_at", "desc")
-    );
+    // Query collection directly and sort in JS to avoid index dependencies or omitting docs without created_at
+    const q = query(collection(db, "buildings", buildingId, "documents"));
 
     const unsubscribe = onSnapshot(
       q,
@@ -506,6 +505,7 @@ export function usePropertyDocuments(buildingId) {
           id: d.id,
           ...d.data(),
         }));
+        docs.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
         setDocuments(docs);
         setLoading(false);
       },

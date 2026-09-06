@@ -42,7 +42,7 @@ function statusCfg(key) { return STATUSES.find(s => s.key === key) || STATUSES[0
 function priorityCfg(key) { return PRIORITIES.find(p => p.key === key) || PRIORITIES[2]; }
 
 // ─── New / Edit Ticket Modal ──────────────────────────────────────────────────
-function TicketModal({ buildingId, units, userId, ticket, onClose, staffList }) {
+function TicketModal({ buildingId, units = [], userId, ticket, onClose, staffList = [] }) {
   const editing = !!ticket;
   const [unitId, setUnitId] = useState(ticket?.unit_id || "");
   const [unitLabel, setUnitLabel] = useState(ticket?.unit_label || "");
@@ -75,9 +75,11 @@ function TicketModal({ buildingId, units, userId, ticket, onClose, staffList }) 
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
-    let photoUrls = ticket?.receipt_urls || [];
-    for (const file of photos) {
-      const url = await uploadFile(`maintenance/${buildingId}/${Date.now()}`, file);
+    let photoUrls = ticket?.receipt_urls ? [...ticket.receipt_urls] : [];
+    for (let i = 0; i < photos.length; i++) {
+      const file = photos[i];
+      const safeName = file.name ? file.name.replace(/[^a-zA-Z0-9.-]/g, "_") : "photo";
+      const url = await uploadFile(`maintenance/${buildingId}/${Date.now()}_${i}_${safeName}`, file);
       if (url) photoUrls.push(url);
     }
     const data = {

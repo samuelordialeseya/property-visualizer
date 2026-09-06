@@ -50,6 +50,8 @@ const LOCATION_CHIPS = [
   "Blue Folder - Desk"
 ];
 
+const isPdfUrl = (url) => typeof url === "string" && url.toLowerCase().includes(".pdf");
+
 export default function DocumentsTab({ building }) {
   const { documents, loading } = usePropertyDocuments(building?.id);
 
@@ -126,8 +128,8 @@ export default function DocumentsTab({ building }) {
       thumbnail_url: doc.thumbnail_url || "",
     });
     setDocumentFile(null);
-    setDocumentFilePreview(doc.thumbnail_url || (doc.file_url?.includes(".pdf") ? null : doc.file_url));
-    setIsPdf(doc.file_url?.includes(".pdf") || false);
+    setDocumentFilePreview(doc.thumbnail_url || (isPdfUrl(doc.file_url) ? null : doc.file_url));
+    setIsPdf(isPdfUrl(doc.file_url));
     setIsViewModalOpen(false);
     setIsAddModalOpen(true);
   };
@@ -142,7 +144,7 @@ export default function DocumentsTab({ building }) {
     if (!file) return;
 
     setDocumentFile(file);
-    const isFilePdf = file.type === "application/pdf" || file.name.endsWith(".pdf");
+    const isFilePdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
     setIsPdf(isFilePdf);
 
     if (file.type.startsWith("image/")) {
@@ -184,6 +186,9 @@ export default function DocumentsTab({ building }) {
 
       if (editingDocId) {
         await updatePropertyDocument(building.id, editingDocId, docPayload);
+        if (activeDoc?.id === editingDocId) {
+          setActiveDoc({ id: editingDocId, ...activeDoc, ...docPayload });
+        }
       } else {
         await addPropertyDocument(building.id, docPayload);
       }
@@ -307,7 +312,7 @@ export default function DocumentsTab({ building }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filteredDocuments.map((doc) => {
             const cat = getCategoryInfo(doc.category);
-            const isImage = doc.thumbnail_url || (doc.file_url && !doc.file_url.includes(".pdf"));
+            const isImage = doc.thumbnail_url || (doc.file_url && !isPdfUrl(doc.file_url));
 
             return (
               <div
@@ -323,7 +328,7 @@ export default function DocumentsTab({ building }) {
                       alt={doc.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                     />
-                  ) : doc.file_url?.includes(".pdf") ? (
+                  ) : isPdfUrl(doc.file_url) ? (
                     <div className="flex flex-col items-center justify-center text-red-600 gap-1">
                       <File size={36} />
                       <span className="text-[11px] font-[700] uppercase tracking-wider font-['Manrope']">PDF Document</span>
@@ -451,7 +456,7 @@ export default function DocumentsTab({ building }) {
               {/* Document Image / File View */}
               {activeDoc.file_url && (
                 <div className="rounded-xl border border-zinc-200 overflow-hidden bg-zinc-50 flex flex-col items-center justify-center p-3">
-                  {activeDoc.file_url.includes(".pdf") ? (
+                  {isPdfUrl(activeDoc.file_url) ? (
                     <div className="py-8 flex flex-col items-center gap-3">
                       <File size={48} className="text-red-600" />
                       <span className="text-[14px] font-[700] text-zinc-800 font-['Sora']">PDF Document File</span>

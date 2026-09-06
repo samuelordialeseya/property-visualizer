@@ -31,13 +31,27 @@ const currentMonth = new Date().getMonth(); // 0-indexed
  * Given a lease start date string (YYYY-MM-DD) and a payment history array (which we now treat as monthly statements),
  * returns a combined timeline: generated statements + missing month placeholders.
  */
-function buildStatements(leaseStart, statements, dueDay) {
-  if (!leaseStart) return statements.slice();
+function buildStatements(leaseStart, statements = [], dueDay) {
+  if (!Array.isArray(statements)) statements = [];
+  if (!leaseStart) return [...statements];
 
-  const start = new Date(leaseStart);
   const today = new Date();
   const todayDay = today.getDate();
   const dueDayNum = parseInt(dueDay || "1", 10);
+
+  // Extract year and month safely without UTC timezone shift
+  let y, m;
+  if (typeof leaseStart === "string" && leaseStart.includes("-")) {
+    const parts = leaseStart.split("-");
+    y = parseInt(parts[0], 10);
+    m = parseInt(parts[1], 10) - 1;
+    if (isNaN(y) || isNaN(m)) return [...statements];
+  } else {
+    const start = new Date(leaseStart);
+    if (isNaN(start.getTime())) return [...statements];
+    y = start.getFullYear();
+    m = start.getMonth();
+  }
 
   // Collect existing statements by id
   const existingMap = new Map();
@@ -53,9 +67,6 @@ function buildStatements(leaseStart, statements, dueDay) {
   });
 
   // Walk from lease start to current month
-  let y = start.getFullYear();
-  let m = start.getMonth(); // 0-indexed
-
   while (y < today.getFullYear() || (y === today.getFullYear() && m <= today.getMonth())) {
     const monthName = MONTHS[m];
     const key = `${y}-${monthName}`;
@@ -249,8 +260,9 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
     
     let screenshotUrl = "";
     if (payFile) {
+      const safeName = payFile.name ? payFile.name.replace(/[^a-zA-Z0-9.-]/g, "_") : "receipt";
       screenshotUrl = await uploadFile(
-        `units/${unit.id}/payments/${payTargetId}_${Date.now()}`,
+        `units/${unit.id}/payments/${payTargetId}_${Date.now()}_${safeName}`,
         payFile
       );
     }
@@ -476,7 +488,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
                     </div>
                     <div>
                       <label className="mb-1 block text-[10px] font-semibold text-green-700/70 uppercase tracking-wider">Receipt / Screenshot</label>
-                      <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files[0]; setPayFile(f); setPayFilePrev(f ? URL.createObjectURL(f) : null); }} className="w-full text-[11px] text-green-700 file:mr-2 file:rounded-full file:border-0 file:bg-white file:px-2 file:py-1 file:text-[11px] file:font-semibold file:text-green-700" />
+                      <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; setPayFile(f || null); setPayFilePrev(f ? URL.createObjectURL(f) : null); }} className="w-full text-[11px] text-green-700 file:mr-2 file:rounded-full file:border-0 file:bg-white file:px-2 file:py-1 file:text-[11px] file:font-semibold file:text-green-700" />
                       {payFilePrev && <img src={payFilePrev} alt="Receipt preview" className="mt-2 h-20 w-full rounded-xl object-cover border border-green-200" />}
                     </div>
                     <div className="flex gap-2 pt-1">

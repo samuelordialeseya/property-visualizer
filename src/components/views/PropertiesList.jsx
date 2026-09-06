@@ -2,7 +2,7 @@
 
 import { Building2, MapPin } from "lucide-react";
 
-export default function PropertiesList({ buildings, units, onSelectProperty }) {
+export default function PropertiesList({ buildings = [], units = [], onSelectProperty }) {
   
   const getBuildingStats = (buildingId) => {
     const bUnits = units.filter(u => u.buildingId === buildingId);

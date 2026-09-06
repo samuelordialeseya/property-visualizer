@@ -59,10 +59,34 @@ export default function PropertyOverviewTab({
   const occupancyPct = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
   const totalMonthlyRent = units.reduce((sum, u) => sum + (Number(u.monthly_rent) || 0), 0);
 
-  // Format acquisition date
+  // Extract acquisition year safely without UTC timezone shift
+  const getDisplayYear = (dateStr) => {
+    if (!dateStr) return "";
+    if (typeof dateStr === "string" && dateStr.includes("-")) {
+      return dateStr.split("-")[0];
+    }
+    const d = new Date(dateStr);
+    return isNaN(d.getFullYear()) ? dateStr : d.getFullYear();
+  };
+
+  // Format acquisition date safely without timezone day shifts
   const formatPurchaseDate = (dateStr) => {
     if (!dateStr) return "Not recorded";
     try {
+      if (typeof dateStr === "string" && dateStr.includes("-")) {
+        const parts = dateStr.split("-");
+        if (parts.length === 3) {
+          const year = parseInt(parts[0], 10);
+          const monthIndex = parseInt(parts[1], 10) - 1;
+          const day = parseInt(parts[2], 10);
+          const date = new Date(year, monthIndex, day);
+          return date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+        }
+      }
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) return dateStr;
       return date.toLocaleDateString("en-US", {
@@ -92,7 +116,8 @@ export default function PropertyOverviewTab({
     if (!file || !building?.id) return;
     try {
       setUploadingPhoto(true);
-      const url = await uploadFile(`buildings/${building.id}/cover_${Date.now()}`, file);
+      const safeName = file.name ? file.name.replace(/[^a-zA-Z0-9.-]/g, "_") : "photo";
+      const url = await uploadFile(`buildings/${building.id}/cover_${Date.now()}_${safeName}`, file);
       if (url) {
         await updateBuilding({ photo_url: url });
       }
@@ -135,18 +160,19 @@ export default function PropertyOverviewTab({
     try {
       let photo_url = formData.photo_url;
       if (modalPhotoFile && building?.id) {
-        photo_url = await uploadFile(`buildings/${building.id}/cover_${Date.now()}`, modalPhotoFile);
+        const safeName = modalPhotoFile.name ? modalPhotoFile.name.replace(/[^a-zA-Z0-9.-]/g, "_") : "photo";
+        photo_url = await uploadFile(`buildings/${building.id}/cover_${Date.now()}_${safeName}`, modalPhotoFile);
       }
 
       await updateBuilding({
-        name: formData.name.trim(),
-        address: formData.address.trim(),
+        name: String(formData.name || "").trim(),
+        address: String(formData.address || "").trim(),
         property_value: formData.property_value !== "" ? Number(formData.property_value) : null,
         property_value_hidden: Boolean(formData.property_value_hidden),
         purchase_date: formData.purchase_date || null,
         property_type: formData.property_type || "Residential",
-        lot_area: formData.lot_area.trim() || null,
-        description: formData.description.trim() || null,
+        lot_area: String(formData.lot_area || "").trim() || null,
+        description: String(formData.description || "").trim() || null,
         photo_url: photo_url || null,
       });
 
@@ -195,7 +221,7 @@ export default function PropertyOverviewTab({
               {building?.purchase_date && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-[600] bg-zinc-100 text-zinc-600 font-['Manrope']">
                   <Calendar size={12} />
-                  Acquired {new Date(building.purchase_date).getFullYear() || building.purchase_date}
+                  Acquired {getDisplayYear(building.purchase_date)}
                 </span>
               )}
             </div>

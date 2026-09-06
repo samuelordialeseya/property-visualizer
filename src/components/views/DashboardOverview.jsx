@@ -45,7 +45,7 @@ function PropertyAvatar({ name }) {
 }
 
 /* ── Main Dashboard ────────────────────────────────────────────────────── */
-export default function DashboardOverview({ buildings, units, onAddBuilding, onSelectProperty, onOpen3D }) {
+export default function DashboardOverview({ buildings = [], units = [], onAddBuilding, onSelectProperty, onOpen3D }) {
   const stats = useMemo(() => {
     const totalUnits = units.length;
     const occupied = units.filter((u) => u.status === "occupied").length;
