@@ -18,7 +18,14 @@ import {
   File, 
   Sparkles,
   Download,
-  AlertCircle
+  AlertCircle,
+  Folder,
+  Droplets,
+  Zap,
+  Landmark,
+  Building2,
+  Shield,
+  FileCheck
 } from "lucide-react";
 import { 
   usePropertyDocuments, 
@@ -28,16 +35,16 @@ import {
   uploadFile 
 } from "@/hooks/useFirestore";
 
-// Predefined categories with custom styles
+// Predefined categories with custom styles and clean icons
 const CATEGORIES = [
-  { id: "all", label: "All Documents", icon: "📁" },
-  { id: "title", label: "Title & Ownership", icon: "📄", badge: "bg-blue-50 text-blue-700 border-blue-200" },
-  { id: "water", label: "Manila Water / Water", icon: "💧", badge: "bg-cyan-50 text-cyan-700 border-cyan-200" },
-  { id: "electricity", label: "Meralco / Electricity", icon: "⚡", badge: "bg-amber-50 text-amber-700 border-amber-200" },
-  { id: "loan", label: "Bank Loan & Mortgage", icon: "🏦", badge: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  { id: "government", label: "Govt & Permits", icon: "🏛️", badge: "bg-purple-50 text-purple-700 border-purple-200" },
-  { id: "insurance", label: "Insurance", icon: "🛡️", badge: "bg-rose-50 text-rose-700 border-rose-200" },
-  { id: "other", label: "Other / General", icon: "📋", badge: "bg-zinc-100 text-zinc-700 border-zinc-200" },
+  { id: "all", label: "All Documents", icon: Folder },
+  { id: "title", label: "Title & Ownership", icon: FileCheck, badge: "bg-blue-50 text-blue-700 border-blue-200" },
+  { id: "water", label: "Manila Water / Water", icon: Droplets, badge: "bg-cyan-50 text-cyan-700 border-cyan-200" },
+  { id: "electricity", label: "Meralco / Electricity", icon: Zap, badge: "bg-amber-50 text-amber-700 border-amber-200" },
+  { id: "loan", label: "Bank Loan & Mortgage", icon: Landmark, badge: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  { id: "government", label: "Govt & Permits", icon: Building2, badge: "bg-purple-50 text-purple-700 border-purple-200" },
+  { id: "insurance", label: "Insurance", icon: Shield, badge: "bg-rose-50 text-rose-700 border-rose-200" },
+  { id: "other", label: "Other / General", icon: FileText, badge: "bg-zinc-100 text-zinc-700 border-zinc-200" },
 ];
 
 // Quick-fill chips for physical storage locations
@@ -228,7 +235,7 @@ export default function DocumentsTab({ building }) {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-[22px] font-[800] text-[#0b3860] font-['Sora'] tracking-tight">
-            Property Documents &amp; Vault
+            Property Documents
           </h2>
           <p className="text-[13px] text-zinc-400 font-medium font-['Manrope'] mt-0.5">
             Store photos, scans, and physical storage locations for Land Titles, Water, Meralco, and Loans
@@ -252,6 +259,7 @@ export default function DocumentsTab({ building }) {
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
           {CATEGORIES.map((cat) => {
             const active = selectedCategory === cat.id;
+            const Icon = cat.icon;
             return (
               <button
                 key={cat.id}
@@ -262,7 +270,7 @@ export default function DocumentsTab({ building }) {
                     : "bg-white text-zinc-600 border border-zinc-200/80 hover:bg-zinc-50"
                 }`}
               >
-                <span>{cat.icon}</span>
+                <Icon size={13} className={active ? "text-white" : "text-zinc-500"} />
                 <span>{cat.label}</span>
               </button>
             );
@@ -334,15 +342,21 @@ export default function DocumentsTab({ building }) {
                       <span className="text-[11px] font-[700] uppercase tracking-wider font-['Manrope']">PDF Document</span>
                     </div>
                   ) : (
-                    <div className="text-4xl opacity-70 group-hover:scale-110 transition duration-300">
-                      {cat.icon}
+                    <div className="grid h-14 w-14 place-items-center rounded-2xl bg-zinc-200/60 text-zinc-400 group-hover:scale-110 transition duration-300">
+                      {(() => {
+                        const Icon = cat.icon;
+                        return <Icon size={28} />;
+                      })()}
                     </div>
                   )}
 
                   {/* Category Pill Tag Overlay */}
                   <div className="absolute top-3 left-3">
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10.5px] font-[700] border backdrop-blur-md bg-white/90 font-['Manrope'] ${cat.badge || "text-zinc-700"}`}>
-                      <span>{cat.icon}</span>
+                    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10.5px] font-[700] border backdrop-blur-md bg-white/90 font-['Manrope'] ${cat.badge || "text-zinc-700"}`}>
+                      {(() => {
+                        const Icon = cat.icon;
+                        return <Icon size={11} className="shrink-0" />;
+                      })()}
                       <span>{cat.label}</span>
                     </span>
                   </div>
@@ -416,8 +430,13 @@ export default function DocumentsTab({ building }) {
           <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-zinc-200 overflow-hidden flex flex-col max-h-[90vh]">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">{getCategoryInfo(activeDoc.category).icon}</span>
+              <div className="flex items-center gap-3">
+                <div className="grid h-9 w-9 place-items-center rounded-xl bg-zinc-100 text-[#0b3860] shrink-0">
+                  {(() => {
+                    const Icon = getCategoryInfo(activeDoc.category).icon;
+                    return <Icon size={18} />;
+                  })()}
+                </div>
                 <div>
                   <h3 className="text-[17px] font-[700] text-[#0b3860] font-['Sora']">{activeDoc.title}</h3>
                   <span className="text-[12px] text-zinc-400 font-['Manrope'] font-medium">
@@ -588,13 +607,13 @@ export default function DocumentsTab({ building }) {
                   onChange={(e) => setFormState({ ...formState, category: e.target.value })}
                   className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[14px] outline-none focus:border-[#0b3860] focus:ring-1 focus:ring-[#0b3860]"
                 >
-                  <option value="title">📄 Title &amp; Ownership (TCT, CCT, Tax Dec)</option>
-                  <option value="water">💧 Manila Water / Water Utility</option>
-                  <option value="electricity">⚡ Meralco / Electricity Service</option>
-                  <option value="loan">🏦 Bank Loan &amp; Mortgage Papers</option>
-                  <option value="government">🏛️ Government &amp; Building Permits</option>
-                  <option value="insurance">🛡️ Property &amp; Fire Insurance</option>
-                  <option value="other">📋 Other / General Documents</option>
+                  <option value="title">Title &amp; Ownership (TCT, CCT, Tax Dec)</option>
+                  <option value="water">Manila Water / Water Utility</option>
+                  <option value="electricity">Meralco / Electricity Service</option>
+                  <option value="loan">Bank Loan &amp; Mortgage Papers</option>
+                  <option value="government">Government &amp; Building Permits</option>
+                  <option value="insurance">Property &amp; Fire Insurance</option>
+                  <option value="other">Other / General Documents</option>
                 </select>
               </div>
 

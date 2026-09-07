@@ -15,11 +15,11 @@ const STATUS_STYLES = {
 };
 
 const TABS = [
-  { key: "overview",    label: "Overview",        icon: <Building2 size={14} /> },
-  { key: "units",       label: "Units Directory", icon: <Box size={14} /> },
-  { key: "documents",   label: "Documents",       icon: <FileText size={14} /> },
-  { key: "maintenance", label: "Maintenance",     icon: <Wrench size={14} /> },
-  { key: "staff",       label: "Staff & Payroll", icon: <Users size={14} /> },
+  { key: "overview",    label: "Overview",           icon: <Building2 size={14} /> },
+  { key: "units",       label: "Units Directory",    icon: <Box size={14} /> },
+  { key: "documents",   label: "Property Documents", icon: <FileText size={14} /> },
+  { key: "maintenance", label: "Maintenance",        icon: <Wrench size={14} /> },
+  { key: "staff",       label: "Staff & Payroll",    icon: <Users size={14} /> },
 ];
 
 export default function PropertyDetail({ 
