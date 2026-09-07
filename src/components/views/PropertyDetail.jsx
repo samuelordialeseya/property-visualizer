@@ -76,9 +76,9 @@ export default function PropertyDetail({
     <div className="flex h-full w-full relative overflow-hidden bg-zinc-50/50">
       <div className="flex-1 flex flex-col w-full h-full overflow-hidden">
         {/* Header Bar */}
-        <div className="border-b border-zinc-200 bg-white px-8 pt-4 pb-0 shadow-sm shrink-0 relative">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-4">
+        <div className="border-b border-zinc-200/80 bg-white px-8 pt-4 pb-3.5 shadow-[0_1px_2px_rgba(0,0,0,0.02)] shrink-0 relative">
+          <div className="flex items-center justify-between mb-3.5">
+            <div className="flex items-center gap-3">
               <button 
                 onClick={onBack}
                 className="flex items-center gap-1.5 text-[13px] font-semibold text-zinc-500 hover:text-zinc-900 transition font-['Manrope']"
@@ -111,24 +111,41 @@ export default function PropertyDetail({
             </div>
           </div>
 
-          {/* Tab Bar */}
-          <div className="flex gap-1 -mb-[1px] px-0 overflow-x-auto no-scrollbar">
-            {TABS.map(tab => {
-              const badge = tabBadge(tab.key);
-              const active = activeTab === tab.key;
-              return (
-                <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-[700] rounded-t-xl border border-b-0 transition font-['Manrope'] whitespace-nowrap ${active ? "bg-zinc-50/50 text-[#0b3860] border-zinc-200 shadow-sm" : "bg-transparent text-zinc-400 border-transparent hover:text-zinc-700 hover:bg-zinc-100"}`}>
-                  {tab.icon}
-                  {tab.label}
-                  {badge !== null && (
-                    <span className={`ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${active ? "bg-[#2270b8] text-white" : "bg-zinc-200 text-zinc-600"}`}>
-                      {badge}
+          {/* Sub Navigation Pills (Matching Sidebar Aesthetic) */}
+          <div className="flex items-center overflow-x-auto no-scrollbar">
+            <div className="inline-flex items-center gap-1 p-1 bg-[#f4f4f5] rounded-[14px] border border-zinc-200/70">
+              {TABS.map(tab => {
+                const badge = tabBadge(tab.key);
+                const active = activeTab === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-[11px] text-[13px] transition-all duration-150 font-['Manrope'] whitespace-nowrap ${
+                      active
+                        ? "bg-white text-[#0b3860] font-[700] shadow-sm border border-zinc-200/80"
+                        : "text-zinc-500 font-medium hover:text-zinc-900 hover:bg-zinc-200/50 border border-transparent"
+                    }`}
+                  >
+                    <span className={`shrink-0 transition-colors ${active ? "text-[#0b3860]" : "text-zinc-400"}`}>
+                      {tab.icon}
                     </span>
-                  )}
-                </button>
-              );
-            })}
+                    <span>{tab.label}</span>
+                    {badge !== null && (
+                      <span
+                        className={`ml-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full transition-colors ${
+                          active
+                            ? "bg-[#0b3860] text-white shadow-xs"
+                            : "bg-zinc-200 text-zinc-600"
+                        }`}
+                      >
+                        {badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
