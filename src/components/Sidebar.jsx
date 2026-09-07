@@ -28,26 +28,38 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
       {/* Brand */}
       <div
         onClick={() => setActiveView("dashboard")}
-        className={`flex items-center cursor-pointer transition-all duration-300 ${
-          collapsed ? "justify-center px-0 pt-10 pb-6" : "justify-center px-4 pt-10 pb-6"
-        }`}
+        className="relative flex items-center justify-center cursor-pointer h-[118px] px-3 select-none overflow-hidden"
         title="Go to Dashboard"
       >
-        {collapsed ? (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm border border-zinc-200/80 hover:scale-105 transition-transform">
-            <img
-              src="/branding/logo-monogram.png"
-              alt="PV"
-              className="h-7 w-auto object-contain"
-            />
-          </div>
-        ) : (
+        {/* Full horizontal logo */}
+        <div
+          className={`absolute inset-0 flex items-center justify-center pt-6 transition-all duration-300 ease-in-out ${
+            collapsed
+              ? "opacity-0 scale-90 pointer-events-none"
+              : "opacity-100 scale-100 pointer-events-auto"
+          }`}
+        >
           <img
             src="/branding/logo-horizontal.png"
             alt="Property Visualizer"
-            className="h-[72px] w-auto max-w-[220px] object-contain select-none hover:opacity-90 transition-opacity"
+            className="h-[65px] w-auto max-w-[210px] object-contain hover:opacity-90 transition-opacity"
           />
-        )}
+        </div>
+
+        {/* Collapsed building icon */}
+        <div
+          className={`absolute inset-0 flex items-center justify-center pt-2 transition-all duration-300 ease-in-out ${
+            collapsed
+              ? "opacity-100 scale-100 pointer-events-auto"
+              : "opacity-0 scale-75 pointer-events-none"
+          }`}
+        >
+          <img
+            src="/branding/building-icon.png"
+            alt="Property Visualizer"
+            className="h-10 w-auto object-contain hover:scale-105 transition-transform"
+          />
+        </div>
       </div>
 
       {/* Navigation */}
