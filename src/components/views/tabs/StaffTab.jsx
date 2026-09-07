@@ -527,13 +527,13 @@ export default function StaffTab({ building, buildings, userId }) {
   return (
     <div className="flex flex-col h-full min-h-0 overflow-hidden">
       {/* Top Stat Cards */}
-      <div className="grid grid-cols-3 gap-4 px-8 py-5 border-b border-zinc-100 shrink-0 bg-[#fafafa]">
+      <div className="grid grid-cols-3 gap-4 px-8 py-5 border-b border-zinc-100 shrink-0 bg-[#f4f4f5]">
         {[
           { icon: <Users size={16} className="text-[#2270b8]" />, label: "Active Staff", value: staff.length, iconBg: "bg-[#e1ebf4]" },
           { icon: <Wallet size={16} className="text-green-600" />, label: "Monthly Payroll", value: `₱${totalPayroll.toLocaleString()}`, iconBg: "bg-green-100" },
           { icon: <AlertCircle size={16} className="text-amber-600" />, label: "Cash on Hand / Advances", value: `₱${totalPettyCash.toLocaleString()}`, iconBg: "bg-amber-100" },
         ].map(({ icon, label, value, iconBg }) => (
-          <div key={label} className="rounded-2xl bg-white px-5 py-4 flex items-center gap-4 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08)] border border-zinc-100 relative overflow-hidden">
+          <div key={label} className="rounded-2xl bg-white px-5 py-4 flex items-center gap-4 shadow-[var(--shadow-card)] border border-zinc-200/70 relative overflow-hidden">
             <div className={`p-2.5 ${iconBg} rounded-xl shadow-sm shrink-0`}>{icon}</div>
             <div>
               <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider font-['Manrope']">{label}</div>

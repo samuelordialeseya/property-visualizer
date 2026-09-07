@@ -311,8 +311,8 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
   const curStatus = STATUS_OPTIONS.find((s) => s.value === status) || STATUS_OPTIONS[0];
   const displayPhoto = photoFile ? URL.createObjectURL(photoFile) : tenantPhotoUrl;
 
-  const floatingClasses = "absolute top-8 bottom-8 right-10 z-[999] w-96 rounded-2xl border border-zinc-200 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.25)]";
-  const drawerClasses = "fixed top-0 right-0 h-full w-[420px] shadow-2xl z-[999] transition-transform border-l border-zinc-200";
+  const floatingClasses = "absolute top-8 bottom-8 right-10 z-[999] w-96 rounded-2xl border border-zinc-200/80 shadow-[0_2px_8px_0_rgba(0,0,0,0.12),_0_20px_48px_-8px_rgba(0,0,0,0.20)]";
+  const drawerClasses = "fixed top-0 right-0 h-full w-[420px] shadow-[0_0_0_1px_rgba(0,0,0,0.06),_0_16px_48px_-4px_rgba(0,0,0,0.18)] z-[999] transition-transform border-l border-zinc-200/80";
 
   return (
     <>

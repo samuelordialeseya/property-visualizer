@@ -200,7 +200,7 @@ export default function PropertyOverviewTab({
       />
 
       {/* 1. HERO BANNER: Property Name on Left, Faded Photo on Right */}
-      <div className="relative overflow-hidden rounded-3xl bg-white border border-zinc-200/80 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)] min-h-[260px] md:min-h-[290px] flex flex-col md:flex-row items-stretch justify-between">
+      <div className="relative overflow-hidden rounded-3xl bg-white border border-zinc-200/80 shadow-[var(--shadow-card)] min-h-[260px] md:min-h-[290px] flex flex-col md:flex-row items-stretch justify-between">
         
         {/* Left Side: Property Identity & Quick Actions */}
         <div className="flex-1 p-7 md:p-9 z-10 flex flex-col justify-between max-w-2xl">
@@ -304,7 +304,7 @@ export default function PropertyOverviewTab({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Card 1: Property Valuation (with hide/reveal toggle) */}
-        <div className="rounded-2xl bg-white p-5 border border-zinc-200/80 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.04)] relative flex flex-col justify-between">
+        <div className="rounded-2xl bg-white p-5 border border-zinc-200/80 shadow-[var(--shadow-card)] relative flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-[700] uppercase tracking-wider text-zinc-400 font-['Manrope']">
               Estimated Value
@@ -343,7 +343,7 @@ export default function PropertyOverviewTab({
         </div>
 
         {/* Card 2: Acquisition / Purchase Date */}
-        <div className="rounded-2xl bg-white p-5 border border-zinc-200/80 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.04)] relative flex flex-col justify-between">
+        <div className="rounded-2xl bg-white p-5 border border-zinc-200/80 shadow-[var(--shadow-card)] relative flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-[700] uppercase tracking-wider text-zinc-400 font-['Manrope']">
               Purchase Date
@@ -365,7 +365,7 @@ export default function PropertyOverviewTab({
         </div>
 
         {/* Card 3: Footprint / Lot Area & Type */}
-        <div className="rounded-2xl bg-white p-5 border border-zinc-200/80 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.04)] relative flex flex-col justify-between">
+        <div className="rounded-2xl bg-white p-5 border border-zinc-200/80 shadow-[var(--shadow-card)] relative flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-[700] uppercase tracking-wider text-zinc-400 font-['Manrope']">
               Footprint & Type
@@ -387,7 +387,7 @@ export default function PropertyOverviewTab({
         </div>
 
         {/* Card 4: Monthly Rent Roll & Occupancy */}
-        <div className="rounded-2xl bg-white p-5 border border-zinc-200/80 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.04)] relative flex flex-col justify-between">
+        <div className="rounded-2xl bg-white p-5 border border-zinc-200/80 shadow-[var(--shadow-card)] relative flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-[700] uppercase tracking-wider text-zinc-400 font-['Manrope']">
               Monthly Rent Roll
@@ -414,7 +414,7 @@ export default function PropertyOverviewTab({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Description & Historical Notes */}
-        <div className="lg:col-span-2 rounded-2xl bg-white p-6 md:p-7 border border-zinc-200/80 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.04)] flex flex-col justify-between">
+        <div className="lg:col-span-2 rounded-2xl bg-white p-6 md:p-7 border border-zinc-200/80 shadow-[var(--shadow-card)] flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-[17px] font-[700] text-[#0b3860] font-['Sora']">Property Overview & Notes</h2>
@@ -467,7 +467,7 @@ export default function PropertyOverviewTab({
           {/* Shortcut to Units Directory */}
           <div
             onClick={() => onNavigateTab?.("units")}
-            className="flex-1 rounded-2xl bg-white p-4 border border-zinc-200/80 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.04)] hover:shadow-md hover:border-[#0b3860]/40 transition-all cursor-pointer group flex items-center justify-between"
+            className="flex-1 rounded-2xl bg-white p-4 border border-zinc-200/80 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] hover:border-[#0b3860]/40 transition-all cursor-pointer group flex items-center justify-between"
           >
             <div className="flex items-center gap-3.5">
               <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#e1ebf4] text-[#0F4C81] group-hover:scale-105 transition">
@@ -488,7 +488,7 @@ export default function PropertyOverviewTab({
           {/* Shortcut to Documents Tab */}
           <div
             onClick={() => onNavigateTab?.("documents")}
-            className="flex-1 rounded-2xl bg-white p-4 border border-zinc-200/80 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.04)] hover:shadow-md hover:border-[#0b3860]/40 transition-all cursor-pointer group flex items-center justify-between"
+            className="flex-1 rounded-2xl bg-white p-4 border border-zinc-200/80 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] hover:border-[#0b3860]/40 transition-all cursor-pointer group flex items-center justify-between"
           >
             <div className="flex items-center gap-3.5">
               <div className="grid h-10 w-10 place-items-center rounded-xl bg-amber-50 text-amber-700 group-hover:scale-105 transition">
@@ -509,7 +509,7 @@ export default function PropertyOverviewTab({
           {/* Shortcut to Maintenance Tab */}
           <div
             onClick={() => onNavigateTab?.("maintenance")}
-            className="flex-1 rounded-2xl bg-white p-4 border border-zinc-200/80 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.04)] hover:shadow-md hover:border-[#0b3860]/40 transition-all cursor-pointer group flex items-center justify-between"
+            className="flex-1 rounded-2xl bg-white p-4 border border-zinc-200/80 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] hover:border-[#0b3860]/40 transition-all cursor-pointer group flex items-center justify-between"
           >
             <div className="flex items-center gap-3.5">
               <div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-blue-700 group-hover:scale-105 transition">

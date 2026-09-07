@@ -5,7 +5,7 @@ import { Plus, Home, AlertCircle, Building2, ArrowUp, ArrowDown, CheckCircle2, T
 /* ── Stat Card ─────────────────────────────────────────────────────────── */
 function StatCard({ label, value, subLabel, icon: Icon, iconColor, iconBg, accentGradient }) {
   return (
-    <div className="group relative rounded-2xl bg-white p-5 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08)] border border-zinc-100 overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.12)] hover:-translate-y-0.5">
+    <div className="group relative rounded-2xl bg-white p-5 shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden transition-all duration-300 hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-0.5">
       <div className="flex items-start justify-between">
         <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-[0.1em] font-['Manrope']">{label}</div>
         {Icon && (
@@ -144,7 +144,7 @@ export default function DashboardOverview({ buildings = [], units = [], onAddBui
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-[#fafafa] font-sans">
+    <div className="flex h-full flex-col overflow-hidden bg-[#f4f4f5] font-sans">
       {/* Header */}
       <div className="flex items-center justify-between px-12 pt-12 pb-6 shrink-0">
         <div>
@@ -215,7 +215,7 @@ export default function DashboardOverview({ buildings = [], units = [], onAddBui
         {/* Content Panels */}
         <div className="grid grid-cols-2 gap-5">
           {/* Left panel: My Properties */}
-          <div className="col-span-1 rounded-2xl bg-white p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08)] border border-zinc-100 flex flex-col">
+          <div className="col-span-1 rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] border border-zinc-200/70 flex flex-col">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-[15px] font-[700] text-[#0b3860] tracking-[-0.01em] font-['Sora']">My Properties</h2>
               <span className="text-[11px] font-semibold text-zinc-400 bg-zinc-100 px-2.5 py-1 rounded-full font-['Manrope']">{buildings.length} total</span>
@@ -272,7 +272,7 @@ export default function DashboardOverview({ buildings = [], units = [], onAddBui
           {/* Right panel: Revenue and Attention */}
           <div className="col-span-1 space-y-5">
             {/* Revenue Card */}
-            <div className="rounded-2xl bg-white p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08)] border border-zinc-100 relative overflow-hidden">
+            <div className="rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] border border-zinc-200/70 relative overflow-hidden">
               <div className="flex items-center justify-between mb-1">
                 <h2 className="text-[11px] font-[700] text-zinc-400 uppercase tracking-[0.1em] font-['Manrope']">Est. Monthly Revenue</h2>
                 <div className="rounded-xl bg-[#e1ebf4] p-2 text-[#0F4C81]"><TrendingUp size={14} /></div>
@@ -306,7 +306,7 @@ export default function DashboardOverview({ buildings = [], units = [], onAddBui
             </div>
 
             {/* Attention Needed Card */}
-            <div className="rounded-2xl bg-white p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08)] border border-zinc-100 flex flex-col max-h-[340px] relative overflow-hidden">
+            <div className="rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] border border-zinc-200/70 flex flex-col max-h-[340px] relative overflow-hidden">
               <div className="flex items-center justify-between mb-4 shrink-0">
                 <h2 className="text-[11px] font-[700] text-zinc-400 uppercase tracking-[0.1em] font-['Manrope']">Attention Needed</h2>
                 <div className={`rounded-xl p-2 shadow-sm ${actionItems.length > 0 ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"}`}>

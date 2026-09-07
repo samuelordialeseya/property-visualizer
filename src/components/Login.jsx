@@ -51,7 +51,7 @@ export default function Login() {
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl bg-white p-6 shadow-[var(--shadow-card)]">
+        <div className="rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] border border-zinc-200/70">
           {error && (
             <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-600">
               {error}

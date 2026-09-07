@@ -326,7 +326,7 @@ export default function DocumentsTab({ building }) {
               <div
                 key={doc.id}
                 onClick={() => handleOpenViewModal(doc)}
-                className="group rounded-2xl bg-white border border-zinc-200/80 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.05)] hover:shadow-md hover:border-[#0b3860]/40 transition-all duration-200 cursor-pointer flex flex-col overflow-hidden"
+                className="group rounded-2xl bg-white border border-zinc-200/80 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] hover:border-[#0b3860]/40 transition-all duration-200 cursor-pointer flex flex-col overflow-hidden"
               >
                 {/* Visual Thumbnail Area */}
                 <div className="relative h-40 bg-zinc-100 overflow-hidden flex items-center justify-center border-b border-zinc-100">

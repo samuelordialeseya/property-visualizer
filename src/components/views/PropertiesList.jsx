@@ -19,7 +19,7 @@ export default function PropertiesList({ buildings = [], units = [], onSelectPro
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-[#fafafa] font-sans">
+    <div className="flex h-full flex-col overflow-hidden bg-[#f4f4f5] font-sans">
       <div className="flex items-center justify-between px-12 pt-12 pb-6 shrink-0">
         <div>
           <h1 className="text-[36px] font-[800] text-[#0b3860] tracking-[-0.03em] font-['Sora']">Properties</h1>
@@ -43,7 +43,7 @@ export default function PropertiesList({ buildings = [], units = [], onSelectPro
               return (
                   <div 
                     key={b.id} 
-                    className="group rounded-2xl bg-white p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08)] border border-zinc-100 transition-all duration-300 hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.12)] hover:-translate-y-1 cursor-pointer flex flex-col relative overflow-hidden"
+                    className="group rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] border border-zinc-200/70 transition-all duration-300 hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-1 cursor-pointer flex flex-col relative overflow-hidden"
                     onClick={() => onSelectProperty(b.id)}
                   >
                   

@@ -121,7 +121,7 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-zinc-50 p-8">
+    <div className="h-full overflow-y-auto bg-[#f4f4f5] p-8">
       <div className="max-w-3xl mx-auto space-y-6 pt-4">
         
         {/* Header */}
@@ -131,7 +131,7 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
         </div>
 
         {/* Account Profile Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-zinc-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden">
           <div className="px-6 py-4 border-b border-zinc-100 bg-white">
             <h2 className="text-[14px] font-bold text-zinc-800 font-['Sora']">Account Profile</h2>
           </div>
@@ -186,7 +186,7 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
         </div>
 
         {/* Data Management Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-zinc-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden">
           <div className="px-6 py-4 border-b border-zinc-100 bg-white">
             <h2 className="text-[14px] font-bold text-zinc-800 font-['Sora']">Data Management</h2>
           </div>
@@ -200,7 +200,7 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
         </div>
 
         {/* Account Actions Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-zinc-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden">
           <div className="px-6 py-4 border-b border-zinc-100 bg-white">
             <h2 className="text-[14px] font-bold text-zinc-800 font-['Sora']">Account Actions</h2>
           </div>

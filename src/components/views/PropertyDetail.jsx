@@ -73,10 +73,10 @@ export default function PropertyDetail({
   };
 
   return (
-    <div className="flex h-full w-full relative overflow-hidden bg-zinc-50/50">
+    <div className="flex h-full w-full relative overflow-hidden bg-[#f4f4f5]">
       <div className="flex-1 flex flex-col w-full h-full overflow-hidden">
         {/* Header Bar */}
-        <div className="border-b border-zinc-200/80 bg-white px-8 pt-4 pb-3.5 shadow-[0_1px_2px_rgba(0,0,0,0.02)] shrink-0 relative">
+        <div className="border-b border-zinc-200/80 bg-white px-8 pt-4 pb-3.5 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] shrink-0 relative">
           <div className="flex items-center justify-between mb-3.5">
             <div className="flex items-center gap-3">
               <button 
@@ -168,7 +168,7 @@ export default function PropertyDetail({
 
         {activeTab === "units" && (
           <div className="flex-1 overflow-y-auto p-8">
-            <div className="rounded-2xl bg-white shadow-[var(--shadow-card)] overflow-hidden">
+            <div className="rounded-2xl bg-white shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden">
               <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
                 <h2 className="text-[16px] font-semibold tracking-[-0.01em]">Units Directory</h2>
                 <select
