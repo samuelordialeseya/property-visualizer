@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { 
   FileText, 
   Plus, 
@@ -25,7 +25,9 @@ import {
   Landmark,
   Building2,
   Shield,
-  FileCheck
+  FileCheck,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { 
   usePropertyDocuments, 
@@ -64,6 +66,82 @@ export default function DocumentsTab({ building }) {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+
+  // Scroll and drag navigation for filter pills
+  const scrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeftPos = useRef(0);
+
+  const checkScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    checkScroll();
+
+    const handleWheel = (e) => {
+      if (e.deltaY !== 0 && el.scrollWidth > el.clientWidth) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+        checkScroll();
+      }
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    el.addEventListener("scroll", checkScroll);
+    window.addEventListener("resize", checkScroll);
+
+    return () => {
+      el.removeEventListener("wheel", handleWheel);
+      el.removeEventListener("scroll", checkScroll);
+      window.removeEventListener("resize", checkScroll);
+    };
+  }, [checkScroll]);
+
+  useEffect(() => {
+    checkScroll();
+  }, [selectedCategory, checkScroll]);
+
+  const scrollPills = (direction) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const offset = direction === "left" ? -220 : 220;
+    el.scrollBy({ left: offset, behavior: "smooth" });
+    setTimeout(checkScroll, 320);
+  };
+
+  const handleMouseDown = (e) => {
+    if (e.button !== 0) return;
+    isDragging.current = false;
+    startX.current = e.pageX - (scrollRef.current?.offsetLeft || 0);
+    scrollLeftPos.current = scrollRef.current?.scrollLeft || 0;
+  };
+
+  const handleMouseMove = (e) => {
+    if (!scrollRef.current) return;
+    if (e.buttons !== 1) return;
+    const x = e.pageX - (scrollRef.current.offsetLeft || 0);
+    const walk = x - startX.current;
+    if (Math.abs(walk) > 4) {
+      isDragging.current = true;
+      scrollRef.current.scrollLeft = scrollLeftPos.current - walk;
+      checkScroll();
+    }
+  };
+
+  const handleMouseUp = () => {
+    setTimeout(() => {
+      isDragging.current = false;
+    }, 60);
+  };
 
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -255,26 +333,68 @@ export default function DocumentsTab({ building }) {
 
       {/* 2. Filter Pills & Search */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-1">
-        {/* Category horizontal scroll pills */}
-        <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none no-scrollbar">
-          {CATEGORIES.map((cat) => {
-            const active = selectedCategory === cat.id;
-            const Icon = cat.icon;
-            return (
+        {/* Category horizontal scroll pills with smooth wheel scroll, drag, and chevrons */}
+        <div className="relative flex-1 min-w-0 flex items-center">
+          {canScrollLeft && (
+            <div className="absolute left-0 inset-y-0 z-10 flex items-center pointer-events-none">
+              <div className="h-full w-9 bg-gradient-to-r from-[#f4f4f5] to-transparent pointer-events-none" />
               <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-[700] whitespace-nowrap shrink-0 transition font-['Manrope'] cursor-pointer ${
-                  active
-                    ? "bg-[#0b3860] text-white shadow-sm"
-                    : "bg-white text-zinc-600 border border-zinc-200/80 hover:bg-zinc-50"
-                }`}
+                type="button"
+                onClick={() => scrollPills("left")}
+                aria-label="Scroll left"
+                className="pointer-events-auto absolute left-0 p-1.5 rounded-full bg-white border border-zinc-200/90 shadow-md text-zinc-600 hover:text-[#0b3860] hover:bg-zinc-50 transition cursor-pointer flex items-center justify-center -translate-y-0.5 active:scale-95"
               >
-                <Icon size={13} className={active ? "text-white" : "text-zinc-500"} />
-                <span>{cat.label}</span>
+                <ChevronLeft size={14} />
               </button>
-            );
-          })}
+            </div>
+          )}
+
+          <div
+            ref={scrollRef}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            className="flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none no-scrollbar scroll-smooth select-none cursor-grab active:cursor-grabbing"
+          >
+            {CATEGORIES.map((cat) => {
+              const active = selectedCategory === cat.id;
+              const Icon = cat.icon;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => {
+                    if (!isDragging.current) {
+                      setSelectedCategory(cat.id);
+                    }
+                  }}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-[700] whitespace-nowrap shrink-0 transition font-['Manrope'] cursor-pointer select-none ${
+                    active
+                      ? "bg-[#0b3860] text-white shadow-sm"
+                      : "bg-white text-zinc-600 border border-zinc-200/80 hover:bg-zinc-50"
+                  }`}
+                >
+                  <Icon size={13} className={active ? "text-white" : "text-zinc-500"} />
+                  <span>{cat.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {canScrollRight && (
+            <div className="absolute right-0 inset-y-0 z-10 flex items-center pointer-events-none">
+              <div className="h-full w-9 bg-gradient-to-l from-[#f4f4f5] to-transparent pointer-events-none" />
+              <button
+                type="button"
+                onClick={() => scrollPills("right")}
+                aria-label="Scroll right"
+                className="pointer-events-auto absolute right-0 p-1.5 rounded-full bg-white border border-zinc-200/90 shadow-md text-zinc-600 hover:text-[#0b3860] hover:bg-zinc-50 transition cursor-pointer flex items-center justify-center -translate-y-0.5 active:scale-95"
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Search Bar */}
