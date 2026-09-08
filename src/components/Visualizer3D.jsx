@@ -3,7 +3,7 @@ import { useRef, useMemo, useState, useEffect } from "react";
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { OrbitControls, ContactShadows, Edges, Html } from "@react-three/drei";
 import * as THREE from "three";
-import { Building2, ArrowLeft, Pencil, Layers, X, Check, Plus, CopyPlus, RotateCw, Trash2, Info, Box, Grid, Square, Search, Upload, Wrench, HelpCircle, MousePointer, Move, Maximize2, Palette } from "lucide-react";
+import { Building2, ArrowLeft, Pencil, Layers, X, Check, Plus, CopyPlus, RotateCw, Trash2, Info, Box, Grid, Square, Search, Upload, Wrench, HelpCircle, MousePointer, Move, Maximize2, Palette, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { getFootprint, cellToWorld, UNIT_W, UNIT_D, UNIT_H } from "@/lib/footprints";
 import { uploadFile, useMaintenanceTickets } from "@/hooks/useFirestore";
 import { applyMaterialToRef } from "@/lib/textureGenerator";
@@ -206,20 +206,21 @@ function UnitBox({ unit, isSelected, onClick, activeFloor, searchQuery, hoveredU
       {/* ── Facade-mounted pin (replaces old roof Text label) */}
       {!isGhosted && !isHovered && (
         <Html
-          position={[0, h / 2 + 0.18, bd / 2 + 0.12]}
+          position={[0, h / 2 + 0.22, bd / 2 + 0.12]}
           center
           occlude
           zIndexRange={[10, 0]}
           style={{ pointerEvents: 'none' }}
         >
           <div style={{
-            display: 'flex', alignItems: 'center', gap: '4px',
-            background: 'rgba(11,15,19,0.82)', backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255,255,255,0.12)',
-            borderRadius: '999px', padding: '2px 7px 2px 5px',
-            fontSize: '10px', fontWeight: 700,
-            fontFamily: 'Manrope, sans-serif', color: '#e4e4e7',
+            display: 'flex', alignItems: 'center', gap: '5px',
+            background: 'rgba(11,15,19,0.92)', backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255,255,255,0.18)',
+            borderRadius: '999px', padding: '2px 8px 2px 6px',
+            fontSize: '11px', fontWeight: 700,
+            fontFamily: 'Manrope, sans-serif', color: '#f4f4f5',
             whiteSpace: 'nowrap', opacity: isDimmed ? 0.2 : 1,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
           }}>
             <span style={{ height: 6, width: 6, borderRadius: '50%', background: statusCss, flexShrink: 0, display: 'inline-block' }} />
             {unit.unit_label || '?'}
@@ -373,24 +374,32 @@ function Ground({ onGroundClick }) {
 // ─── Export ──────────────────────────────────────────────────────────────────
 // ─── 3D Builder Guide Modal ──────────────────────────────────────────────────
 function BuilderGuideModal({ onClose }) {
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   const sections = [
     {
       icon: <MousePointer size={16} className="text-[#479de9]" />,
       title: "Selecting a Room",
       tips: [
         "Click any room block in the 3D scene to select it",
-        "The selected room highlights and its inspector opens on the right",
-        "Click empty space to deselect",
+        "The selected room highlights with a blue outline and opens its inspector",
+        "Click empty ground space to deselect",
       ],
     },
     {
       icon: <Move size={16} className="text-[#479de9]" />,
-      title: "Moving Rooms",
+      title: "Moving & Nudging Rooms",
       tips: [
-        "Click and drag a selected room to reposition it",
-        "Rooms snap to a 0.5 m grid automatically",
-        "Rooms magnetically snap to adjacent room edges when dragged close",
-        "Use the coloured arrow handles on room walls to slide in one direction",
+        "Click and drag a selected room across the floor grid to move freely",
+        "Use the arrow nudge buttons (▲ ▼ ◀ ▶) in the inspector for easy step-by-step alignment (0.5m increments)",
+        "Rooms automatically snap to a 0.5 m grid and align to adjacent rooms",
+        "Use the coloured arrow handles on room walls to slide along a single axis",
       ],
     },
     {
@@ -400,15 +409,15 @@ function BuilderGuideModal({ onClose }) {
         "Select a room, then use Arrow Keys on your keyboard to resize it",
         "← → keys adjust width   |   ↑ ↓ keys adjust depth",
         "Minimum room size is 1 m × 1 m",
-        "Use the Height slider in the inspector panel to change ceiling height",
+        "Use the Ceiling Height slider in the inspector panel to adjust room height",
       ],
     },
     {
       icon: <Plus size={16} className="text-[#479de9]" />,
       title: "Adding Rooms",
       tips: [
-        'Click "+ Room" in the bottom toolbar to add a rectangular room',
-        'Click "L-Shape" to add two pre-connected rooms in an L layout',
+        'Click "+ Room" in the bottom toolbar to add a single rectangular room',
+        'Click "L-Shaped Room" to add two pre-connected rooms in an L layout',
         "New rooms appear beside existing ones and auto-select for editing",
         "You can place rooms on different floors using the Floor dropdown in the inspector",
       ],
@@ -420,7 +429,7 @@ function BuilderGuideModal({ onClose }) {
         "Select a room to access Material & Skin options in the right panel",
         "Choose from Stucco, Brick, Wood, Concrete, Metal — or upload a custom texture",
         "Wall Tint lets you pick a base colour overlay for each room",
-        "Use the Rotate button (↻) to spin the room 90° at a time",
+        "Use the Rotate button (↻) to spin the room 90° clockwise",
       ],
     },
     {
@@ -436,7 +445,10 @@ function BuilderGuideModal({ onClose }) {
   ];
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div 
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
       <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-[#0d1117] border border-white/10 rounded-3xl shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-white/8">
@@ -506,6 +518,8 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
   const [editMode, setEditMode] = useState(false);
   const [showBuilderGuide, setShowBuilderGuide] = useState(false);
   const [showFirstEntryHint, setShowFirstEntryHint] = useState(false);
+  const [navTipDismissed, setNavTipDismissed] = useState(false);
+  const [saveToast, setSaveToast] = useState(false);
   const hasShownHint = useRef(false);
   const [editorRooms, setEditorRooms] = useState([]);
   const [selectedEditorRoomId, setSelectedEditorRoomId] = useState(null);
@@ -699,6 +713,18 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
     setSelectedEditorRoomId(null);
   };
 
+  const handleNudge = (dx, dz) => {
+    if (!selectedEditorRoomId) return;
+    setEditorRooms((rooms) =>
+      rooms.map((r) => {
+        if (r.id !== selectedEditorRoomId) return r;
+        const nx = Math.round(((r.x || 0) + dx) * 10) / 10;
+        const nz = Math.round(((r.z || 0) + dz) * 10) / 10;
+        return { ...r, x: nx, z: nz };
+      })
+    );
+  };
+
   const [optimisticUnits, setOptimisticUnits] = useState(null);
 
   const handleSave = async () => {
@@ -709,6 +735,8 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
       // Immediately show saved state using editorRooms while Firestore catches up
       setOptimisticUnits(editorRoomsToUnits(editorRooms));
       setEditMode(false);
+      setSaveToast(true);
+      setTimeout(() => setSaveToast(false), 2500);
       // Clear optimistic state after Firestore listener should have updated
       setTimeout(() => setOptimisticUnits(null), 4000);
     } catch (err) {
@@ -752,20 +780,36 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
           {/* ── BUILDER GUIDE MODAL ──────────────────────────────────────── */}
           {showBuilderGuide && <BuilderGuideModal onClose={() => setShowBuilderGuide(false)} />}
 
+          {/* ── SAVE SUCCESS TOAST ────────────────────────────────────────── */}
+          {saveToast && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
+              <div className="pointer-events-auto flex items-center gap-2.5 bg-emerald-600/95 backdrop-blur-xl border border-emerald-400/50 shadow-2xl text-white rounded-2xl px-5 py-2.5 text-[13.5px] font-bold font-['Manrope']">
+                <Check size={16} className="text-white shrink-0" />
+                <span>Layout saved successfully!</span>
+              </div>
+            </div>
+          )}
+
           {/* ── FIRST-ENTRY HINT BANNER ──────────────────────────────────── */}
           {editMode && showFirstEntryHint && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
-              <div className="pointer-events-auto flex items-center gap-2.5 bg-[#0d1117]/90 backdrop-blur-xl border border-[#2270b8]/40 shadow-2xl rounded-2xl px-4 py-2.5">
-                <Info size={14} className="text-[#479de9] shrink-0" />
-                <span className="text-[12px] text-white/70 font-['Manrope']">Click a room to select · Drag to move · Arrow keys to resize</span>
+              <div className="pointer-events-auto flex items-center gap-3 bg-[#0d1117]/95 backdrop-blur-xl border border-[#2270b8]/60 shadow-2xl rounded-2xl px-5 py-3">
+                <Info size={16} className="text-[#479de9] shrink-0" />
+                <span className="text-[13.5px] text-white/95 font-medium font-['Manrope']">
+                  Click a room to select · Drag or nudge to move · Arrow keys to resize
+                </span>
                 <button
                   onClick={() => { setShowFirstEntryHint(false); setShowBuilderGuide(true); }}
-                  className="ml-1 text-[11px] font-bold text-[#479de9] hover:text-white transition whitespace-nowrap"
+                  className="ml-1 text-[12px] font-bold text-[#479de9] bg-[#2270b8]/20 border border-[#2270b8]/40 hover:bg-[#2270b8] hover:text-white px-2.5 py-1 rounded-lg transition whitespace-nowrap"
                 >
                   Full Guide →
                 </button>
-                <button onClick={() => setShowFirstEntryHint(false)} className="text-white/30 hover:text-white/70 transition ml-0.5">
-                  <X size={12} />
+                <button 
+                  onClick={() => setShowFirstEntryHint(false)} 
+                  title="Dismiss hint"
+                  className="text-white/40 hover:text-white p-1 hover:bg-white/10 rounded-lg transition ml-0.5"
+                >
+                  <X size={14} />
                 </button>
               </div>
             </div>
@@ -776,12 +820,37 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
             <div className="absolute top-4 right-4 z-30">
               <button
                 onClick={() => setShowBuilderGuide(true)}
-                title="3D Builder Guide"
-                className="flex items-center gap-1.5 bg-zinc-900/80 backdrop-blur-xl border border-white/10 hover:border-[#2270b8]/60 text-white/50 hover:text-[#479de9] px-3 py-2 rounded-xl text-[12px] font-semibold font-['Manrope'] transition shadow-lg"
+                title="Open 3D Builder Guide and shortcuts (Esc to close)"
+                className="flex items-center gap-1.5 bg-zinc-900/80 backdrop-blur-xl border border-white/10 hover:border-[#2270b8]/60 text-white/70 hover:text-[#479de9] px-3.5 py-2 rounded-xl text-[12px] font-semibold font-['Manrope'] transition shadow-lg active:scale-95"
               >
-                <HelpCircle size={14} />
-                <span>Help</span>
+                <HelpCircle size={15} />
+                <span>Help & Guide</span>
               </button>
+            </div>
+          )}
+
+          {/* ── VIEW MODE NAVIGATION HINT (Bottom-Right) ─────────────────── */}
+          {!editMode && !navTipDismissed && (
+            <div className="absolute bottom-6 right-6 z-20 pointer-events-none">
+              <div className="pointer-events-auto flex items-center gap-2.5 bg-zinc-900/90 backdrop-blur-xl border border-white/10 shadow-xl rounded-2xl px-3.5 py-2 text-white">
+                <div className="flex items-center gap-1.5 text-[11.5px] font-['Manrope'] text-white/70">
+                  <span className="flex items-center gap-1 text-white font-semibold">
+                    <MousePointer size={12} className="text-[#479de9]" /> Drag
+                  </span>
+                  <span>to orbit</span>
+                  <span className="text-white/20">·</span>
+                  <span>Right-drag to pan</span>
+                  <span className="text-white/20">·</span>
+                  <span>Scroll to zoom</span>
+                </div>
+                <button
+                  onClick={() => setNavTipDismissed(true)}
+                  title="Dismiss navigation tip"
+                  className="ml-1 text-white/40 hover:text-white p-0.5 rounded transition"
+                >
+                  <X size={12} />
+                </button>
+              </div>
             </div>
           )}
 
@@ -813,7 +882,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
           <div className="absolute bottom-6 left-6 z-20 flex items-center gap-2.5 pointer-events-none flex-wrap max-w-[60vw]">
             <div className="pointer-events-auto flex items-center gap-2.5 bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-1.5 pl-3 shadow-2xl shrink-0">
               {onBack && !editMode && (
-                <button onClick={onBack} className="text-white/60 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-xl transition" title="Back to Details">
+                <button onClick={onBack} className="text-white/60 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-xl transition" title="Back to property dashboard">
                   <ArrowLeft size={16} />
                 </button>
               )}
@@ -827,7 +896,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                 </span>
               </div>
               {!editMode && (
-                <button onClick={openEditInfo} title="Edit building info" className="text-white/40 hover:text-[#479de9] p-1 rounded-lg transition">
+                <button onClick={openEditInfo} title="Edit building name and address" className="text-white/40 hover:text-[#479de9] p-1 rounded-lg transition">
                   <Pencil size={13} />
                 </button>
               )}
@@ -845,15 +914,17 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
               {!editMode ? (
                 <button
                   onClick={handleEnterEditMode}
+                  title="Open 3D layout builder to add, move, or customize rooms"
                   className="flex items-center gap-1.5 bg-[#2270b8] hover:bg-[#3186d6] text-white px-3.5 py-1.5 rounded-xl text-[12px] font-semibold font-['Manrope'] shadow-md transition active:scale-95"
                 >
                   <Layers size={14} />
-                  Edit Layout
+                  Design Layout
                 </button>
               ) : (
                 <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => setEditMode(false)}
+                    title="Discard unsaved changes and return to viewing mode"
                     className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-zinc-300 hover:text-white px-2.5 py-1.5 rounded-xl text-[12px] font-semibold font-['Manrope'] transition"
                   >
                     <X size={13} />
@@ -861,6 +932,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                   </button>
                   <button
                     onClick={handleSave}
+                    title="Save all layout changes to the cloud"
                     className="flex items-center gap-1 bg-[#2270b8] hover:bg-[#3186d6] text-white px-3.5 py-1.5 rounded-xl text-[12px] font-semibold font-['Manrope'] shadow-lg transition"
                   >
                     <Check size={13} />
@@ -875,81 +947,140 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
           <div className="absolute top-20 right-4 z-20 pointer-events-none">
             {editMode ? (
               selectedRoom ? (
-                <div className="pointer-events-auto w-72 bg-white/95 backdrop-blur-xl border border-zinc-200/90 text-zinc-800 rounded-2xl p-4 shadow-2xl space-y-3">
-                  {/* Header */}
-                  <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
-                    <input
-                      type="text"
-                      className="font-bold text-zinc-900 font-['Sora'] text-[13px] bg-zinc-100 border border-zinc-200 rounded-lg px-2.5 py-1 outline-none focus:border-[#2270b8] flex-1 min-w-0 transition"
-                      value={selectedRoom.unit_label}
-                      placeholder="e.g. 101, A-1, Studio, Penthouse"
-                      onChange={(e) => setEditorRooms(editorRooms.map(r => r.id === selectedEditorRoomId ? { ...r, unit_label: e.target.value } : r))}
-                    />
-                    <div className="flex items-center gap-1 ml-2 shrink-0">
-                      <button
-                        title="Rotate 90°"
-                        onClick={() => {
-                          const cur = selectedRoom.rotation || 0;
-                          setEditorRooms(editorRooms.map(r => r.id === selectedEditorRoomId ? { ...r, rotation: (cur + 90) % 360 } : r));
-                        }}
-                        className="text-[#2270b8] hover:bg-blue-50 p-1.5 rounded-lg border border-blue-100 transition"
-                      >
-                        <RotateCw size={14} />
-                      </button>
-                      <button
-                        title="Delete Room"
-                        onClick={handleDeleteRoom}
-                        className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg border border-red-100 transition"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Floor & Roof Row */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[10px] font-[600] uppercase tracking-[0.08em] text-zinc-400 mb-1 font-['Manrope']">Floor</label>
-                      <select
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 text-[12px] text-zinc-800 outline-none focus:border-[#2270b8] transition"
-                        value={selectedRoom.floor}
-                        onChange={(e) => setEditorRooms(editorRooms.map(r => r.id === selectedEditorRoomId ? { ...r, floor: parseInt(e.target.value, 10) } : r))}
-                      >
-                        <option value={1}>Floor 1</option>
-                        <option value={2}>Floor 2</option>
-                        <option value={3}>Floor 3</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-[600] uppercase tracking-[0.08em] text-zinc-400 mb-1 font-['Manrope']">Roof</label>
-                      <select
-                        className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 text-[12px] text-zinc-800 outline-none focus:border-[#2270b8] transition"
-                        value={selectedRoom.roof_type || 'flat'}
-                        onChange={(e) => setEditorRooms(editorRooms.map(r => r.id === selectedEditorRoomId ? { ...r, roof_type: e.target.value } : r))}
-                      >
-                        <option value="flat">Flat</option>
-                        <option value="triangle">Triangle</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Height slider */}
+                <div className="pointer-events-auto w-76 max-h-[82vh] overflow-y-auto bg-white/95 backdrop-blur-xl border border-zinc-200/90 text-zinc-800 rounded-2xl p-4 shadow-2xl space-y-3.5">
+                  {/* Section 1: Room Identity */}
                   <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 font-['Manrope']">Room Identity</span>
+                      <span className="text-[10px] text-zinc-400 font-mono">ID: {selectedRoom.id.slice(-6)}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <input
+                        type="text"
+                        aria-label="Unit label"
+                        className="font-bold text-zinc-900 font-['Sora'] text-[13px] bg-zinc-100 border border-zinc-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-[#2270b8] flex-1 min-w-0 transition"
+                        value={selectedRoom.unit_label}
+                        placeholder="e.g. 101, A-1, Studio"
+                        onChange={(e) => setEditorRooms(editorRooms.map(r => r.id === selectedEditorRoomId ? { ...r, unit_label: e.target.value } : r))}
+                      />
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          title="Rotate 90° clockwise"
+                          onClick={() => {
+                            const cur = selectedRoom.rotation || 0;
+                            setEditorRooms(editorRooms.map(r => r.id === selectedEditorRoomId ? { ...r, rotation: (cur + 90) % 360 } : r));
+                          }}
+                          className="text-[#2270b8] hover:bg-blue-50 p-1.5 rounded-lg border border-blue-100 transition active:scale-95"
+                        >
+                          <RotateCw size={14} />
+                        </button>
+                        <button
+                          title="Delete room from layout"
+                          onClick={handleDeleteRoom}
+                          className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg border border-red-100 transition active:scale-95"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 2: Position & Nudge Controls (Senior UX) */}
+                  <div className="border-t border-zinc-100 pt-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 font-['Manrope']">Position & Alignment</span>
+                      <span className="text-[11px] font-mono text-zinc-500 font-medium">
+                        X: {Number(selectedRoom.x || 0).toFixed(1)}m · Z: {Number(selectedRoom.z || 0).toFixed(1)}m
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between bg-zinc-50 border border-zinc-200/80 rounded-xl p-2">
+                      <span className="text-[11px] text-zinc-500 font-['Manrope'] pl-1">0.5m Nudge:</span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleNudge(-0.5, 0)}
+                          title="Nudge Left (-0.5m)"
+                          className="h-7 w-7 rounded-lg bg-white hover:bg-blue-50 hover:text-[#2270b8] border border-zinc-200 text-zinc-600 flex items-center justify-center transition shadow-xs active:scale-90"
+                        >
+                          <ChevronLeft size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleNudge(0, -0.5)}
+                          title="Nudge Backward / Away (-0.5m)"
+                          className="h-7 w-7 rounded-lg bg-white hover:bg-blue-50 hover:text-[#2270b8] border border-zinc-200 text-zinc-600 flex items-center justify-center transition shadow-xs active:scale-90"
+                        >
+                          <ChevronUp size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleNudge(0, 0.5)}
+                          title="Nudge Forward / Toward (+0.5m)"
+                          className="h-7 w-7 rounded-lg bg-white hover:bg-blue-50 hover:text-[#2270b8] border border-zinc-200 text-zinc-600 flex items-center justify-center transition shadow-xs active:scale-90"
+                        >
+                          <ChevronDown size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleNudge(0.5, 0)}
+                          title="Nudge Right (+0.5m)"
+                          className="h-7 w-7 rounded-lg bg-white hover:bg-blue-50 hover:text-[#2270b8] border border-zinc-200 text-zinc-600 flex items-center justify-center transition shadow-xs active:scale-90"
+                        >
+                          <ChevronRight size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 3: Floor & Architecture */}
+                  <div className="border-t border-zinc-100 pt-3">
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2 font-['Manrope']">Floor & Architecture</span>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="block text-[10px] font-medium text-zinc-500 mb-1 font-['Manrope']">Floor Level</label>
+                        <select
+                          className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 text-[12px] text-zinc-800 outline-none focus:border-[#2270b8] transition"
+                          value={selectedRoom.floor}
+                          onChange={(e) => setEditorRooms(editorRooms.map(r => r.id === selectedEditorRoomId ? { ...r, floor: parseInt(e.target.value, 10) } : r))}
+                        >
+                          <option value={1}>Floor 1</option>
+                          <option value={2}>Floor 2</option>
+                          <option value={3}>Floor 3</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-medium text-zinc-500 mb-1 font-['Manrope']">Roof Style</label>
+                        <select
+                          className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 text-[12px] text-zinc-800 outline-none focus:border-[#2270b8] transition"
+                          value={selectedRoom.roof_type || 'flat'}
+                          onChange={(e) => setEditorRooms(editorRooms.map(r => r.id === selectedEditorRoomId ? { ...r, roof_type: e.target.value } : r))}
+                        >
+                          <option value="flat">Flat Roof</option>
+                          <option value="triangle">Gabled / Triangle</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 4: Ceiling Height */}
+                  <div className="border-t border-zinc-100 pt-3">
                     <div className="flex items-center justify-between mb-1">
-                      <label className="text-[10px] font-[600] uppercase tracking-[0.08em] text-zinc-400 font-['Manrope']">Height</label>
-                      <span className="text-[11px] font-[700] text-[#2270b8]">{selectedRoom.height}m</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 font-['Manrope']">Ceiling Height</span>
+                      <span className="text-[11px] font-bold text-[#2270b8]">{selectedRoom.height} m</span>
                     </div>
                     <input
                       type="range" min="1" max="4" step="0.2"
-                      className="w-full accent-[#2270b8]"
+                      className="w-full accent-[#2270b8] cursor-pointer"
                       value={selectedRoom.height}
                       onChange={(e) => setEditorRooms(editorRooms.map(r => r.id === selectedEditorRoomId ? { ...r, height: parseFloat(e.target.value) } : r))}
                     />
+                    <div className="flex justify-between text-[9px] text-zinc-400 mt-0.5">
+                      <span>1m (Low)</span>
+                      <span>2.4m (Standard)</span>
+                      <span>4m (Loft)</span>
+                    </div>
                   </div>
 
-                  <div className="border-t border-zinc-100 pt-3 space-y-3">
+                  {/* Section 5: Material & Style */}
+                  <div className="border-t border-zinc-100 pt-3 space-y-2.5">
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 font-['Manrope']">Material & Styling</span>
                     <div>
-                      <label className="block text-[10px] font-[600] uppercase tracking-[0.08em] text-zinc-400 mb-1 font-['Manrope']">Material & Skin</label>
                       <select
                         className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1.5 text-[12px] text-zinc-800 outline-none focus:border-[#2270b8] transition"
                         value={selectedRoom.material_type || 'stucco'}
@@ -964,12 +1095,12 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                           } : r));
                         }}
                       >
-                        <option value="stucco">Stucco (Default)</option>
-                        <option value="brick">Brick</option>
-                        <option value="wood">Wood</option>
-                        <option value="concrete">Concrete</option>
-                        <option value="metal">Metal</option>
-                        <option value="custom">Custom Upload</option>
+                        <option value="stucco">Stucco (Smooth)</option>
+                        <option value="brick">Exposed Brick</option>
+                        <option value="wood">Natural Wood Planks</option>
+                        <option value="concrete">Architectural Concrete</option>
+                        <option value="metal">Corrugated Metal</option>
+                        <option value="custom">Custom Image Texture</option>
                       </select>
                     </div>
 
@@ -988,17 +1119,17 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                     )}
 
                     <div>
-                      <label className="block text-[10px] font-[600] uppercase tracking-[0.08em] text-zinc-400 mb-1 font-['Manrope']">Wall Tint</label>
+                      <label className="block text-[10px] font-medium text-zinc-500 mb-1 font-['Manrope']">Wall Color Tint</label>
                       <div className="flex items-center gap-2">
                         {[
                           ['#ffffff', 'White'],
-                          ['#4a5a66', 'Slate'],
-                          ['#d9ccbc', 'Sand'],
+                          ['#4a5a66', 'Slate Blue'],
+                          ['#d9ccbc', 'Sand Dune'],
                           ['#2c3238', 'Charcoal']
                         ].map(([hex, name]) => (
                           <button
                             key={hex}
-                            title={name}
+                            title={`Set tint: ${name}`}
                             onClick={() => setEditorRooms(editorRooms.map(r => r.id === selectedEditorRoomId ? { ...r, wall_color: hex } : r))}
                             className={`w-6 h-6 rounded-full border-2 transition ${
                               (selectedRoom.wall_color || '#4a5a66') === hex ? 'border-[#2270b8] scale-110 shadow-sm' : 'border-zinc-200 hover:scale-105'
@@ -1013,7 +1144,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
               ) : (
                 <div className="pointer-events-auto bg-zinc-900/75 backdrop-blur-md border border-white/10 text-zinc-300 text-[11px] font-['Manrope'] px-3.5 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
                   <Info size={12} className="text-[#479de9] shrink-0" />
-                  Click a room to inspect · Drag to reposition · Arrow keys to resize
+                  Click a room to inspect · Drag or nudge to move · Arrow keys to resize
                 </div>
               )
             ) : null}
@@ -1026,13 +1157,14 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
               {/* Camera Presets — Segmented pill with icons */}
               <div className="flex items-center gap-0.5 rounded-xl bg-white/5 p-0.5">
                 {[
-                  ["isometric", "Iso", <Box size={13} key="box" />],
-                  ["top-down",  "Top", <Grid size={13} key="grid" />],
-                  ["front",     "Front", <Square size={13} key="sq" />]
-                ].map(([preset, label, icon]) => (
+                  ["isometric", "Iso", <Box size={13} key="box" />, "Isometric 3D perspective view"],
+                  ["top-down",  "Top", <Grid size={13} key="grid" />, "Top-down 2D floorplan view"],
+                  ["front",     "Front", <Square size={13} key="sq" />, "Front elevation view"]
+                ].map(([preset, label, icon, tip]) => (
                   <button
                     key={preset}
                     onClick={() => setCameraPreset(preset)}
+                    title={tip}
                     className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold font-['Manrope'] transition ${
                       cameraPreset === preset
                         ? 'bg-[#0F4C81] text-white shadow-sm border border-blue-400/30'
@@ -1054,6 +1186,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                       <button
                         key={f}
                         onClick={() => setActiveFloor(f)}
+                        title={f === 'All' ? 'View all floors simultaneously' : `Isolate Floor ${f} only`}
                         className={`px-2.5 py-1.5 rounded-xl text-[11px] font-semibold font-['Manrope'] transition ${
                           activeFloor === f
                             ? 'bg-[#2270b8] text-white shadow-sm'
@@ -1073,16 +1206,17 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                 <>
                   <button
                     onClick={handleAddRoom}
-                    className="flex items-center gap-1 bg-[#0b3860] hover:bg-[#154e83] border border-[#2270b8]/40 text-white px-3 py-1.5 rounded-xl text-[11px] font-semibold font-['Manrope'] transition shadow-sm"
+                    title="Add a new rectangular room unit to the layout"
+                    className="flex items-center gap-1 bg-[#0b3860] hover:bg-[#154e83] border border-[#2270b8]/40 text-white px-3 py-1.5 rounded-xl text-[11px] font-semibold font-['Manrope'] transition shadow-sm active:scale-95"
                   >
                     <Plus size={13} /> Room
                   </button>
                   <button
                     onClick={handleAddLShape}
-                    className="flex items-center gap-1 bg-[#2d5a72] hover:bg-[#3a7290] border border-[#3a7290] text-white px-3 py-1.5 rounded-xl text-[11px] font-semibold font-['Manrope'] transition shadow-sm"
-                    title="Adds two rooms in an L-shape"
+                    className="flex items-center gap-1.5 bg-[#2d5a72] hover:bg-[#3a7290] border border-[#3a7290] text-white px-3 py-1.5 rounded-xl text-[11px] font-semibold font-['Manrope'] transition shadow-sm active:scale-95"
+                    title="Add two connected rooms in an L-shaped layout (2 units)"
                   >
-                    <CopyPlus size={13} /> L-Shape
+                    <CopyPlus size={13} /> L-Shaped Room
                   </button>
                 </>
               ) : (
