@@ -27,7 +27,7 @@ function initials(name) {
 }
 
 function AvatarInitials({ name, size = "md" }) {
-  const colors = ["bg-[#0b3860]", "bg-[#2270b8]", "bg-teal-700", "bg-indigo-700", "bg-purple-700"];
+  const colors = ["bg-[#0b3860]", "bg-[#1d4f7c]", "bg-[#2270b8]", "bg-[#183b5e]", "bg-[#1a5f7a]"];
   const idx = (name || "").charCodeAt(0) % colors.length;
   const sz = size === "lg" ? "h-12 w-12 text-[16px]" : "h-9 w-9 text-[12px]";
   return (

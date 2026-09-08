@@ -186,7 +186,7 @@ export default function PropertyDetail({
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-[14px]">
                   <thead>
-                    <tr className="border-b border-zinc-100 bg-zinc-50/50 text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-500">
+                    <tr className="border-b border-zinc-200 bg-zinc-50 text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-500">
                       <th className="px-6 py-3">UNIT</th>
                       <th className="px-6 py-3">STATUS</th>
                       <th className="px-6 py-3">TENANT</th>
@@ -205,6 +205,7 @@ export default function PropertyDetail({
                     ) : (
                       filteredUnits.map((u) => {
                         const s = STATUS_STYLES[u.status] || STATUS_STYLES.vacant;
+                        const hasTenant = u.status !== "vacant" && !!u.tenant?.name;
                         return (
                           <tr
                             key={u.id}
@@ -237,12 +238,14 @@ export default function PropertyDetail({
                                 >
                                   Edit
                                 </button>
-                                <button 
-                                  onClick={(e) => { e.stopPropagation(); setSelectedUnit(u); }}
-                                  className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-[600] text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition shadow-sm"
-                                >
-                                  Pay
-                                </button>
+                                {hasTenant && (
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); setSelectedUnit(u); }}
+                                    className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-[600] text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition shadow-sm"
+                                  >
+                                    Pay
+                                  </button>
+                                )}
                               </div>
                             </td>
                           </tr>

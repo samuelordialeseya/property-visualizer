@@ -2,7 +2,7 @@
 import { useState, useMemo } from "react";
 import {
   Wrench, Plus, X, AlertTriangle, ChevronDown, Filter,
-  Camera, Trash2, CheckCircle, Clock, Hammer, DollarSign,
+  Camera, Trash2, CheckCircle, Check, Clock, Hammer, DollarSign,
   Building, User, Package, CreditCard
 } from "lucide-react";
 import {
@@ -324,23 +324,31 @@ function TicketCard({ ticket, onEdit, onDelete, onStatusChange, staffList }) {
       </div>
 
       {/* Status Stepper */}
-      <div className="px-5 py-3 border-b border-zinc-100 bg-zinc-50/50">
+      <div className="px-5 py-3.5 border-b border-zinc-100 bg-zinc-50/70">
         <div className="flex items-center gap-1">
           {STATUSES.map((s, i) => {
             const done = i <= currentIdx;
             const active = i === currentIdx;
             return (
               <div key={s.key} className="flex items-center flex-1">
-                <div className={`flex-1 h-1.5 rounded-full transition-colors ${done ? "bg-[#2270b8]" : "bg-zinc-200"}`} />
-                <div className={`mx-1 h-3 w-3 rounded-full shrink-0 border-2 transition-all ${active ? "border-[#2270b8] bg-[#2270b8] scale-125" : done ? "border-[#2270b8] bg-[#2270b8]" : "border-zinc-300 bg-white"}`} />
+                <div className={`flex-1 h-2 rounded-full transition-colors ${done ? "bg-[#2270b8]" : "bg-zinc-200"}`} />
+                <div className={`mx-1.5 h-4 w-4 rounded-full shrink-0 border-2 flex items-center justify-center transition-all ${
+                  active 
+                    ? "border-[#2270b8] bg-[#2270b8] scale-110 shadow-sm" 
+                    : done 
+                    ? "border-[#2270b8] bg-[#2270b8]" 
+                    : "border-zinc-300 bg-white"
+                }`}>
+                  {done && <Check size={10} className="text-white stroke-[3]" />}
+                </div>
               </div>
             );
           })}
-          <div className={`h-1.5 rounded-full flex-1 ${currentIdx === STATUSES.length - 1 ? "bg-[#2270b8]" : "bg-zinc-200"}`} />
+          <div className={`h-2 rounded-full flex-1 ${currentIdx === STATUSES.length - 1 ? "bg-[#2270b8]" : "bg-zinc-200"}`} />
         </div>
-        <div className="flex justify-between mt-1">
+        <div className="flex justify-between mt-1.5 px-0.5">
           {STATUSES.map((s, i) => (
-            <span key={s.key} className={`text-[9px] font-semibold uppercase tracking-wider ${i <= currentIdx ? "text-[#2270b8]" : "text-zinc-400"}`}>{s.label}</span>
+            <span key={s.key} className={`text-[10px] font-bold uppercase tracking-wider ${i <= currentIdx ? "text-[#0b3860]" : "text-zinc-400"}`}>{s.label}</span>
           ))}
         </div>
       </div>
@@ -381,14 +389,14 @@ function TicketCard({ ticket, onEdit, onDelete, onStatusChange, staffList }) {
           )}
           {currentIdx < 2 && (
             <button onClick={advanceStatus} disabled={updatingStatus}
-              className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#0b3860] text-white hover:bg-[#154e83] transition disabled:opacity-50 flex items-center gap-1">
-              <ChevronDown size={10} /> {STATUSES[currentIdx + 1]?.label}
+              className="text-[11px] font-bold px-3 py-1.5 rounded-full bg-[#0b3860] text-white hover:bg-[#154e83] transition disabled:opacity-50 flex items-center gap-1.5 shadow-xs cursor-pointer">
+              <CheckCircle size={12} /> Mark as {STATUSES[currentIdx + 1]?.label}
             </button>
           )}
           {currentIdx === 2 && (
             <button onClick={ticket.is_paid || ticket.total_cost === 0 ? advanceStatus : () => setShowPayForm(!showPayForm)} disabled={updatingStatus}
-              className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#0b3860] text-white hover:bg-[#154e83] transition disabled:opacity-50 flex items-center gap-1">
-              <ChevronDown size={10} /> {showPayForm ? "CANCEL" : (ticket.is_paid || (ticket.total_cost || 0) === 0 ? "MARK SETTLED" : "PAY & SETTLE")}
+              className="text-[11px] font-bold px-3 py-1.5 rounded-full bg-[#0b3860] text-white hover:bg-[#154e83] transition disabled:opacity-50 flex items-center gap-1.5 shadow-xs cursor-pointer">
+              <CheckCircle size={12} /> {showPayForm ? "Cancel Payment" : (ticket.is_paid || (ticket.total_cost || 0) === 0 ? "Mark Settled" : "Pay & Settle")}
             </button>
           )}
         </div>

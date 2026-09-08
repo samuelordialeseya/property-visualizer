@@ -11,16 +11,22 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
     { id: "settings",   label: "Settings",   icon: Settings },
   ];
 
+  const isDark = activeView === "3d_view";
+
   return (
     <aside
-      className={`relative flex flex-col border-r border-zinc-200 bg-[#f4f4f5] transition-all duration-300 ease-in-out shrink-0 ${
-        collapsed ? "w-[80px]" : "w-[280px]"
-      }`}
+      className={`relative flex flex-col transition-all duration-300 ease-in-out shrink-0 ${
+        isDark ? "bg-[#0b0f13] border-r border-white/10" : "border-r border-zinc-200 bg-[#f4f4f5]"
+      } ${collapsed ? "w-[80px]" : "w-[280px]"}`}
     >
       {/* Toggle button — sits on the edge of the sidebar */}
       <button
         onClick={onToggleCollapse}
-        className="absolute -right-3 top-1/2 -translate-y-1/2 z-20 grid h-6 w-6 place-items-center rounded-full border border-zinc-200 bg-white shadow-sm text-zinc-500 transition hover:bg-[var(--color-blue-50)] hover:text-[var(--color-blue-600)] hover:border-[var(--color-blue-300)]"
+        className={`absolute -right-3 top-1/2 -translate-y-1/2 z-20 grid h-6 w-6 place-items-center rounded-full border shadow-sm transition ${
+          isDark
+            ? "border-white/15 bg-[#141a21] text-zinc-400 hover:bg-[#1f2933] hover:text-white hover:border-white/30"
+            : "border-zinc-200 bg-white text-zinc-500 hover:bg-[var(--color-blue-50)] hover:text-[var(--color-blue-600)] hover:border-[var(--color-blue-300)]"
+        }`}
       >
         {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
       </button>
@@ -78,13 +84,25 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
                 collapsed ? "justify-center px-0 py-3.5" : "gap-4 px-5 py-3.5"
               } ${
                 isActive
-                  ? "bg-white text-[var(--color-blue-700)] shadow-sm border border-zinc-200/60"
+                  ? isDark
+                    ? "bg-white/10 text-white shadow-sm border border-white/15"
+                    : "bg-white text-[var(--color-blue-700)] shadow-sm border border-zinc-200/60"
+                  : isDark
+                  ? "text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent"
                   : "text-zinc-500 hover:bg-zinc-200/50 hover:text-zinc-900 border border-transparent"
               }`}
             >
               <Icon
                 size={18}
-                className={`shrink-0 ${isActive ? "text-[var(--color-blue-600)]" : "text-zinc-400"}`}
+                className={`shrink-0 ${
+                  isActive
+                    ? isDark
+                      ? "text-[#479de9]"
+                      : "text-[var(--color-blue-600)]"
+                    : isDark
+                    ? "text-zinc-500"
+                    : "text-zinc-400"
+                }`}
               />
               {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
             </button>
@@ -93,18 +111,20 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
       </nav>
 
       {/* Footer / Profile */}
-      <div className="border-t border-zinc-200 p-3 mt-auto">
+      <div className={`p-3 mt-auto ${isDark ? "border-t border-white/10" : "border-t border-zinc-200"}`}>
         <div 
           onClick={() => setActiveView("settings")}
           title={collapsed ? "Profile Settings" : undefined}
-          className={`flex items-center ${collapsed ? "justify-center" : "gap-3"} cursor-pointer hover:bg-zinc-200/50 p-2 rounded-xl transition`}
+          className={`flex items-center ${collapsed ? "justify-center" : "gap-3"} cursor-pointer p-2 rounded-xl transition ${
+            isDark ? "hover:bg-white/5" : "hover:bg-zinc-200/50"
+          }`}
         >
-          <div className="h-8 w-8 bg-[#0b3860] rounded-full flex items-center justify-center text-white text-[13px] font-bold font-['Sora'] shadow-sm shrink-0">
+          <div className="h-8 w-8 bg-[#0b3860] rounded-full flex items-center justify-center text-white text-[13px] font-bold font-['Sora'] shadow-sm shrink-0 border border-white/10">
             {initial}
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <div className="text-[13px] font-bold text-zinc-900 truncate">{managerName}</div>
+              <div className={`text-[13px] font-bold truncate ${isDark ? "text-white" : "text-zinc-900"}`}>{managerName}</div>
             </div>
           )}
         </div>

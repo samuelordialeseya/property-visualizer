@@ -166,10 +166,10 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
                 <select 
                   value={currency} 
                   onChange={e => setCurrency(e.target.value)}
-                  className="w-full max-w-[200px] rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-[13px] font-medium outline-none focus:border-[#2270b8] focus:bg-white transition"
+                  className="w-full max-w-[260px] rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-[13px] font-medium outline-none focus:border-[#2270b8] focus:bg-white transition"
                 >
-                  <option value="PHP">₱ Philippine Peso (PHP)</option>
-                  <option value="USD">$ US Dollar (USD)</option>
+                  <option value="PHP">PHP (₱) — Philippine Peso</option>
+                  <option value="USD">USD ($) — US Dollar</option>
                 </select>
                 <p className="text-[11px] text-zinc-400 mt-2">Currently visual only. Converts display formats.</p>
               </div>

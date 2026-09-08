@@ -12,6 +12,37 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const getFriendlyErrorMessage = (err) => {
+    const code = err?.code || "";
+    const msg = err?.message || "";
+    if (
+      code === "auth/invalid-credential" ||
+      code === "auth/user-not-found" ||
+      code === "auth/wrong-password" ||
+      msg.includes("auth/invalid-credential") ||
+      msg.includes("auth/user-not-found") ||
+      msg.includes("auth/wrong-password")
+    ) {
+      return "Incorrect email or password. Please check your credentials and try again.";
+    }
+    if (code === "auth/email-already-in-use" || msg.includes("auth/email-already-in-use")) {
+      return "An account with this email already exists. Please sign in instead.";
+    }
+    if (code === "auth/weak-password" || msg.includes("auth/weak-password")) {
+      return "Password is too weak. Please use at least 6 characters.";
+    }
+    if (code === "auth/invalid-email" || msg.includes("auth/invalid-email")) {
+      return "Please enter a valid email address.";
+    }
+    if (code === "auth/too-many-requests" || msg.includes("auth/too-many-requests")) {
+      return "Too many failed attempts. Please wait a few minutes before trying again.";
+    }
+    if (code === "auth/network-request-failed" || msg.includes("auth/network-request-failed")) {
+      return "Network error. Please check your internet connection and try again.";
+    }
+    return "Failed to authenticate. Please check your credentials and try again.";
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -29,7 +60,7 @@ export default function Login() {
         await login(email, password);
       }
     } catch (err) {
-      setError(err.message || "Failed to authenticate. Check your credentials.");
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setLoading(false);
     }

@@ -256,7 +256,7 @@ export default function DocumentsTab({ building }) {
       {/* 2. Filter Pills & Search */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-1">
         {/* Category horizontal scroll pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+        <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none no-scrollbar">
           {CATEGORIES.map((cat) => {
             const active = selectedCategory === cat.id;
             const Icon = cat.icon;
@@ -264,7 +264,7 @@ export default function DocumentsTab({ building }) {
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-[700] whitespace-nowrap transition font-['Manrope'] ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-[700] whitespace-nowrap shrink-0 transition font-['Manrope'] cursor-pointer ${
                   active
                     ? "bg-[#0b3860] text-white shadow-sm"
                     : "bg-white text-zinc-600 border border-zinc-200/80 hover:bg-zinc-50"
@@ -278,14 +278,14 @@ export default function DocumentsTab({ building }) {
         </div>
 
         {/* Search Bar */}
-        <div className="relative min-w-[240px]">
+        <div className="relative w-full md:w-64 shrink-0">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
           <input
             type="text"
             placeholder="Search docs or locations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-3.5 py-1.5 text-[13px] outline-none focus:border-[#0b3860] font-['Manrope']"
+            className="w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-3.5 py-1.5 text-[13px] outline-none focus:border-[#0b3860] font-['Manrope'] shadow-xs"
           />
         </div>
       </div>
