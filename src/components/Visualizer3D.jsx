@@ -3,7 +3,7 @@ import { useRef, useMemo, useState, useEffect } from "react";
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { OrbitControls, ContactShadows, Edges, Html } from "@react-three/drei";
 import * as THREE from "three";
-import { Building2, ArrowLeft, Pencil, Layers, X, Check, Plus, CopyPlus, RotateCw, Trash2, Info, Box, Grid, Square, Search, Upload, Wrench } from "lucide-react";
+import { Building2, ArrowLeft, Pencil, Layers, X, Check, Plus, CopyPlus, RotateCw, Trash2, Info, Box, Grid, Square, Search, Upload, Wrench, HelpCircle, MousePointer, Move, Maximize2, Palette } from "lucide-react";
 import { getFootprint, cellToWorld, UNIT_W, UNIT_D, UNIT_H } from "@/lib/footprints";
 import { uploadFile, useMaintenanceTickets } from "@/hooks/useFirestore";
 import { applyMaterialToRef } from "@/lib/textureGenerator";
@@ -371,8 +371,142 @@ function Ground({ onGroundClick }) {
 }
 
 // ─── Export ──────────────────────────────────────────────────────────────────
+// ─── 3D Builder Guide Modal ──────────────────────────────────────────────────
+function BuilderGuideModal({ onClose }) {
+  const sections = [
+    {
+      icon: <MousePointer size={16} className="text-[#479de9]" />,
+      title: "Selecting a Room",
+      tips: [
+        "Click any room block in the 3D scene to select it",
+        "The selected room highlights and its inspector opens on the right",
+        "Click empty space to deselect",
+      ],
+    },
+    {
+      icon: <Move size={16} className="text-[#479de9]" />,
+      title: "Moving Rooms",
+      tips: [
+        "Click and drag a selected room to reposition it",
+        "Rooms snap to a 0.5 m grid automatically",
+        "Rooms magnetically snap to adjacent room edges when dragged close",
+        "Use the coloured arrow handles on room walls to slide in one direction",
+      ],
+    },
+    {
+      icon: <Maximize2 size={16} className="text-[#479de9]" />,
+      title: "Resizing Rooms",
+      tips: [
+        "Select a room, then use Arrow Keys on your keyboard to resize it",
+        "← → keys adjust width   |   ↑ ↓ keys adjust depth",
+        "Minimum room size is 1 m × 1 m",
+        "Use the Height slider in the inspector panel to change ceiling height",
+      ],
+    },
+    {
+      icon: <Plus size={16} className="text-[#479de9]" />,
+      title: "Adding Rooms",
+      tips: [
+        'Click "+ Room" in the bottom toolbar to add a rectangular room',
+        'Click "L-Shape" to add two pre-connected rooms in an L layout',
+        "New rooms appear beside existing ones and auto-select for editing",
+        "You can place rooms on different floors using the Floor dropdown in the inspector",
+      ],
+    },
+    {
+      icon: <Palette size={16} className="text-[#479de9]" />,
+      title: "Styling Rooms",
+      tips: [
+        "Select a room to access Material & Skin options in the right panel",
+        "Choose from Stucco, Brick, Wood, Concrete, Metal — or upload a custom texture",
+        "Wall Tint lets you pick a base colour overlay for each room",
+        "Use the Rotate button (↻) to spin the room 90° at a time",
+      ],
+    },
+    {
+      icon: <Check size={16} className="text-[#479de9]" />,
+      title: "Saving Your Layout",
+      tips: [
+        'Click "Save" in the bottom-left bar when you\'re done editing',
+        "All room positions, sizes, floors, and materials are saved to the cloud",
+        'Click "Cancel" to discard all unsaved changes and return to view mode',
+        "Deleting a room here also removes it from the Units Directory",
+      ],
+    },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-[#0d1117] border border-white/10 rounded-3xl shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-white/8">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-[#2270b8]/20 border border-[#2270b8]/30 flex items-center justify-center">
+              <HelpCircle size={18} className="text-[#479de9]" />
+            </div>
+            <div>
+              <h2 className="text-[16px] font-bold text-white font-['Sora']">3D Layout Builder — Guide</h2>
+              <p className="text-[12px] text-white/40 font-['Manrope']">How to design and edit your building layout</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="h-8 w-8 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Camera tip callout */}
+        <div className="mx-6 mt-5 bg-[#2270b8]/10 border border-[#2270b8]/20 rounded-2xl px-4 py-3 flex items-start gap-3">
+          <Info size={14} className="text-[#479de9] shrink-0 mt-0.5" />
+          <p className="text-[12px] text-white/60 font-['Manrope'] leading-relaxed">
+            <span className="text-white font-semibold">Camera controls work anytime:</span> Left-drag to orbit · Right-drag to pan · Scroll wheel to zoom.
+            Use the <span className="text-white font-semibold">Iso / Top / Front</span> presets in the bottom toolbar to quickly reset the angle.
+          </p>
+        </div>
+
+        {/* Sections */}
+        <div className="px-6 py-5 space-y-4">
+          {sections.map((s, i) => (
+            <div key={i} className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-7 w-7 rounded-lg bg-[#2270b8]/15 border border-[#2270b8]/20 flex items-center justify-center shrink-0">
+                  {s.icon}
+                </div>
+                <span className="text-[13px] font-bold text-white font-['Sora']">{s.title}</span>
+              </div>
+              <ul className="space-y-1.5">
+                {s.tips.map((tip, j) => (
+                  <li key={j} className="flex items-start gap-2">
+                    <span className="text-[#479de9] text-[10px] mt-[3px] shrink-0">▸</span>
+                    <span className="text-[12px] text-white/55 font-['Manrope'] leading-relaxed">{tip}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 pb-6">
+          <button
+            onClick={onClose}
+            className="w-full py-2.5 rounded-xl bg-[#2270b8] hover:bg-[#3186d6] text-white text-[13px] font-bold font-['Manrope'] transition shadow-lg"
+          >
+            Got it — start building!
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Visualizer3D({ building, units, selectedUnitId, onSelectUnit, onBack, onSaveLayout, onUpdateBuilding, onCancelNewBuilding }) {
   const [editMode, setEditMode] = useState(false);
+  const [showBuilderGuide, setShowBuilderGuide] = useState(false);
+  const [showFirstEntryHint, setShowFirstEntryHint] = useState(false);
+  const hasShownHint = useRef(false);
   const [editorRooms, setEditorRooms] = useState([]);
   const [selectedEditorRoomId, setSelectedEditorRoomId] = useState(null);
   const [deletedRoomIds, setDeletedRoomIds] = useState([]);
@@ -450,6 +584,12 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
     setDeletedRoomIds([]);
     setSelectedEditorRoomId(null);
     setEditMode(true);
+    // Show first-entry hint once per session
+    if (!hasShownHint.current) {
+      hasShownHint.current = true;
+      setShowFirstEntryHint(true);
+      setTimeout(() => setShowFirstEntryHint(false), 5500);
+    }
   };
 
   const handleAddRoom = () => {
@@ -609,6 +749,42 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
         </div>
       ) : (
         <>
+          {/* ── BUILDER GUIDE MODAL ──────────────────────────────────────── */}
+          {showBuilderGuide && <BuilderGuideModal onClose={() => setShowBuilderGuide(false)} />}
+
+          {/* ── FIRST-ENTRY HINT BANNER ──────────────────────────────────── */}
+          {editMode && showFirstEntryHint && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+              <div className="pointer-events-auto flex items-center gap-2.5 bg-[#0d1117]/90 backdrop-blur-xl border border-[#2270b8]/40 shadow-2xl rounded-2xl px-4 py-2.5">
+                <Info size={14} className="text-[#479de9] shrink-0" />
+                <span className="text-[12px] text-white/70 font-['Manrope']">Click a room to select · Drag to move · Arrow keys to resize</span>
+                <button
+                  onClick={() => { setShowFirstEntryHint(false); setShowBuilderGuide(true); }}
+                  className="ml-1 text-[11px] font-bold text-[#479de9] hover:text-white transition whitespace-nowrap"
+                >
+                  Full Guide →
+                </button>
+                <button onClick={() => setShowFirstEntryHint(false)} className="text-white/30 hover:text-white/70 transition ml-0.5">
+                  <X size={12} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── TOP-RIGHT: Help button in edit mode ──────────────────────── */}
+          {editMode && (
+            <div className="absolute top-4 right-4 z-30">
+              <button
+                onClick={() => setShowBuilderGuide(true)}
+                title="3D Builder Guide"
+                className="flex items-center gap-1.5 bg-zinc-900/80 backdrop-blur-xl border border-white/10 hover:border-[#2270b8]/60 text-white/50 hover:text-[#479de9] px-3 py-2 rounded-xl text-[12px] font-semibold font-['Manrope'] transition shadow-lg"
+              >
+                <HelpCircle size={14} />
+                <span>Help</span>
+              </button>
+            </div>
+          )}
+
           {/* ── TOP-LEFT HUD: Search & Primary Actions ─────────────────────────── */}
           <div className="absolute top-4 left-4 z-20 flex flex-col items-start gap-3 pointer-events-none">
             {/* TENANT SPOTLIGHT SEARCH */}
