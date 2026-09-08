@@ -1,7 +1,7 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
-  Wrench, Plus, X, AlertTriangle, ChevronDown, Filter,
+  Wrench, Plus, X, AlertTriangle, AlertCircle, ChevronDown, Filter,
   Camera, Trash2, CheckCircle, Check, Clock, Hammer, DollarSign,
   Building, User, Package, CreditCard
 } from "lucide-react";
@@ -26,10 +26,10 @@ const PRIORITIES = [
 ];
 
 const BILLING_TYPES = [
-  { key: "landlord_expense",      label: "Landlord Expense",       desc: "You absorb the cost",           icon: <Building size={14} /> },
-  { key: "billed_to_rent",        label: "Bill to Tenant Rent",    desc: "Deduct from next month's rent", icon: <User size={14} /> },
-  { key: "deduct_security_deposit", label: "Deduct from Deposit",  desc: "Charge against security deposit", icon: <Package size={14} /> },
-  { key: "separate_tenant_bill",  label: "Direct Tenant Bill",     desc: "Tenant pays separately now",    icon: <CreditCard size={14} /> },
+  { key: "landlord_expense",        label: "Landlord Expense",       desc: "You absorb the cost",           icon: <Building size={14} />,   requiresTenant: false },
+  { key: "billed_to_rent",          label: "Bill to Tenant Rent",    desc: "Deduct from next month's rent", icon: <User size={14} />,       requiresTenant: true },
+  { key: "deduct_security_deposit", label: "Deduct from Deposit",    desc: "Charge against security deposit", icon: <Package size={14} />,    requiresTenant: true },
+  { key: "separate_tenant_bill",    label: "Direct Tenant Bill",     desc: "Tenant pays separately now",    icon: <CreditCard size={14} />,  requiresTenant: true },
 ];
 
 const WORKFORCE_TYPES = [
@@ -60,15 +60,40 @@ function TicketModal({ buildingId, units = [], userId, ticket, onClose, staffLis
 
   const total = (Number(materialCost) || 0) + (Number(laborCost) || 0);
 
+  const selectedUnit = useMemo(() => {
+    if (!unitId || unitId === "common_area") return null;
+    return units.find(u => u.id === unitId) || null;
+  }, [units, unitId]);
+
+  const isVacantOrNoTenant = useMemo(() => {
+    if (unitId === "common_area") return true;
+    if (!selectedUnit) return false;
+    const isVacantStatus = selectedUnit.status === "vacant";
+    const hasNoTenant = !selectedUnit.tenant?.name && !selectedUnit.tenant_name;
+    return isVacantStatus || hasNoTenant;
+  }, [unitId, selectedUnit]);
+
+  // Enforce landlord_expense if unit is vacant or has no tenant
+  useEffect(() => {
+    if (isVacantOrNoTenant && billingType !== "landlord_expense") {
+      setBillingType("landlord_expense");
+    }
+  }, [isVacantOrNoTenant, billingType]);
+
   const handleUnitSelect = (e) => {
     const val = e.target.value;
     if (val === "common_area") {
       setUnitId("common_area");
       setUnitLabel("Common Area");
+      setBillingType("landlord_expense");
     } else {
       const u = units.find(u => u.id === val);
       setUnitId(val);
       setUnitLabel(u?.unit_label || "");
+      const isVacant = u?.status === "vacant" || (!u?.tenant?.name && !u?.tenant_name);
+      if (isVacant) {
+        setBillingType("landlord_expense");
+      }
     }
   };
 
@@ -82,6 +107,9 @@ function TicketModal({ buildingId, units = [], userId, ticket, onClose, staffLis
       const url = await uploadFile(`maintenance/${buildingId}/${Date.now()}_${i}_${safeName}`, file);
       if (url) photoUrls.push(url);
     }
+    const isVacantUnit = unitId === "common_area" || selectedUnit?.status === "vacant" || (!selectedUnit?.tenant?.name && !selectedUnit?.tenant_name);
+    const finalBillingType = isVacantUnit ? "landlord_expense" : billingType;
+
     const data = {
       building_id: buildingId,
       user_id: userId,
@@ -96,7 +124,7 @@ function TicketModal({ buildingId, units = [], userId, ticket, onClose, staffLis
       material_cost: Number(materialCost) || 0,
       labor_cost: Number(laborCost) || 0,
       total_cost: total,
-      billing_type: billingType,
+      billing_type: finalBillingType,
       receipt_urls: photoUrls,
       status: ticket?.status || "reported",
     };
@@ -125,8 +153,15 @@ function TicketModal({ buildingId, units = [], userId, ticket, onClose, staffLis
               <select required value={unitId} onChange={handleUnitSelect}
                 className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-[13px] outline-none focus:border-[#2270b8] transition">
                 <option value="">Select unit…</option>
-                <option value="common_area">Common Area</option>
-                {units.map(u => <option key={u.id} value={u.id}>{u.unit_label}</option>)}
+                <option value="common_area">Common Area (No tenant)</option>
+                {units.map(u => {
+                  const isVacant = u.status === "vacant" || (!u.tenant?.name && !u.tenant_name);
+                  return (
+                    <option key={u.id} value={u.id}>
+                      {u.unit_label} {isVacant ? "· Vacant (Landlord Expense)" : `· ${u.tenant?.name || "Occupied"}`}
+                    </option>
+                  );
+                })}
               </select>
             </div>
             <div>
@@ -214,19 +249,74 @@ function TicketModal({ buildingId, units = [], userId, ticket, onClose, staffLis
 
           {/* Billing */}
           <div>
-            <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">Smart Billing</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Smart Billing</label>
+              {isVacantOrNoTenant && unitId && (
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                  Vacant · Landlord Expense Only
+                </span>
+              )}
+            </div>
+
+            {isVacantOrNoTenant && unitId && (
+              <div className="flex items-start gap-2.5 rounded-xl bg-amber-50 border border-amber-200/80 p-3 mb-2.5 text-[12px] text-amber-900 font-['Manrope']">
+                <AlertCircle size={15} className="text-amber-600 shrink-0 mt-0.5" />
+                <div className="leading-snug">
+                  <strong>{unitId === "common_area" ? "Common Area" : `Unit ${unitLabel || ""}`}</strong> has no active tenant. Direct tenant billing, rent deductions, and deposit charges cannot be applied. All costs are assigned to <strong>Landlord Expense</strong>.
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
-              {BILLING_TYPES.map(b => (
-                <label key={b.key} onClick={() => setBillingType(b.key)}
-                  className={`flex items-center gap-3 rounded-xl border p-3 cursor-pointer transition ${billingType === b.key ? "border-[#2270b8] bg-[#2270b8]/5" : "border-zinc-200 hover:border-zinc-300"}`}>
-                  <div className={`p-1.5 rounded-lg ${billingType === b.key ? "bg-[#2270b8] text-white" : "bg-zinc-100 text-zinc-500"}`}>{b.icon}</div>
-                  <div>
-                    <div className="text-[12px] font-bold text-zinc-900">{b.label}</div>
-                    <div className="text-[10px] text-zinc-500">{b.desc}</div>
-                  </div>
-                  <div className={`ml-auto h-4 w-4 rounded-full border-2 transition ${billingType === b.key ? "border-[#2270b8] bg-[#2270b8]" : "border-zinc-300"}`} />
-                </label>
-              ))}
+              {BILLING_TYPES.map(b => {
+                const isDisabled = isVacantOrNoTenant && b.requiresTenant;
+                return (
+                  <label
+                    key={b.key}
+                    onClick={() => {
+                      if (!isDisabled) setBillingType(b.key);
+                    }}
+                    title={isDisabled ? "Cannot bill tenant on a vacant unit or common area" : undefined}
+                    className={`flex items-center gap-3 rounded-xl border p-3 transition ${
+                      isDisabled
+                        ? "opacity-40 bg-zinc-50 border-zinc-200 cursor-not-allowed select-none"
+                        : billingType === b.key
+                        ? "border-[#2270b8] bg-[#2270b8]/5 cursor-pointer shadow-xs"
+                        : "border-zinc-200 hover:border-zinc-300 cursor-pointer"
+                    }`}
+                  >
+                    <div className={`p-1.5 rounded-lg ${
+                      isDisabled
+                        ? "bg-zinc-200 text-zinc-400"
+                        : billingType === b.key
+                        ? "bg-[#2270b8] text-white"
+                        : "bg-zinc-100 text-zinc-500"
+                    }`}>
+                      {b.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[12px] font-bold ${isDisabled ? "text-zinc-400" : "text-zinc-900"}`}>
+                          {b.label}
+                        </span>
+                        {isDisabled && (
+                          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-zinc-200/80 text-zinc-500">
+                            Unavailable (No Tenant)
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[10px] text-zinc-500 truncate">{b.desc}</div>
+                    </div>
+                    <div className={`ml-auto h-4 w-4 rounded-full border-2 transition shrink-0 ${
+                      isDisabled
+                        ? "border-zinc-200 bg-zinc-100"
+                        : billingType === b.key
+                        ? "border-[#2270b8] bg-[#2270b8]"
+                        : "border-zinc-300"
+                    }`} />
+                  </label>
+                );
+              })}
             </div>
           </div>
 
@@ -258,10 +348,13 @@ function TicketModal({ buildingId, units = [], userId, ticket, onClose, staffLis
 }
 
 // ─── Ticket Card ──────────────────────────────────────────────────────────────
-function TicketCard({ ticket, onEdit, onDelete, onStatusChange, staffList }) {
+function TicketCard({ ticket, units = [], onEdit, onDelete, onStatusChange, staffList }) {
   const sc = statusCfg(ticket.status);
   const pc = priorityCfg(ticket.priority);
-  const billing = BILLING_TYPES.find(b => b.key === ticket.billing_type);
+  const ticketUnit = units.find(u => u.id === ticket.unit_id);
+  const isVacantUnit = ticket.unit_id === "common_area" || ticketUnit?.status === "vacant" || (!ticketUnit?.tenant?.name && !ticketUnit?.tenant_name);
+  const effectiveBillingType = isVacantUnit ? "landlord_expense" : ticket.billing_type;
+  const billing = BILLING_TYPES.find(b => b.key === effectiveBillingType) || BILLING_TYPES[0];
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [showPayForm, setShowPayForm] = useState(false);
   const [payFile, setPayFile] = useState(null);
@@ -302,8 +395,15 @@ function TicketCard({ ticket, onEdit, onDelete, onStatusChange, staffList }) {
               <span className="text-[14px] font-bold text-zinc-900 font-['Sora']">{ticket.title}</span>
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${pc.color}`}>{pc.label}</span>
             </div>
-            <div className="text-[12px] text-zinc-500 mt-0.5 flex items-center gap-2">
-              <span className="font-semibold text-zinc-700">{ticket.unit_label || "Common Area"}</span>
+            <div className="text-[12px] text-zinc-500 mt-0.5 flex items-center gap-2 flex-wrap">
+              <span className="font-semibold text-zinc-700 flex items-center gap-1.5">
+                {ticket.unit_label || "Common Area"}
+                {isVacantUnit && ticket.unit_id !== "common_area" && (
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200">
+                    Vacant
+                  </span>
+                )}
+              </span>
               <span>·</span>
               <span>{ticket.created_at ? new Date(ticket.created_at).toLocaleDateString("en-PH", { month: "short", day: "numeric" }) : "—"}</span>
               {ticket.workforce === "vendor" && ticket.vendor_name && <span>· {ticket.vendor_name}</span>}
@@ -379,7 +479,7 @@ function TicketCard({ ticket, onEdit, onDelete, onStatusChange, staffList }) {
         <div className="flex items-center gap-2 flex-wrap">
           {billing && (
             <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-[#0b3860]/8 text-[#0b3860] border border-[#0b3860]/15 flex items-center gap-1">
-              {billing.icon} {billing.label}
+              {billing.icon} {isVacantUnit && ticket.unit_id !== "common_area" ? "Landlord Expense (Vacant Unit)" : billing.label}
             </span>
           )}
           {ticket.is_paid && (
@@ -505,7 +605,14 @@ export default function MaintenanceTab({ building, units, userId }) {
           className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-[600] text-zinc-600 outline-none focus:border-[#2270b8] font-['Manrope']">
           <option value="all">All Units</option>
           <option value="common_area">Common Area</option>
-          {units.map(u => <option key={u.id} value={u.id}>{u.unit_label}</option>)}
+          {units.map(u => {
+            const isVacant = u.status === "vacant" || (!u.tenant?.name && !u.tenant_name);
+            return (
+              <option key={u.id} value={u.id}>
+                {u.unit_label} {isVacant ? "(Vacant)" : ""}
+              </option>
+            );
+          })}
         </select>
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
           className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-[600] text-zinc-600 outline-none focus:border-[#2270b8] font-['Manrope']">
@@ -534,6 +641,7 @@ export default function MaintenanceTab({ building, units, userId }) {
           <TicketCard
             key={t.id}
             ticket={t}
+            units={units}
             staffList={staff}
             onEdit={handleEdit}
             onDelete={handleDelete}

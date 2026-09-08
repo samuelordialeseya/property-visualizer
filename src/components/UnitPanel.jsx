@@ -219,6 +219,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
   // ── Create a Monthly Bill ──────────────────────────────────────────────
   const handleCreateBill = async (e) => {
     e.preventDefault();
+    if (!unit || unit.status === "vacant") return;
     setSaving(true);
     
     const newBill = {
@@ -635,59 +636,62 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
             )}
 
             {/* ── MAINTENANCE TICKETS ──────────────────────────────────────── */}
-            {unit.status !== "vacant" && (
-              <div>
-                <div className="flex items-center justify-between mb-3 mt-6 border-t border-zinc-100 pt-6">
-                  <div className="text-[12px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Active Maintenance</div>
+            <div>
+              <div className="flex items-center justify-between mb-3 mt-6 border-t border-zinc-100 pt-6">
+                <div className="text-[12px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Active Maintenance</div>
+              </div>
+              {unitTickets.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-4 text-center text-[12px] text-zinc-400">
+                  No active tickets.
                 </div>
-                {unitTickets.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-4 text-center text-[12px] text-zinc-400">
-                    No active tickets.
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {unitTickets.map(t => (
-                      <div key={t.id} className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-[13px] font-semibold text-zinc-900">{t.title}</span>
-                          <div className="flex gap-1">
-                            {!t.is_paid && t.billing_type === "separate_tenant_bill" && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200">
-                                UNPAID BILL
-                              </span>
-                            )}
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                              t.status === 'reported' ? 'bg-red-100 text-red-700' :
-                              t.status === 'approved' ? 'bg-amber-100 text-amber-700' :
-                              t.status === 'work_finished' ? 'bg-blue-100 text-blue-700' :
-                              'bg-green-100 text-green-700'
-                            }`}>
-                              {t.status.replace("_", " ")}
+              ) : (
+                <div className="space-y-2">
+                  {unitTickets.map(t => (
+                    <div key={t.id} className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[13px] font-semibold text-zinc-900">{t.title}</span>
+                        <div className="flex gap-1">
+                          {unit.status !== "vacant" && !t.is_paid && t.billing_type === "separate_tenant_bill" && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200">
+                              UNPAID BILL
                             </span>
-                          </div>
-                        </div>
-                        <div className="text-[11px] text-zinc-500 mb-2">{t.description}</div>
-                        <div className="flex items-center justify-between">
-                          {t.assigned_to ? (
-                            <div className="text-[10px] font-medium text-zinc-400">Assigned: {t.assigned_to_name}</div>
-                          ) : <div />}
-                          <div className="flex items-center gap-2">
-                            {t.total_cost > 0 && (
-                              <div className="text-[11px] font-bold text-zinc-700">₱{t.total_cost.toLocaleString()}</div>
-                            )}
-                            {onNavigateToMaintenance && !t.is_paid && t.total_cost > 0 && (
-                              <button onClick={onNavigateToMaintenance} className="text-[10px] font-bold bg-[#0b3860] text-white px-2.5 py-1 rounded-full hover:bg-[#154e83] transition">
-                                Pay
-                              </button>
-                            )}
-                          </div>
+                          )}
+                          {unit.status === "vacant" && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-zinc-100 text-zinc-600 border border-zinc-200">
+                              LANDLORD EXPENSE
+                            </span>
+                          )}
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            t.status === 'reported' ? 'bg-red-100 text-red-700' :
+                            t.status === 'approved' ? 'bg-amber-100 text-amber-700' :
+                            t.status === 'work_finished' ? 'bg-blue-100 text-blue-700' :
+                            'bg-green-100 text-green-700'
+                          }`}>
+                            {t.status.replace("_", " ")}
+                          </span>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+                      <div className="text-[11px] text-zinc-500 mb-2">{t.description}</div>
+                      <div className="flex items-center justify-between">
+                        {t.assigned_to ? (
+                          <div className="text-[10px] font-medium text-zinc-400">Assigned: {t.assigned_to_name}</div>
+                        ) : <div />}
+                        <div className="flex items-center gap-2">
+                          {t.total_cost > 0 && (
+                            <div className="text-[11px] font-bold text-zinc-700">₱{t.total_cost.toLocaleString()}</div>
+                          )}
+                          {onNavigateToMaintenance && !t.is_paid && t.total_cost > 0 && (
+                            <button onClick={onNavigateToMaintenance} className="text-[10px] font-bold bg-[#0b3860] text-white px-2.5 py-1 rounded-full hover:bg-[#154e83] transition">
+                              {unit.status === "vacant" ? "Settle Expense" : "Pay"}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </>
         )}
 
