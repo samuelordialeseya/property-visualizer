@@ -151,28 +151,32 @@ export default function PropertyDetail({
 
         {/* Tab Content */}
         {activeTab === "overview" && (
-          <PropertyOverviewTab
-            building={building}
-            units={units}
-            updateBuilding={updateBuilding}
-            onNavigateTab={(tabKey) => setActiveTab(tabKey)}
-            onLaunch3D={onLaunch3D}
-            openTicketCount={openTicketCount}
-            documentCount={documentCount}
-          />
+          <div key="overview" className="flex-1 flex flex-col overflow-hidden animate-fade-up">
+            <PropertyOverviewTab
+              building={building}
+              units={units}
+              updateBuilding={updateBuilding}
+              onNavigateTab={(tabKey) => setActiveTab(tabKey)}
+              onLaunch3D={onLaunch3D}
+              openTicketCount={openTicketCount}
+              documentCount={documentCount}
+            />
+          </div>
         )}
 
         {activeTab === "documents" && (
-          <DocumentsTab building={building} />
+          <div key="documents" className="flex-1 flex flex-col overflow-hidden animate-fade-up">
+            <DocumentsTab building={building} />
+          </div>
         )}
 
         {activeTab === "units" && (
-          <div className="flex-1 overflow-y-auto p-8">
+          <div key="units" className="flex-1 overflow-y-auto p-8 animate-fade-up">
             <div className="rounded-2xl bg-white shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden">
               <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
                 <h2 className="text-[16px] font-semibold tracking-[-0.01em]">Units Directory</h2>
                 <select
-                  className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-medium text-zinc-600 outline-none focus:border-[var(--color-blue-600)] focus:bg-white"
+                  className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-medium text-zinc-600 outline-none focus:border-[var(--color-blue-600)] focus:bg-white cursor-pointer"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
@@ -198,19 +202,20 @@ export default function PropertyDetail({
                   <tbody className="divide-y divide-zinc-100">
                     {filteredUnits.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="px-6 py-10 text-center text-[14px] text-zinc-500">
+                        <td colSpan="6" className="px-6 py-10 text-center text-[14px] text-zinc-500 animate-scale-in">
                           No units found
                         </td>
                       </tr>
                     ) : (
-                      filteredUnits.map((u) => {
+                      filteredUnits.map((u, idx) => {
                         const s = STATUS_STYLES[u.status] || STATUS_STYLES.vacant;
                         const hasTenant = u.status !== "vacant" && !!u.tenant?.name;
                         return (
                           <tr
                             key={u.id}
                             onClick={() => setSelectedUnit(u)}
-                            className={`cursor-pointer transition hover:bg-zinc-50 ${selectedUnit?.id === u.id ? "bg-[var(--color-blue-50)]" : ""}`}
+                            style={{ animationDelay: `${Math.min(idx * 30, 300)}ms` }}
+                            className={`cursor-pointer transition hover:bg-zinc-50 animate-fade-up ${selectedUnit?.id === u.id ? "bg-[var(--color-blue-50)]" : ""}`}
                           >
                             <td className="px-6 py-3 font-semibold text-zinc-900">
                               {u.unit_label || "—"}
@@ -234,14 +239,14 @@ export default function PropertyDetail({
                               <div className="flex justify-end gap-2">
                                 <button 
                                   onClick={(e) => { e.stopPropagation(); setSelectedUnit(u); }}
-                                  className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-[600] text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition shadow-sm"
+                                  className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-[600] text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition shadow-sm cursor-pointer"
                                 >
                                   Edit
                                 </button>
                                 {hasTenant && (
                                   <button 
                                     onClick={(e) => { e.stopPropagation(); setSelectedUnit(u); }}
-                                    className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-[600] text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition shadow-sm"
+                                    className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-[600] text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition shadow-sm cursor-pointer"
                                   >
                                     Pay
                                   </button>
@@ -260,13 +265,13 @@ export default function PropertyDetail({
         )}
 
         {activeTab === "maintenance" && (
-          <div className="flex-1 min-h-0 overflow-hidden">
+          <div key="maintenance" className="flex-1 min-h-0 overflow-hidden animate-fade-up">
             <MaintenanceTab building={building} units={units} userId={userId} />
           </div>
         )}
 
         {activeTab === "staff" && (
-          <div className="flex-1 min-h-0 overflow-hidden">
+          <div key="staff" className="flex-1 min-h-0 overflow-hidden animate-fade-up">
             <StaffTab building={building} buildings={buildings} userId={userId} />
           </div>
         )}

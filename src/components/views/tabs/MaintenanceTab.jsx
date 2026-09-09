@@ -138,11 +138,11 @@ function TicketModal({ buildingId, units = [], userId, ticket, onClose, staffLis
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[580px] max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[580px] max-h-[90vh] overflow-y-auto animate-scale-in">
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 sticky top-0 bg-white z-10">
           <h2 className="text-[16px] font-bold text-zinc-900 font-['Sora']">{editing ? "Edit Ticket" : "Report Issue"}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition"><X size={16} /></button>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition cursor-pointer"><X size={16} /></button>
         </div>
 
         <form onSubmit={handleSave} className="px-6 py-5 space-y-5">
@@ -582,13 +582,13 @@ export default function MaintenanceTab({ building, units, userId }) {
   return (
     <div className="flex flex-col h-full min-h-0 overflow-hidden">
       {/* Summary Stats */}
-      <div className="grid grid-cols-3 gap-4 px-8 py-5 border-b border-zinc-100 shrink-0 bg-[#f4f4f5]">
+      <div className="grid grid-cols-3 gap-4 px-8 py-5 border-b border-zinc-100 shrink-0 bg-[#f4f4f5] animate-fade-down">
         {[
-          { icon: <Wrench size={16} className="text-[#2270b8]" />, label: "Open Tickets", value: openTickets.length, iconBg: "bg-[#e1ebf4]" },
-          { icon: <AlertTriangle size={16} className="text-amber-600" />, label: "Urgent / High", value: tickets.filter(t => ["urgent","high"].includes(t.priority) && t.status !== "settled").length, iconBg: "bg-amber-100" },
-          { icon: <DollarSign size={16} className="text-green-600" />, label: "Pending Cost", value: `₱${pendingCost.toLocaleString()}`, iconBg: "bg-green-100" },
-        ].map(({ icon, label, value, iconBg }) => (
-          <div key={label} className="rounded-2xl bg-white px-5 py-4 flex items-center gap-4 shadow-[var(--shadow-card)] border border-zinc-200/70 relative overflow-hidden">
+          { icon: <Wrench size={16} className="text-[#2270b8]" />, label: "Open Tickets", value: openTickets.length, iconBg: "bg-[#e1ebf4]", delay: "delay-50" },
+          { icon: <AlertTriangle size={16} className="text-amber-600" />, label: "Urgent / High", value: tickets.filter(t => ["urgent","high"].includes(t.priority) && t.status !== "settled").length, iconBg: "bg-amber-100", delay: "delay-100" },
+          { icon: <DollarSign size={16} className="text-green-600" />, label: "Pending Cost", value: `₱${pendingCost.toLocaleString()}`, iconBg: "bg-green-100", delay: "delay-150" },
+        ].map(({ icon, label, value, iconBg, delay }) => (
+          <div key={label} className={`rounded-2xl bg-white px-5 py-4 flex items-center gap-4 shadow-[var(--shadow-card)] border border-zinc-200/70 relative overflow-hidden animate-fade-up ${delay}`}>
             <div className={`p-2.5 ${iconBg} rounded-xl shadow-sm shrink-0`}>{icon}</div>
             <div>
               <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider font-['Manrope']">{label}</div>
@@ -599,10 +599,10 @@ export default function MaintenanceTab({ building, units, userId }) {
       </div>
 
       {/* Filter Bar */}
-      <div className="flex items-center gap-3 px-8 py-3 border-b border-zinc-100 bg-white shrink-0 flex-wrap">
+      <div className="flex items-center gap-3 px-8 py-3 border-b border-zinc-100 bg-white shrink-0 flex-wrap animate-fade-in">
         <Filter size={14} className="text-zinc-300 shrink-0" />
         <select value={unitFilter} onChange={e => setUnitFilter(e.target.value)}
-          className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-[600] text-zinc-600 outline-none focus:border-[#2270b8] font-['Manrope']">
+          className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-[600] text-zinc-600 outline-none focus:border-[#2270b8] font-['Manrope'] cursor-pointer">
           <option value="all">All Units</option>
           <option value="common_area">Common Area</option>
           {units.map(u => {
@@ -615,14 +615,14 @@ export default function MaintenanceTab({ building, units, userId }) {
           })}
         </select>
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-          className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-[600] text-zinc-600 outline-none focus:border-[#2270b8] font-['Manrope']">
+          className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-[600] text-zinc-600 outline-none focus:border-[#2270b8] font-['Manrope'] cursor-pointer">
           <option value="active">Active Tickets</option>
           <option value="settled">Settled Tickets</option>
           <option value="all">All History</option>
         </select>
         <div className="flex-1" />
         <button onClick={() => { setEditingTicket(null); setShowModal(true); }}
-          className="flex items-center gap-2 bg-[#0b3860] hover:bg-[#051b30] text-white px-4 py-2 rounded-xl text-[12px] font-[700] transition shadow-sm font-['Manrope']">
+          className="flex items-center gap-2 bg-[#0b3860] hover:bg-[#051b30] text-white px-4 py-2 rounded-xl text-[12px] font-[700] transition shadow-sm font-['Manrope'] cursor-pointer active:scale-95">
           <Plus size={14} /> Report Issue
         </button>
       </div>
@@ -630,23 +630,24 @@ export default function MaintenanceTab({ building, units, userId }) {
       {/* Ticket List */}
       <div className="flex-1 overflow-y-auto p-8 space-y-4">
         {loading ? (
-          <div className="py-10 text-center text-zinc-400 text-[14px]">Loading tickets…</div>
+          <div className="py-10 text-center text-zinc-400 text-[14px] animate-fade-in">Loading tickets…</div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-zinc-400">
+          <div className="flex flex-col items-center justify-center py-16 text-zinc-400 animate-scale-in">
             <div className="p-5 bg-zinc-100 rounded-full mb-4"><Wrench size={32} className="text-zinc-300" /></div>
             <div className="text-[15px] font-semibold text-zinc-500">No tickets found</div>
             <div className="text-[13px] mt-1">Report an issue to create the first maintenance ticket</div>
           </div>
-        ) : filtered.map(t => (
-          <TicketCard
-            key={t.id}
-            ticket={t}
-            units={units}
-            staffList={staff}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onStatusChange={() => {}}
-          />
+        ) : filtered.map((t, idx) => (
+          <div key={t.id} style={{ animationDelay: `${Math.min(idx * 50, 300)}ms` }} className="animate-fade-up">
+            <TicketCard
+              ticket={t}
+              units={units}
+              staffList={staff}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onStatusChange={() => {}}
+            />
+          </div>
         ))}
       </div>
 

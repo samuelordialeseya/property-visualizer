@@ -310,7 +310,7 @@ export default function DocumentsTab({ building }) {
   return (
     <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
       {/* 1. Header & Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-down">
         <div>
           <h2 className="text-[22px] font-[800] text-[#0b3860] font-['Sora'] tracking-tight">
             Property Documents
@@ -323,7 +323,7 @@ export default function DocumentsTab({ building }) {
         <div className="flex items-center gap-3">
           <button
             onClick={handleOpenAddModal}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#0b3860] px-4 py-2.5 text-[13px] font-[700] text-white hover:bg-[#051b30] transition shadow-sm font-['Manrope']"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#0b3860] px-4 py-2.5 text-[13px] font-[700] text-white hover:bg-[#051b30] transition shadow-sm font-['Manrope'] cursor-pointer"
           >
             <Plus size={16} />
             Add Document
@@ -332,7 +332,7 @@ export default function DocumentsTab({ building }) {
       </div>
 
       {/* 2. Filter Pills & Search */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-1">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-1 animate-fade-in">
         {/* Category horizontal scroll pills with smooth wheel scroll, drag, and chevrons */}
         <div className="relative flex-1 min-w-0 flex items-center">
           {canScrollLeft && (
@@ -412,11 +412,11 @@ export default function DocumentsTab({ building }) {
 
       {/* 3. Documents Grid or Empty State */}
       {loading ? (
-        <div className="flex h-60 items-center justify-center rounded-2xl bg-white border border-zinc-200/70">
+        <div className="flex h-60 items-center justify-center rounded-2xl bg-white border border-zinc-200/70 animate-fade-in">
           <p className="text-[14px] text-zinc-400 font-['Manrope'] font-medium">Loading property documents…</p>
         </div>
       ) : filteredDocuments.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-zinc-200 bg-white p-12 text-center">
+        <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-zinc-200 bg-white p-12 text-center animate-scale-in">
           <div className="grid h-16 w-16 place-items-center rounded-2xl bg-[#e1ebf4] text-[#0b3860] mb-4 shadow-sm">
             <FolderLock size={30} />
           </div>
@@ -430,7 +430,7 @@ export default function DocumentsTab({ building }) {
           </p>
           <button
             onClick={handleOpenAddModal}
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#0b3860] px-5 py-2.5 text-[13px] font-[700] text-white hover:bg-[#051b30] transition shadow-sm font-['Manrope']"
+            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#0b3860] px-5 py-2.5 text-[13px] font-[700] text-white hover:bg-[#051b30] transition shadow-sm font-['Manrope'] cursor-pointer"
           >
             <Plus size={16} />
             Add First Document
@@ -438,7 +438,7 @@ export default function DocumentsTab({ building }) {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {filteredDocuments.map((doc) => {
+          {filteredDocuments.map((doc, idx) => {
             const cat = getCategoryInfo(doc.category);
             const isImage = doc.thumbnail_url || (doc.file_url && !isPdfUrl(doc.file_url));
 
@@ -446,7 +446,8 @@ export default function DocumentsTab({ building }) {
               <div
                 key={doc.id}
                 onClick={() => handleOpenViewModal(doc)}
-                className="group rounded-2xl bg-white border border-zinc-200/80 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] hover:border-[#0b3860]/40 transition-all duration-200 cursor-pointer flex flex-col overflow-hidden"
+                style={{ animationDelay: `${Math.min(idx * 50, 300)}ms` }}
+                className="group rounded-2xl bg-white border border-zinc-200/80 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] hover:border-[#0b3860]/40 transition-all duration-200 cursor-pointer flex flex-col overflow-hidden animate-fade-up"
               >
                 {/* Visual Thumbnail Area */}
                 <div className="relative h-40 bg-zinc-100 overflow-hidden flex items-center justify-center border-b border-zinc-100">
@@ -546,8 +547,8 @@ export default function DocumentsTab({ building }) {
 
       {/* 4. VIEW DOCUMENT MODAL */}
       {isViewModalOpen && activeDoc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-zinc-200 overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-zinc-200 overflow-hidden flex flex-col max-h-[90vh] animate-scale-in">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
               <div className="flex items-center gap-3">
@@ -566,7 +567,7 @@ export default function DocumentsTab({ building }) {
               </div>
               <button
                 onClick={() => setIsViewModalOpen(false)}
-                className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition"
+                className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -659,7 +660,7 @@ export default function DocumentsTab({ building }) {
             <div className="flex items-center justify-between border-t border-zinc-100 px-6 py-4">
               <button
                 onClick={(e) => handleDeleteDocument(activeDoc.id, e)}
-                className="inline-flex items-center gap-1.5 text-[13px] font-[700] text-red-600 hover:text-red-700 font-['Manrope']"
+                className="inline-flex items-center gap-1.5 text-[13px] font-[700] text-red-600 hover:text-red-700 font-['Manrope'] cursor-pointer"
               >
                 <Trash2 size={15} />
                 Delete Record
@@ -668,14 +669,14 @@ export default function DocumentsTab({ building }) {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => handleOpenEditModal(activeDoc)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-[13px] font-[700] text-zinc-700 hover:bg-zinc-50 transition font-['Manrope']"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-[13px] font-[700] text-zinc-700 hover:bg-zinc-50 transition font-['Manrope'] cursor-pointer"
                 >
                   <Edit3 size={15} />
                   Edit Details
                 </button>
                 <button
                   onClick={() => setIsViewModalOpen(false)}
-                  className="rounded-xl bg-zinc-900 px-5 py-2 text-[13px] font-[700] text-white hover:bg-zinc-800 transition font-['Manrope']"
+                  className="rounded-xl bg-zinc-900 px-5 py-2 text-[13px] font-[700] text-white hover:bg-zinc-800 transition font-['Manrope'] cursor-pointer"
                 >
                   Done
                 </button>
@@ -687,15 +688,15 @@ export default function DocumentsTab({ building }) {
 
       {/* 5. ADD / EDIT DOCUMENT MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-xl rounded-2xl bg-white shadow-2xl border border-zinc-200 overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-xl rounded-2xl bg-white shadow-2xl border border-zinc-200 overflow-hidden flex flex-col max-h-[90vh] animate-scale-in">
             <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
               <h3 className="text-[18px] font-[700] text-[#0b3860] font-['Sora']">
                 {editingDocId ? "Edit Document Record" : "Add Property Document"}
               </h3>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition"
+                className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition cursor-pointer"
               >
                 <X size={18} />
               </button>

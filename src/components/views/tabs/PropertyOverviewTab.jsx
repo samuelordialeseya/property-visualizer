@@ -200,7 +200,7 @@ export default function PropertyOverviewTab({
       />
 
       {/* 1. HERO BANNER: Property Name on Left, Faded Photo on Right */}
-      <div className="relative overflow-hidden rounded-3xl bg-white border border-zinc-200/80 shadow-[var(--shadow-card)] min-h-[260px] md:min-h-[290px] flex flex-col md:flex-row items-stretch justify-between">
+      <div className="relative overflow-hidden rounded-3xl bg-white border border-zinc-200/80 shadow-[var(--shadow-card)] min-h-[260px] md:min-h-[290px] flex flex-col md:flex-row items-stretch justify-between animate-fade-down">
         
         {/* Left Side: Property Identity & Quick Actions */}
         <div className="flex-1 p-7 md:p-9 z-10 flex flex-col justify-between max-w-2xl">
@@ -245,7 +245,7 @@ export default function PropertyOverviewTab({
           <div className="flex flex-wrap items-center gap-3 mt-6 pt-2">
             <button
               onClick={handleOpenEditModal}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0b3860] px-4 py-2 text-[13px] font-[700] text-white transition hover:bg-[#051b30] shadow-sm font-['Manrope']"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0b3860] px-4 py-2 text-[13px] font-[700] text-white transition hover:bg-[#051b30] shadow-sm font-['Manrope'] cursor-pointer"
             >
               <Edit3 size={15} />
               Edit Property Details
@@ -254,7 +254,7 @@ export default function PropertyOverviewTab({
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadingPhoto}
-              className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white/90 backdrop-blur-sm px-4 py-2 text-[13px] font-[700] text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-900 shadow-sm font-['Manrope']"
+              className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white/90 backdrop-blur-sm px-4 py-2 text-[13px] font-[700] text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-900 shadow-sm font-['Manrope'] cursor-pointer"
             >
               <Camera size={15} className="text-[#0F4C81]" />
               {uploadingPhoto ? "Uploading…" : building?.photo_url ? "Change Photo" : "Upload Photo"}
@@ -263,7 +263,7 @@ export default function PropertyOverviewTab({
             {onLaunch3D && (
               <button
                 onClick={onLaunch3D}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white/90 backdrop-blur-sm px-3.5 py-2 text-[13px] font-[600] text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-900 shadow-sm font-['Manrope']"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white/90 backdrop-blur-sm px-3.5 py-2 text-[13px] font-[600] text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-900 shadow-sm font-['Manrope'] cursor-pointer"
               >
                 <Box size={15} className="text-zinc-500" />
                 3D View
@@ -292,7 +292,7 @@ export default function PropertyOverviewTab({
           {/* Quick upload camera chip on hover */}
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur-md px-3 py-1.5 text-[11px] font-semibold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-black/80 font-['Manrope']"
+            className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur-md px-3 py-1.5 text-[11px] font-semibold text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-black/80 font-['Manrope'] cursor-pointer"
           >
             <Camera size={13} />
             {building?.photo_url ? "Update Photo" : "Add Property Photo"}
@@ -304,7 +304,7 @@ export default function PropertyOverviewTab({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Card 1: Property Valuation (with hide/reveal toggle) */}
-        <div className="rounded-2xl bg-white p-5 border border-zinc-200/80 shadow-[var(--shadow-card)] relative flex flex-col justify-between">
+        <div className="rounded-2xl bg-white p-5 border border-zinc-200/80 shadow-[var(--shadow-card)] relative flex flex-col justify-between animate-fade-up delay-50">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-[700] uppercase tracking-wider text-zinc-400 font-['Manrope']">
               Estimated Value
@@ -312,7 +312,7 @@ export default function PropertyOverviewTab({
             <button
               onClick={handleToggleHideValue}
               title={building?.property_value_hidden ? "Show property value" : "Hide property value"}
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-[#0b3860] hover:bg-zinc-100 transition"
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-[#0b3860] hover:bg-zinc-100 transition cursor-pointer"
             >
               {building?.property_value_hidden ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
@@ -330,7 +330,7 @@ export default function PropertyOverviewTab({
             ) : (
               <button
                 onClick={handleOpenEditModal}
-                className="text-[14px] font-[600] text-[#0F4C81] hover:underline font-['Manrope']"
+                className="text-[14px] font-[600] text-[#0F4C81] hover:underline font-['Manrope'] cursor-pointer"
               >
                 + Set Property Value
               </button>
@@ -343,7 +343,7 @@ export default function PropertyOverviewTab({
         </div>
 
         {/* Card 2: Acquisition / Purchase Date */}
-        <div className="rounded-2xl bg-white p-5 border border-zinc-200/80 shadow-[var(--shadow-card)] relative flex flex-col justify-between">
+        <div className="rounded-2xl bg-white p-5 border border-zinc-200/80 shadow-[var(--shadow-card)] relative flex flex-col justify-between animate-fade-up delay-100">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-[700] uppercase tracking-wider text-zinc-400 font-['Manrope']">
               Purchase Date
@@ -365,7 +365,7 @@ export default function PropertyOverviewTab({
         </div>
 
         {/* Card 3: Footprint / Lot Area & Type */}
-        <div className="rounded-2xl bg-white p-5 border border-zinc-200/80 shadow-[var(--shadow-card)] relative flex flex-col justify-between">
+        <div className="rounded-2xl bg-white p-5 border border-zinc-200/80 shadow-[var(--shadow-card)] relative flex flex-col justify-between animate-fade-up delay-150">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-[700] uppercase tracking-wider text-zinc-400 font-['Manrope']">
               Footprint & Type
@@ -387,7 +387,7 @@ export default function PropertyOverviewTab({
         </div>
 
         {/* Card 4: Monthly Rent Roll & Occupancy */}
-        <div className="rounded-2xl bg-white p-5 border border-zinc-200/80 shadow-[var(--shadow-card)] relative flex flex-col justify-between">
+        <div className="rounded-2xl bg-white p-5 border border-zinc-200/80 shadow-[var(--shadow-card)] relative flex flex-col justify-between animate-fade-up delay-200">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-[700] uppercase tracking-wider text-zinc-400 font-['Manrope']">
               Monthly Rent Roll
@@ -411,7 +411,7 @@ export default function PropertyOverviewTab({
       </div>
 
       {/* 3. LOWER SECTION: Property Description + Quick Tab Shortcuts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-up delay-200">
         
         {/* Description & Historical Notes */}
         <div className="lg:col-span-2 rounded-2xl bg-white p-6 md:p-7 border border-zinc-200/80 shadow-[var(--shadow-card)] flex flex-col justify-between">
@@ -420,7 +420,7 @@ export default function PropertyOverviewTab({
               <h2 className="text-[17px] font-[700] text-[#0b3860] font-['Sora']">Property Overview & Notes</h2>
               <button
                 onClick={handleOpenEditModal}
-                className="text-[12px] font-[700] text-[#0F4C81] hover:underline flex items-center gap-1 font-['Manrope']"
+                className="text-[12px] font-[700] text-[#0F4C81] hover:underline flex items-center gap-1 font-['Manrope'] cursor-pointer"
               >
                 <Edit3 size={13} />
                 Edit Notes
@@ -533,8 +533,8 @@ export default function PropertyOverviewTab({
 
       {/* 4. EDIT PROPERTY DETAILS MODAL */}
       {isEditing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-xl rounded-2xl bg-white shadow-2xl border border-zinc-200 overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-xl rounded-2xl bg-white shadow-2xl border border-zinc-200 overflow-hidden flex flex-col max-h-[90vh] animate-scale-in">
             <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
               <h2 className="text-[18px] font-[700] text-[#0b3860] font-['Sora']">Edit Property Profile</h2>
               <button

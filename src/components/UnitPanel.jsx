@@ -318,9 +318,9 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
   return (
     <>
       {isDrawerMode && (
-        <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+        <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm animate-fade-in" onClick={onClose} />
       )}
-      <div className={`flex flex-col bg-white font-sans text-zinc-900 overflow-hidden ${isDrawerMode ? drawerClasses : floatingClasses}`}>
+      <div className={`flex flex-col bg-white font-sans text-zinc-900 overflow-hidden animate-slide-in-right ${isDrawerMode ? drawerClasses : floatingClasses}`}>
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4 shrink-0">
@@ -347,7 +347,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
           {!isEditing ? (
             <button
               onClick={() => setIsEditing(true)}
-              className="flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-semibold text-zinc-600 transition hover:bg-zinc-100"
+              className="flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-semibold text-zinc-600 transition hover:bg-zinc-100 cursor-pointer"
             >
               <Pencil size={12} />
               Edit
@@ -355,7 +355,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
           ) : (
             <button
               onClick={() => setIsEditing(false)}
-              className="flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-semibold text-zinc-500 transition hover:bg-zinc-100"
+              className="flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-semibold text-zinc-500 transition hover:bg-zinc-100 cursor-pointer"
             >
               <X size={12} />
               Cancel
@@ -363,7 +363,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
           )}
           <button
             onClick={onClose}
-            className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 text-zinc-500 transition hover:bg-zinc-200"
+            className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 text-zinc-500 transition hover:bg-zinc-200 cursor-pointer"
           >
             <X size={16} />
           </button>
@@ -371,7 +371,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
       </div>
 
       {/* ── Body (scrollable) ───────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+      <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6 animate-fade-up delay-100">
 
         {/* ── READ-ONLY VIEW ─────────────────────────────────────────────── */}
         {!isEditing && (

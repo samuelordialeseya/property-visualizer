@@ -146,14 +146,14 @@ export default function DashboardOverview({ buildings = [], units = [], onAddBui
   return (
     <div className="flex h-full flex-col overflow-hidden bg-[#f4f4f5] font-sans">
       {/* Header */}
-      <div className="flex items-center justify-between px-12 pt-12 pb-6 shrink-0">
+      <div className="flex items-center justify-between px-12 pt-12 pb-6 shrink-0 animate-fade-down">
         <div>
           <h1 className="text-[36px] font-[800] text-[#0b3860] tracking-[-0.03em] font-['Sora']">Portfolio Overview</h1>
           <p className="text-[14px] text-zinc-400 mt-1 font-['Manrope'] font-medium">Manage properties, track tenants, and monitor revenue</p>
         </div>
         <button
           onClick={onAddBuilding}
-          className="flex items-center gap-2 rounded-xl bg-[#0b3860] px-6 py-3 text-[13px] font-[700] tracking-wide text-white transition hover:bg-[#051b30] shadow-md hover:shadow-lg active:scale-[0.97] font-['Manrope']"
+          className="flex items-center gap-2 rounded-xl bg-[#0b3860] px-6 py-3 text-[13px] font-[700] tracking-wide text-white transition hover:bg-[#051b30] shadow-md hover:shadow-lg active:scale-[0.97] font-['Manrope'] cursor-pointer"
         >
           <Plus size={16} strokeWidth={3} />
           NEW BUILDING
@@ -163,73 +163,81 @@ export default function DashboardOverview({ buildings = [], units = [], onAddBui
       <div className="flex-1 overflow-y-auto px-12 pb-12 space-y-6">
         {/* Stats Row */}
         <div className="grid grid-cols-4 gap-5">
-          <StatCard 
-            label="TOTAL PROPERTIES" 
-            value={buildings.length}
-            subLabel={<span className="text-zinc-400 font-medium">{stats.totalUnits} Total Units</span>}
-            icon={Building2} 
-            iconColor="text-[#0F4C81]" 
-            iconBg="bg-[#e1ebf4]" 
-            accentGradient="bg-gradient-to-r from-[#0b3860] to-[#2270b8]"
-          />
-          <StatCard 
-            label="ACTIVE TENANTS" 
-            value={`${stats.occupied}`}
-            subLabel={
-              <div className="flex items-center gap-2">
-                <span className="text-zinc-400 font-medium">of {stats.totalUnits}</span>
-                <span className="text-[11px] font-bold text-[#0F4C81] bg-[#e1ebf4] px-2 py-0.5 rounded-full">{stats.pct}%</span>
-              </div>
-            }
-            icon={Users} 
-            iconColor="text-[#0F4C81]" 
-            iconBg="bg-[#e1ebf4]" 
-            accentGradient="bg-gradient-to-r from-[#2270b8] to-[#479de9]"
-          />
-          <StatCard 
-            label="OVERDUE RENT" 
-            value={stats.overdue} 
-            subLabel={
-              stats.overdue === 0 ? (
-                <span className="text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full inline-flex items-center gap-1 text-[11px]"><CheckCircle2 size={12} /> All Paid</span>
-              ) : (
-                <span className="text-red-600 font-semibold bg-red-50 px-2 py-0.5 rounded-full inline-block text-[11px]">₱{stats.overdueAmount.toLocaleString()} overdue</span>
-              )
-            }
-            icon={AlertCircle} 
-            iconColor={stats.overdue > 0 ? "text-red-600" : "text-emerald-600"} 
-            iconBg={stats.overdue > 0 ? "bg-red-100" : "bg-emerald-100"} 
-            accentGradient={stats.overdue > 0 ? "bg-gradient-to-r from-red-500 to-red-400" : "bg-gradient-to-r from-emerald-500 to-emerald-400"}
-          />
-          <StatCard 
-            label="EXPIRING LEASES" 
-            value={stats.expiringCount} 
-            subLabel={<span className="text-amber-600 font-semibold bg-amber-50 px-2 py-0.5 rounded-full inline-block text-[11px]">Next 30 days</span>}
-            icon={CalendarClock} 
-            iconColor="text-amber-600" 
-            iconBg="bg-amber-100" 
-            accentGradient="bg-gradient-to-r from-amber-500 to-amber-400"
-          />
+          <div className="animate-fade-up delay-50">
+            <StatCard 
+              label="TOTAL PROPERTIES" 
+              value={buildings.length}
+              subLabel={<span className="text-zinc-400 font-medium">{stats.totalUnits} Total Units</span>}
+              icon={Building2} 
+              iconColor="text-[#0F4C81]" 
+              iconBg="bg-[#e1ebf4]" 
+              accentGradient="bg-gradient-to-r from-[#0b3860] to-[#2270b8]"
+            />
+          </div>
+          <div className="animate-fade-up delay-100">
+            <StatCard 
+              label="ACTIVE TENANTS" 
+              value={`${stats.occupied}`}
+              subLabel={
+                <div className="flex items-center gap-2">
+                  <span className="text-zinc-400 font-medium">of {stats.totalUnits}</span>
+                  <span className="text-[11px] font-bold text-[#0F4C81] bg-[#e1ebf4] px-2 py-0.5 rounded-full">{stats.pct}%</span>
+                </div>
+              }
+              icon={Users} 
+              iconColor="text-[#0F4C81]" 
+              iconBg="bg-[#e1ebf4]" 
+              accentGradient="bg-gradient-to-r from-[#2270b8] to-[#479de9]"
+            />
+          </div>
+          <div className="animate-fade-up delay-150">
+            <StatCard 
+              label="OVERDUE RENT" 
+              value={stats.overdue} 
+              subLabel={
+                stats.overdue === 0 ? (
+                  <span className="text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full inline-flex items-center gap-1 text-[11px]"><CheckCircle2 size={12} /> All Paid</span>
+                ) : (
+                  <span className="text-red-600 font-semibold bg-red-50 px-2 py-0.5 rounded-full inline-block text-[11px]">₱{stats.overdueAmount.toLocaleString()} overdue</span>
+                )
+              }
+              icon={AlertCircle} 
+              iconColor={stats.overdue > 0 ? "text-red-600" : "text-emerald-600"} 
+              iconBg={stats.overdue > 0 ? "bg-red-100" : "bg-emerald-100"} 
+              accentGradient={stats.overdue > 0 ? "bg-gradient-to-r from-red-500 to-red-400" : "bg-gradient-to-r from-emerald-500 to-emerald-400"}
+            />
+          </div>
+          <div className="animate-fade-up delay-200">
+            <StatCard 
+              label="EXPIRING LEASES" 
+              value={stats.expiringCount} 
+              subLabel={<span className="text-amber-600 font-semibold bg-amber-50 px-2 py-0.5 rounded-full inline-block text-[11px]">Next 30 days</span>}
+              icon={CalendarClock} 
+              iconColor="text-amber-600" 
+              iconBg="bg-amber-100" 
+              accentGradient="bg-gradient-to-r from-amber-500 to-amber-400"
+            />
+          </div>
         </div>
 
         {/* Content Panels */}
         <div className="grid grid-cols-2 gap-5">
           {/* Left panel: My Properties */}
-          <div className="col-span-1 rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] border border-zinc-200/70 flex flex-col">
+          <div className="col-span-1 rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] border border-zinc-200/70 flex flex-col animate-fade-up delay-150">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-[15px] font-[700] text-[#0b3860] tracking-[-0.01em] font-['Sora']">My Properties</h2>
               <span className="text-[11px] font-semibold text-zinc-400 bg-zinc-100 px-2.5 py-1 rounded-full font-['Manrope']">{buildings.length} total</span>
             </div>
 
             {buildings.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-50 py-16 text-center">
+              <div className="flex-1 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-50 py-16 text-center animate-scale-in">
                 <div className="mb-4 rounded-2xl bg-white p-4 text-zinc-400 shadow-sm"><Building2 size={32} /></div>
                 <p className="text-[15px] font-bold text-zinc-700">No properties yet</p>
                 <p className="mt-1 text-[13px] text-zinc-500 font-medium">Click "New Building" to design your first property in 3D</p>
               </div>
             ) : (
               <div className="space-y-1 max-h-[400px] overflow-y-auto pr-1 scrollbar-hide">
-                {buildings.map(b => {
+                {buildings.map((b, idx) => {
                   const bUnits = units.filter(u => u.buildingId === b.id);
                   const occ = bUnits.filter(u => u.status === "occupied").length;
                   const bRev = bUnits
@@ -239,7 +247,8 @@ export default function DashboardOverview({ buildings = [], units = [], onAddBui
                   return (
                     <div key={b.id} 
                       onClick={() => onSelectProperty(b.id)}
-                      className="flex items-center justify-between py-3.5 px-3 -mx-1 rounded-xl cursor-pointer transition-all duration-200 hover:bg-zinc-50 group">
+                      style={{ animationDelay: `${Math.min(idx * 50, 300)}ms` }}
+                      className="flex items-center justify-between py-3.5 px-3 -mx-1 rounded-xl cursor-pointer transition-all duration-200 hover:bg-zinc-50 group animate-fade-up">
                       <div className="flex items-center gap-3.5 flex-1 min-w-0">
                         <PropertyAvatar name={b.name} />
                         <div className="min-w-0">
@@ -256,7 +265,7 @@ export default function DashboardOverview({ buildings = [], units = [], onAddBui
                       <div className="flex items-center gap-2 shrink-0">
                         <button 
                           onClick={(e) => { e.stopPropagation(); onOpen3D(b.id); }}
-                          className="px-3 py-1.5 rounded-lg border border-zinc-200 bg-white text-[11px] font-[700] text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition shadow-sm font-['Manrope']"
+                          className="px-3 py-1.5 rounded-lg border border-zinc-200 bg-white text-[11px] font-[700] text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition shadow-sm font-['Manrope'] cursor-pointer"
                         >
                           3D View
                         </button>
@@ -272,7 +281,7 @@ export default function DashboardOverview({ buildings = [], units = [], onAddBui
           {/* Right panel: Revenue and Attention */}
           <div className="col-span-1 space-y-5">
             {/* Revenue Card */}
-            <div className="rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] border border-zinc-200/70 relative overflow-hidden">
+            <div className="rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] border border-zinc-200/70 relative overflow-hidden animate-fade-up delay-150">
               <div className="flex items-center justify-between mb-1">
                 <h2 className="text-[11px] font-[700] text-zinc-400 uppercase tracking-[0.1em] font-['Manrope']">Est. Monthly Revenue</h2>
                 <div className="rounded-xl bg-[#e1ebf4] p-2 text-[#0F4C81]"><TrendingUp size={14} /></div>
@@ -306,7 +315,7 @@ export default function DashboardOverview({ buildings = [], units = [], onAddBui
             </div>
 
             {/* Attention Needed Card */}
-            <div className="rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] border border-zinc-200/70 flex flex-col max-h-[340px] relative overflow-hidden">
+            <div className="rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] border border-zinc-200/70 flex flex-col max-h-[340px] relative overflow-hidden animate-fade-up delay-200">
               <div className="flex items-center justify-between mb-4 shrink-0">
                 <h2 className="text-[11px] font-[700] text-zinc-400 uppercase tracking-[0.1em] font-['Manrope']">Attention Needed</h2>
                 <div className={`rounded-xl p-2 shadow-sm ${actionItems.length > 0 ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"}`}>
@@ -316,19 +325,20 @@ export default function DashboardOverview({ buildings = [], units = [], onAddBui
               
               <div className="overflow-y-auto pr-1 space-y-1.5 scrollbar-hide">
                 {actionItems.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <div className="flex flex-col items-center justify-center py-8 text-center animate-scale-in">
                     <div className="mb-3 rounded-full bg-emerald-50 p-3.5 text-emerald-500"><Sparkles size={22} /></div>
                     <p className="text-[14px] font-semibold text-zinc-600 font-['Manrope']">All Clear!</p>
                     <p className="text-[12px] text-zinc-400 mt-0.5 font-['Manrope']">No pending issues or overdue payments</p>
                   </div>
                 ) : (
-                  actionItems.map(item => {
+                  actionItems.map((item, idx) => {
                     const accent = ACCENT_COLORS[item.type];
                     return (
                       <div 
                         key={item.id}
                         onClick={() => onSelectProperty(item.buildingId)}
-                        className={`flex items-center justify-between py-2.5 px-3 ${accent.bg} rounded-xl cursor-pointer hover:bg-zinc-50 transition-colors`}
+                        style={{ animationDelay: `${Math.min(idx * 40, 300)}ms` }}
+                        className={`flex items-center justify-between py-2.5 px-3 ${accent.bg} rounded-xl cursor-pointer hover:bg-zinc-50 transition-colors animate-fade-up`}
                       >
                         <span className="text-[12px] font-medium text-zinc-700 font-['Manrope'] pr-3 truncate">{item.label}</span>
                         <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider ${accent.badge}`}>

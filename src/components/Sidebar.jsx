@@ -80,7 +80,7 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
               key={item.id}
               onClick={() => setActiveView(item.id)}
               title={collapsed ? item.label : undefined}
-              className={`flex w-full items-center rounded-[14px] transition text-[15px] font-medium ${
+              className={`flex w-full items-center rounded-[14px] transition active:scale-95 cursor-pointer text-[15px] font-medium ${
                 collapsed ? "justify-center px-0 py-3.5" : "gap-4 px-5 py-3.5"
               } ${
                 isActive
@@ -104,7 +104,7 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
                     : "text-zinc-400"
                 }`}
               />
-              {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
+              {!collapsed && <span className="whitespace-nowrap transition-opacity duration-200">{item.label}</span>}
             </button>
           );
         })}
@@ -115,7 +115,7 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
         <div 
           onClick={() => setActiveView("settings")}
           title={collapsed ? "Profile Settings" : undefined}
-          className={`flex items-center ${collapsed ? "justify-center" : "gap-3"} cursor-pointer p-2 rounded-xl transition ${
+          className={`flex items-center ${collapsed ? "justify-center" : "gap-3"} cursor-pointer p-2 rounded-xl transition duration-150 hover:scale-[1.02] active:scale-[0.98] ${
             isDark ? "hover:bg-white/5" : "hover:bg-zinc-200/50"
           }`}
         >

@@ -43,4 +43,93 @@
     scrollbar-width: none;
   }
   .no-scrollbar::-webkit-scrollbar { display: none; }
+
+  /* Animation utility classes */
+  .animate-fade-in        { animation: fade-in        200ms ease-out both; }
+  .animate-fade-up        { animation: fade-up        250ms ease-out both; }
+  .animate-fade-down      { animation: fade-down      200ms ease-out both; }
+  .animate-slide-in-right { animation: slide-in-right 300ms cubic-bezier(0.32, 0, 0.15, 1) both; }
+  .animate-scale-in       { animation: scale-in       200ms ease-out both; }
+  .animate-slide-up-panel { animation: slide-up-panel 300ms cubic-bezier(0.32, 0, 0.15, 1) both; }
+
+  /* Stagger delay helpers */
+  .delay-50  { animation-delay: 50ms; }
+  .delay-100 { animation-delay: 100ms; }
+  .delay-150 { animation-delay: 150ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
 }
+
+/* Keyframe definitions */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-up-panel {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Reduced motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-fade-up,
+  .animate-fade-down,
+  .animate-slide-in-right,
+  .animate-scale-in,
+  .animate-slide-up-panel {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+

@@ -125,13 +125,13 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
       <div className="max-w-3xl mx-auto space-y-6 pt-4">
         
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-8 animate-fade-down">
           <h1 className="text-[36px] font-[800] text-[#0b3860] tracking-[-0.03em] font-['Sora']">Settings</h1>
           <p className="text-[14px] text-zinc-400 mt-1 font-['Manrope'] font-medium">Manage your account profile and application preferences</p>
         </div>
 
         {/* Account Profile Card */}
-        <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden animate-fade-up delay-50">
           <div className="px-6 py-4 border-b border-zinc-100 bg-white">
             <h2 className="text-[14px] font-bold text-zinc-800 font-['Sora']">Account Profile</h2>
           </div>
@@ -179,28 +179,28 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
                   className="flex items-center gap-2 bg-[#0b3860] hover:bg-[#154e83] text-white px-5 py-2.5 rounded-xl text-[13px] font-bold transition shadow-sm cursor-pointer disabled:opacity-50">
                   <Save size={14} /> {saving ? "Saving..." : "Save Changes"}
                 </button>
-                {saved && <span className="text-[12px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full">Saved successfully!</span>}
+                {saved && <span className="text-[12px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full animate-fade-in">Saved successfully!</span>}
               </div>
             </form>
           </div>
         </div>
 
         {/* Data Management Card */}
-        <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden animate-fade-up delay-100">
           <div className="px-6 py-4 border-b border-zinc-100 bg-white">
             <h2 className="text-[14px] font-bold text-zinc-800 font-['Sora']">Data Management</h2>
           </div>
           <div className="p-6">
             <p className="text-[13px] text-zinc-500 mb-4">Export your tenant list, rent logs, staff ledgers, and property layouts into a secure spreadsheet format for backup or external accounting.</p>
             <button onClick={handleExportData}
-              className="flex items-center gap-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-4 py-2.5 rounded-xl text-[13px] font-bold transition shadow-xs cursor-pointer">
+              className="flex items-center gap-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-4 py-2.5 rounded-xl text-[13px] font-bold transition shadow-xs cursor-pointer active:scale-95">
               <Download size={14} /> Export CSV Data
             </button>
           </div>
         </div>
 
         {/* Account Actions Card */}
-        <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden animate-fade-up delay-150">
           <div className="px-6 py-4 border-b border-zinc-100 bg-white">
             <h2 className="text-[14px] font-bold text-zinc-800 font-['Sora']">Account Actions</h2>
           </div>
@@ -215,7 +215,7 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
               <button 
                 type="button"
                 onClick={logout}
-                className="flex items-center gap-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-5 py-2.5 rounded-xl text-[13px] font-bold transition shadow-xs cursor-pointer shrink-0"
+                className="flex items-center gap-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-5 py-2.5 rounded-xl text-[13px] font-bold transition shadow-xs cursor-pointer shrink-0 active:scale-95"
               >
                 <LogOut size={14} /> Log Out
               </button>
@@ -236,7 +236,7 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
                   setDeletePassword("");
                   setShowDeleteModal(true);
                 }}
-                className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 hover:border-red-300 px-5 py-2.5 rounded-xl text-[13px] font-bold transition shadow-xs cursor-pointer shrink-0"
+                className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 hover:border-red-300 px-5 py-2.5 rounded-xl text-[13px] font-bold transition shadow-xs cursor-pointer shrink-0 active:scale-95"
               >
                 <Trash2 size={14} /> Delete Account
               </button>
@@ -248,8 +248,8 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-zinc-200 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-zinc-200 overflow-hidden animate-scale-in">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-zinc-100 bg-white px-6 py-4">
               <div className="flex items-center gap-3">

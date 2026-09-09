@@ -68,9 +68,9 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-100 p-6 font-sans">
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-sm animate-scale-in">
         {/* Brand */}
-        <div className="mb-8 text-center flex flex-col items-center">
+        <div className="mb-8 text-center flex flex-col items-center animate-fade-down delay-100">
           <img
             src="/branding/logo-full.png"
             alt="Property Visualizer"
@@ -82,9 +82,9 @@ export default function Login() {
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] border border-zinc-200/70">
+        <div className="rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] border border-zinc-200/70 animate-fade-up delay-150">
           {error && (
-            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-600">
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-600 animate-fade-in">
               {error}
             </div>
           )}
@@ -135,7 +135,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 w-full rounded-xl bg-[var(--color-blue-600)] py-3 text-[14px] font-semibold text-white transition hover:bg-[var(--color-blue-700)] disabled:opacity-50"
+              className="mt-2 w-full rounded-xl bg-[var(--color-blue-600)] py-3 text-[14px] font-semibold text-white transition active:scale-[0.97] hover:bg-[var(--color-blue-700)] disabled:opacity-50 cursor-pointer"
             >
               {loading ? "Authenticating…" : isSignUp ? "Create Account →" : "Sign In →"}
             </button>

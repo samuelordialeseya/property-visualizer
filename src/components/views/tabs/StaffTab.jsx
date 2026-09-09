@@ -65,11 +65,11 @@ function AddStaffModal({ userId, buildingId, buildings, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-[480px] max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white rounded-2xl shadow-2xl w-[480px] max-h-[90vh] overflow-y-auto animate-scale-in">
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
           <h2 className="text-[16px] font-bold text-zinc-900 font-['Sora']">Add Staff Member</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition"><X size={16} /></button>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition cursor-pointer"><X size={16} /></button>
         </div>
         <form onSubmit={handleSave} className="px-6 py-5 space-y-4">
           <div>
@@ -96,7 +96,7 @@ function AddStaffModal({ userId, buildingId, buildings, onClose }) {
             <div className="flex gap-3">
               {[["monthly_salary", "Monthly Salary"], ["per_errand", "Per Errand / Task"]].map(([v, l]) => (
                 <button key={v} type="button" onClick={() => setPayType(v)}
-                  className={`flex-1 py-2.5 rounded-xl text-[12px] font-semibold border transition ${payType === v ? "bg-[#0b3860] text-white border-[#0b3860]" : "border-zinc-200 text-zinc-600 hover:bg-zinc-50"}`}>
+                  className={`flex-1 py-2.5 rounded-xl text-[12px] font-semibold border transition cursor-pointer ${payType === v ? "bg-[#0b3860] text-white border-[#0b3860]" : "border-zinc-200 text-zinc-600 hover:bg-zinc-50"}`}>
                   {l}
                 </button>
               ))}
@@ -123,9 +123,9 @@ function AddStaffModal({ userId, buildingId, buildings, onClose }) {
             </div>
           )}
           <div className="pt-2 flex gap-3">
-            <button type="button" onClick={onClose} className="rounded-xl border border-zinc-200 px-4 py-2.5 text-[13px] font-semibold text-zinc-600 hover:bg-zinc-100 transition">Cancel</button>
+            <button type="button" onClick={onClose} className="rounded-xl border border-zinc-200 px-4 py-2.5 text-[13px] font-semibold text-zinc-600 hover:bg-zinc-100 transition cursor-pointer">Cancel</button>
             <button type="submit" disabled={saving || !name.trim()}
-              className="flex-1 rounded-xl bg-[#0b3860] py-2.5 text-[13px] font-bold text-white hover:bg-[#154e83] transition disabled:opacity-50">
+              className="flex-1 rounded-xl bg-[#0b3860] py-2.5 text-[13px] font-bold text-white hover:bg-[#154e83] transition disabled:opacity-50 cursor-pointer">
               {saving ? "Saving…" : "Save Staff Member"}
             </button>
           </div>
@@ -154,11 +154,11 @@ function LogErrandModal({ staff, userId, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-[460px]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white rounded-2xl shadow-2xl w-[460px] animate-scale-in">
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
           <h2 className="text-[16px] font-bold text-zinc-900 font-['Sora']">Log Expense / Errand</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition"><X size={16} /></button>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition cursor-pointer"><X size={16} /></button>
         </div>
         <form onSubmit={handleSave} className="px-6 py-5 space-y-4">
           <div>
@@ -234,11 +234,11 @@ function EditErrandModal({ errand, staff, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-[400px]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white rounded-2xl shadow-2xl w-[400px] animate-scale-in">
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
           <h2 className="text-[16px] font-bold text-zinc-900 font-['Sora']">Edit Transaction</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition"><X size={16} /></button>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition cursor-pointer"><X size={16} /></button>
         </div>
         <form onSubmit={handleSave} className="px-6 py-5 space-y-4">
           <div>
@@ -259,9 +259,9 @@ function EditErrandModal({ errand, staff, onClose }) {
             </div>
           </div>
           <div className="pt-1 flex gap-3">
-            <button type="button" onClick={onClose} className="rounded-xl border border-zinc-200 px-4 py-2.5 text-[13px] font-semibold text-zinc-600 hover:bg-zinc-50 transition">Cancel</button>
+            <button type="button" onClick={onClose} className="rounded-xl border border-zinc-200 px-4 py-2.5 text-[13px] font-semibold text-zinc-600 hover:bg-zinc-50 transition cursor-pointer">Cancel</button>
             <button type="submit" disabled={saving || !title.trim() || !amount}
-              className="flex-1 rounded-xl bg-[#0b3860] py-2.5 text-[13px] font-bold text-white hover:bg-[#154e83] transition disabled:opacity-50">
+              className="flex-1 rounded-xl bg-[#0b3860] py-2.5 text-[13px] font-bold text-white hover:bg-[#154e83] transition disabled:opacity-50 cursor-pointer">
               {saving ? "Saving…" : "Save Changes"}
             </button>
           </div>
@@ -285,11 +285,11 @@ function CashAdvanceModal({ staff, userId, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-[420px]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white rounded-2xl shadow-2xl w-[420px] animate-scale-in">
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
           <h2 className="text-[16px] font-bold text-zinc-900 font-['Sora']">Issue Cash Advance / Fund</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition"><X size={16} /></button>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition cursor-pointer"><X size={16} /></button>
         </div>
         <form onSubmit={handleSave} className="px-6 py-5 space-y-4">
           <div className="rounded-xl bg-[#0b3860]/5 border border-[#0b3860]/10 px-4 py-3 flex items-center gap-3">
@@ -310,9 +310,9 @@ function CashAdvanceModal({ staff, userId, onClose }) {
               className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-[13px] outline-none focus:border-[#2270b8] transition" />
           </div>
           <div className="flex gap-3 pt-1">
-            <button type="button" onClick={onClose} className="rounded-xl border border-zinc-200 px-4 py-2.5 text-[13px] font-semibold text-zinc-600 hover:bg-zinc-50 transition">Cancel</button>
+            <button type="button" onClick={onClose} className="rounded-xl border border-zinc-200 px-4 py-2.5 text-[13px] font-semibold text-zinc-600 hover:bg-zinc-50 transition cursor-pointer">Cancel</button>
             <button type="submit" disabled={saving || !amount}
-              className="flex-1 rounded-xl bg-[#0b3860] py-2.5 text-[13px] font-bold text-white hover:bg-[#154e83] transition disabled:opacity-50">
+              className="flex-1 rounded-xl bg-[#0b3860] py-2.5 text-[13px] font-bold text-white hover:bg-[#154e83] transition disabled:opacity-50 cursor-pointer">
               {saving ? "Issuing…" : "Issue Cash Advance →"}
             </button>
           </div>
@@ -527,13 +527,13 @@ export default function StaffTab({ building, buildings, userId }) {
   return (
     <div className="flex flex-col h-full min-h-0 overflow-hidden">
       {/* Top Stat Cards */}
-      <div className="grid grid-cols-3 gap-4 px-8 py-5 border-b border-zinc-100 shrink-0 bg-[#f4f4f5]">
+      <div className="grid grid-cols-3 gap-4 px-8 py-5 border-b border-zinc-100 shrink-0 bg-[#f4f4f5] animate-fade-down">
         {[
-          { icon: <Users size={16} className="text-[#2270b8]" />, label: "Active Staff", value: staff.length, iconBg: "bg-[#e1ebf4]" },
-          { icon: <Wallet size={16} className="text-green-600" />, label: "Monthly Payroll", value: `₱${totalPayroll.toLocaleString()}`, iconBg: "bg-green-100" },
-          { icon: <AlertCircle size={16} className="text-amber-600" />, label: "Cash on Hand / Advances", value: `₱${totalPettyCash.toLocaleString()}`, iconBg: "bg-amber-100" },
-        ].map(({ icon, label, value, iconBg }) => (
-          <div key={label} className="rounded-2xl bg-white px-5 py-4 flex items-center gap-4 shadow-[var(--shadow-card)] border border-zinc-200/70 relative overflow-hidden">
+          { icon: <Users size={16} className="text-[#2270b8]" />, label: "Active Staff", value: staff.length, iconBg: "bg-[#e1ebf4]", delay: "delay-50" },
+          { icon: <Wallet size={16} className="text-green-600" />, label: "Monthly Payroll", value: `₱${totalPayroll.toLocaleString()}`, iconBg: "bg-green-100", delay: "delay-100" },
+          { icon: <AlertCircle size={16} className="text-amber-600" />, label: "Cash on Hand / Advances", value: `₱${totalPettyCash.toLocaleString()}`, iconBg: "bg-amber-100", delay: "delay-150" },
+        ].map(({ icon, label, value, iconBg, delay }) => (
+          <div key={label} className={`rounded-2xl bg-white px-5 py-4 flex items-center gap-4 shadow-[var(--shadow-card)] border border-zinc-200/70 relative overflow-hidden animate-fade-up ${delay}`}>
             <div className={`p-2.5 ${iconBg} rounded-xl shadow-sm shrink-0`}>{icon}</div>
             <div>
               <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider font-['Manrope']">{label}</div>
@@ -549,22 +549,23 @@ export default function StaffTab({ building, buildings, userId }) {
           <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-100 shrink-0 bg-white">
             <span className="text-[13px] font-bold text-zinc-700 font-['Sora']">Staff Roster</span>
             <button onClick={() => setShowAdd(true)}
-              className="flex items-center gap-1 bg-[#0b3860] hover:bg-[#154e83] text-white px-3 py-1.5 rounded-xl text-[11px] font-bold transition shadow-sm cursor-pointer">
+              className="flex items-center gap-1 bg-[#0b3860] hover:bg-[#154e83] text-white px-3 py-1.5 rounded-xl text-[11px] font-bold transition shadow-sm cursor-pointer active:scale-95">
               <Plus size={12} /> Add Staff
             </button>
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-2">
             {loading ? (
-              <div className="py-8 text-center text-zinc-400 text-[13px]">Loading staff…</div>
+              <div className="py-8 text-center text-zinc-400 text-[13px] animate-fade-in">Loading staff…</div>
             ) : staff.length === 0 ? (
-              <div className="py-10 text-center border border-dashed border-zinc-200 rounded-xl text-[13px] text-zinc-400 bg-white">
+              <div className="py-10 text-center border border-dashed border-zinc-200 rounded-xl text-[13px] text-zinc-400 bg-white animate-scale-in">
                 <Users size={28} className="mx-auto mb-2 text-zinc-300" />
                 No staff members yet. Click "Add Staff" to get started.
               </div>
-            ) : staff.map(s => (
+            ) : staff.map((s, idx) => (
               <div key={s.id}
                 onClick={() => setSelectedStaff(selectedStaff?.id === s.id ? null : s)}
-                className={`rounded-xl border p-3 cursor-pointer transition ${selectedStaff?.id === s.id ? "border-[#2270b8] bg-[#2270b8]/5 shadow-sm" : "border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm"}`}>
+                style={{ animationDelay: `${Math.min(idx * 50, 300)}ms` }}
+                className={`rounded-xl border p-3 cursor-pointer transition animate-fade-up ${selectedStaff?.id === s.id ? "border-[#2270b8] bg-[#2270b8]/5 shadow-sm" : "border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm"}`}>
                 <div className="flex items-center gap-3">
                   <AvatarInitials name={s.name} />
                   <div className="flex-1 min-w-0">
@@ -588,7 +589,7 @@ export default function StaffTab({ building, buildings, userId }) {
                   <div className="mt-2 pt-2 border-t border-zinc-100 flex justify-end">
                     <button onClick={async e => { e.stopPropagation(); if (!confirm(`Remove ${s.name}?`)) return; setDeletingId(s.id); setSelectedStaff(null); await deleteStaffDoc(s.id); setDeletingId(null); }}
                       disabled={deletingId === s.id}
-                      className="flex items-center gap-1 text-[11px] text-red-500 hover:text-red-700 transition">
+                      className="flex items-center gap-1 text-[11px] text-red-500 hover:text-red-700 transition cursor-pointer">
                       <Trash2 size={11} /> Remove
                     </button>
                   </div>
@@ -599,7 +600,7 @@ export default function StaffTab({ building, buildings, userId }) {
         </div>
 
         {/* Staff Ledger Right Column */}
-        <div className="flex-1 min-h-0 flex flex-col overflow-hidden bg-white">
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden bg-white animate-fade-in">
           {selectedStaff ? (() => {
             const activeStaff = staff.find(s => s.id === selectedStaff.id) || selectedStaff;
             return <StaffLedger staff={activeStaff} userId={userId} onClose={() => setSelectedStaff(null)} maintenanceTickets={maintenanceTickets} />;

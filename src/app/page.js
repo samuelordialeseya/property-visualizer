@@ -95,48 +95,56 @@ export default function Home() {
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {activeView === "dashboard" && (
-          <DashboardOverview 
-            buildings={buildings} 
-            units={units} 
-            onAddBuilding={handleNewBuildingFromDashboard}
-            onSelectProperty={handleSelectProperty}
-            onOpen3D={handleOpen3D}
-          />
+          <div key="dashboard" className="flex-1 flex flex-col overflow-hidden animate-fade-up">
+            <DashboardOverview 
+              buildings={buildings} 
+              units={units} 
+              onAddBuilding={handleNewBuildingFromDashboard}
+              onSelectProperty={handleSelectProperty}
+              onOpen3D={handleOpen3D}
+            />
+          </div>
         )}
         
         {activeView === "properties" && (
-          <PropertiesList 
-            buildings={buildings} 
-            units={units} 
-            onSelectProperty={handleSelectProperty} 
-          />
+          <div key="properties" className="flex-1 flex flex-col overflow-hidden animate-fade-up">
+            <PropertiesList 
+              buildings={buildings} 
+              units={units} 
+              onSelectProperty={handleSelectProperty} 
+            />
+          </div>
         )}
 
         {activeView === "settings" && (
-          <SettingsTab user={user} buildings={buildings} units={units} />
+          <div key="settings" className="flex-1 flex flex-col overflow-hidden animate-fade-up">
+            <SettingsTab user={user} buildings={buildings} units={units} />
+          </div>
         )}
 
         {activeView === "property_detail" && selectedBuilding && (
-          <PropertyDetail
-            building={selectedBuilding}
-            units={buildingUnits}
-            buildings={buildings}
-            userId={user?.uid}
-            updateUnit={updateUnit}
-            updateBuilding={(data) => updateBuilding(selectedBuilding.id, data)}
-            onLaunch3D={() => handleSetActiveView("3d_view")}
-            onDeleteProperty={async () => {
-              if (confirm(`Are you sure you want to delete ${selectedBuilding.name}? This will permanently delete all units, tenants, and payment records.`)) {
-                await deleteBuilding(selectedBuilding.id);
-                handleSetActiveView("properties");
-              }
-            }}
-            onBack={() => handleSetActiveView("properties")}
-          />
+          <div key={`property_detail_${selectedBuilding.id}`} className="flex-1 flex flex-col overflow-hidden animate-fade-up">
+            <PropertyDetail
+              building={selectedBuilding}
+              units={buildingUnits}
+              buildings={buildings}
+              userId={user?.uid}
+              updateUnit={updateUnit}
+              updateBuilding={(data) => updateBuilding(selectedBuilding.id, data)}
+              onLaunch3D={() => handleSetActiveView("3d_view")}
+              onDeleteProperty={async () => {
+                if (confirm(`Are you sure you want to delete ${selectedBuilding.name}? This will permanently delete all units, tenants, and payment records.`)) {
+                  await deleteBuilding(selectedBuilding.id);
+                  handleSetActiveView("properties");
+                }
+              }}
+              onBack={() => handleSetActiveView("properties")}
+            />
+          </div>
         )}
 
         {activeView === "3d_view" && selectedBuilding && (
-          <div className="h-full w-full relative">
+          <div key={`3d_view_${selectedBuilding.id}`} className="h-full w-full relative animate-fade-in">
             <Visualizer3D
               building={selectedBuilding}
               onUpdateBuilding={(data) => updateBuilding(selectedBuilding.id, data)}
