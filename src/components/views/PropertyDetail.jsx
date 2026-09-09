@@ -151,7 +151,7 @@ export default function PropertyDetail({
 
         {/* Tab Content */}
         {activeTab === "overview" && (
-          <div key="overview" className="flex-1 flex flex-col overflow-hidden animate-fade-up">
+          <div key="overview" className="flex-1 flex flex-col overflow-hidden animate-fade-in">
             <PropertyOverviewTab
               building={building}
               units={units}
@@ -165,13 +165,13 @@ export default function PropertyDetail({
         )}
 
         {activeTab === "documents" && (
-          <div key="documents" className="flex-1 flex flex-col overflow-hidden animate-fade-up">
+          <div key="documents" className="flex-1 flex flex-col overflow-hidden animate-fade-in">
             <DocumentsTab building={building} />
           </div>
         )}
 
         {activeTab === "units" && (
-          <div key="units" className="flex-1 overflow-y-auto p-8 animate-fade-up">
+          <div key="units" className="flex-1 overflow-y-auto p-8 animate-fade-in">
             <div className="rounded-2xl bg-white shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden">
               <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
                 <h2 className="text-[16px] font-semibold tracking-[-0.01em]">Units Directory</h2>
@@ -265,13 +265,13 @@ export default function PropertyDetail({
         )}
 
         {activeTab === "maintenance" && (
-          <div key="maintenance" className="flex-1 min-h-0 overflow-hidden animate-fade-up">
+          <div key="maintenance" className="flex-1 min-h-0 overflow-hidden animate-fade-in">
             <MaintenanceTab building={building} units={units} userId={userId} />
           </div>
         )}
 
         {activeTab === "staff" && (
-          <div key="staff" className="flex-1 min-h-0 overflow-hidden animate-fade-up">
+          <div key="staff" className="flex-1 min-h-0 overflow-hidden animate-fade-in">
             <StaffTab building={building} buildings={buildings} userId={userId} />
           </div>
         )}

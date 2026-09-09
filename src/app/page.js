@@ -95,7 +95,7 @@ export default function Home() {
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {activeView === "dashboard" && (
-          <div key="dashboard" className="flex-1 flex flex-col overflow-hidden animate-fade-up">
+          <div key="dashboard" className="flex-1 flex flex-col overflow-hidden animate-fade-in">
             <DashboardOverview 
               buildings={buildings} 
               units={units} 
@@ -107,7 +107,7 @@ export default function Home() {
         )}
         
         {activeView === "properties" && (
-          <div key="properties" className="flex-1 flex flex-col overflow-hidden animate-fade-up">
+          <div key="properties" className="flex-1 flex flex-col overflow-hidden animate-fade-in">
             <PropertiesList 
               buildings={buildings} 
               units={units} 
@@ -117,13 +117,13 @@ export default function Home() {
         )}
 
         {activeView === "settings" && (
-          <div key="settings" className="flex-1 flex flex-col overflow-hidden animate-fade-up">
+          <div key="settings" className="flex-1 flex flex-col overflow-hidden animate-fade-in">
             <SettingsTab user={user} buildings={buildings} units={units} />
           </div>
         )}
 
         {activeView === "property_detail" && selectedBuilding && (
-          <div key={`property_detail_${selectedBuilding.id}`} className="flex-1 flex flex-col overflow-hidden animate-fade-up">
+          <div key={`property_detail_${selectedBuilding.id}`} className="flex-1 flex flex-col overflow-hidden animate-fade-in">
             <PropertyDetail
               building={selectedBuilding}
               units={buildingUnits}

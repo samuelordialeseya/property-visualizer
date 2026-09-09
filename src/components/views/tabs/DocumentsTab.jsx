@@ -181,6 +181,18 @@ export default function DocumentsTab({ building }) {
     });
   }, [documents, searchQuery, selectedCategory]);
 
+  // Close modals on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setIsAddModalOpen(false);
+        setIsViewModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const handleOpenAddModal = () => {
     setEditingDocId(null);
     setFormState({
@@ -547,10 +559,13 @@ export default function DocumentsTab({ building }) {
 
       {/* 4. VIEW DOCUMENT MODAL */}
       {isViewModalOpen && activeDoc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-zinc-200 overflow-hidden flex flex-col max-h-[90vh] animate-scale-in">
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setIsViewModalOpen(false); }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fade-in"
+        >
+          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-zinc-200 overflow-hidden flex flex-col max-h-[88vh] animate-scale-in my-auto">
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
+            <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4 shrink-0 bg-white">
               <div className="flex items-center gap-3">
                 <div className="grid h-9 w-9 place-items-center rounded-xl bg-zinc-100 text-[#0b3860] shrink-0">
                   {(() => {
@@ -566,6 +581,7 @@ export default function DocumentsTab({ building }) {
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setIsViewModalOpen(false)}
                 className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition cursor-pointer"
               >
@@ -574,7 +590,7 @@ export default function DocumentsTab({ building }) {
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-5">
+            <div className="p-6 overflow-y-auto space-y-5 flex-1 min-h-0">
               {/* Highlighted Physical Location Banner */}
               <div className="rounded-xl bg-amber-50/90 border border-amber-200 p-4 flex items-start gap-3.5">
                 <div className="grid h-10 w-10 place-items-center rounded-xl bg-amber-100 text-amber-800 shrink-0">
@@ -657,8 +673,9 @@ export default function DocumentsTab({ building }) {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-between border-t border-zinc-100 px-6 py-4">
+            <div className="flex items-center justify-between border-t border-zinc-100 px-6 py-4 shrink-0 bg-white">
               <button
+                type="button"
                 onClick={(e) => handleDeleteDocument(activeDoc.id, e)}
                 className="inline-flex items-center gap-1.5 text-[13px] font-[700] text-red-600 hover:text-red-700 font-['Manrope'] cursor-pointer"
               >
@@ -668,6 +685,7 @@ export default function DocumentsTab({ building }) {
 
               <div className="flex items-center gap-3">
                 <button
+                  type="button"
                   onClick={() => handleOpenEditModal(activeDoc)}
                   className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-[13px] font-[700] text-zinc-700 hover:bg-zinc-50 transition font-['Manrope'] cursor-pointer"
                 >
@@ -675,6 +693,7 @@ export default function DocumentsTab({ building }) {
                   Edit Details
                 </button>
                 <button
+                  type="button"
                   onClick={() => setIsViewModalOpen(false)}
                   className="rounded-xl bg-zinc-900 px-5 py-2 text-[13px] font-[700] text-white hover:bg-zinc-800 transition font-['Manrope'] cursor-pointer"
                 >
@@ -688,13 +707,18 @@ export default function DocumentsTab({ building }) {
 
       {/* 5. ADD / EDIT DOCUMENT MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-xl rounded-2xl bg-white shadow-2xl border border-zinc-200 overflow-hidden flex flex-col max-h-[90vh] animate-scale-in">
-            <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setIsAddModalOpen(false); }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fade-in"
+        >
+          <div className="w-full max-w-xl rounded-2xl bg-white shadow-2xl border border-zinc-200 overflow-hidden flex flex-col max-h-[88vh] animate-scale-in my-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4 shrink-0 bg-white">
               <h3 className="text-[18px] font-[700] text-[#0b3860] font-['Sora']">
                 {editingDocId ? "Edit Document Record" : "Add Property Document"}
               </h3>
               <button
+                type="button"
                 onClick={() => setIsAddModalOpen(false)}
                 className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition cursor-pointer"
               >
@@ -702,164 +726,167 @@ export default function DocumentsTab({ building }) {
               </button>
             </div>
 
-            <form onSubmit={handleSaveDocument} className="p-6 overflow-y-auto space-y-4">
-              {/* Document Title */}
-              <div>
-                <label className="block text-[12px] font-[700] uppercase tracking-wider text-zinc-600 mb-1 font-['Manrope']">
-                  Document Title *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Land Title TCT #12345, Manila Water Contract, Meralco Deposit"
-                  value={formState.title}
-                  onChange={(e) => setFormState({ ...formState, title: e.target.value })}
-                  className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[14px] outline-none focus:border-[#0b3860] focus:ring-1 focus:ring-[#0b3860]"
-                />
-              </div>
-
-              {/* Category */}
-              <div>
-                <label className="block text-[12px] font-[700] uppercase tracking-wider text-zinc-600 mb-1 font-['Manrope']">
-                  Category *
-                </label>
-                <select
-                  value={formState.category}
-                  onChange={(e) => setFormState({ ...formState, category: e.target.value })}
-                  className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[14px] outline-none focus:border-[#0b3860] focus:ring-1 focus:ring-[#0b3860]"
-                >
-                  <option value="title">Title &amp; Ownership (TCT, CCT, Tax Dec)</option>
-                  <option value="water">Manila Water / Water Utility</option>
-                  <option value="electricity">Meralco / Electricity Service</option>
-                  <option value="loan">Bank Loan &amp; Mortgage Papers</option>
-                  <option value="government">Government &amp; Building Permits</option>
-                  <option value="insurance">Property &amp; Fire Insurance</option>
-                  <option value="other">Other / General Documents</option>
-                </select>
-              </div>
-
-              {/* Physical Storage Location with Quick Chips */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-[12px] font-[700] uppercase tracking-wider text-zinc-600 font-['Manrope']">
-                    Where is the Physical Copy Kept? *
+            {/* Form */}
+            <form onSubmit={handleSaveDocument} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="p-6 overflow-y-auto space-y-4 flex-1">
+                {/* Document Title */}
+                <div>
+                  <label className="block text-[12px] font-[700] uppercase tracking-wider text-zinc-600 mb-1 font-['Manrope']">
+                    Document Title *
                   </label>
-                  <span className="text-[11px] text-zinc-400 font-medium font-['Manrope']">e.g. Safe, Closet</span>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Land Title TCT #12345, Manila Water Contract, Meralco Deposit"
+                    value={formState.title}
+                    onChange={(e) => setFormState({ ...formState, title: e.target.value })}
+                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[14px] outline-none focus:border-[#0b3860] focus:ring-1 focus:ring-[#0b3860]"
+                  />
                 </div>
 
-                {/* Quick Chips */}
-                <div className="flex flex-wrap items-center gap-1.5 mb-2">
-                  {LOCATION_CHIPS.map((chip) => (
-                    <button
-                      key={chip}
-                      type="button"
-                      onClick={() => setFormState({ ...formState, physical_location: chip })}
-                      className={`text-[11.5px] font-[600] px-2.5 py-1 rounded-lg border transition font-['Manrope'] ${
-                        formState.physical_location === chip
-                          ? "bg-amber-100 text-amber-900 border-amber-300 font-[700]"
-                          : "bg-zinc-50 text-zinc-600 border-zinc-200 hover:bg-zinc-100"
-                      }`}
-                    >
-                      + {chip}
-                    </button>
-                  ))}
+                {/* Category */}
+                <div>
+                  <label className="block text-[12px] font-[700] uppercase tracking-wider text-zinc-600 mb-1 font-['Manrope']">
+                    Category *
+                  </label>
+                  <select
+                    value={formState.category}
+                    onChange={(e) => setFormState({ ...formState, category: e.target.value })}
+                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[14px] outline-none focus:border-[#0b3860] focus:ring-1 focus:ring-[#0b3860]"
+                  >
+                    <option value="title">Title &amp; Ownership (TCT, CCT, Tax Dec)</option>
+                    <option value="water">Manila Water / Water Utility</option>
+                    <option value="electricity">Meralco / Electricity Service</option>
+                    <option value="loan">Bank Loan &amp; Mortgage Papers</option>
+                    <option value="government">Government &amp; Building Permits</option>
+                    <option value="insurance">Property &amp; Fire Insurance</option>
+                    <option value="other">Other / General Documents</option>
+                  </select>
                 </div>
 
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Safe box (master bedroom), Closet top shelf, Blue drawer"
-                  value={formState.physical_location}
-                  onChange={(e) => setFormState({ ...formState, physical_location: e.target.value })}
-                  className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[14px] outline-none focus:border-[#0b3860] focus:ring-1 focus:ring-[#0b3860]"
-                />
-              </div>
+                {/* Physical Storage Location with Quick Chips */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[12px] font-[700] uppercase tracking-wider text-zinc-600 font-['Manrope']">
+                      Where is the Physical Copy Kept? *
+                    </label>
+                    <span className="text-[11px] text-zinc-400 font-medium font-['Manrope']">e.g. Safe, Closet</span>
+                  </div>
 
-              {/* Photo / Document File Upload */}
-              <div>
-                <label className="block text-[12px] font-[700] uppercase tracking-wider text-zinc-600 mb-1 font-['Manrope']">
-                  Upload Photo or PDF Document
-                </label>
-                <div className="flex items-center gap-4">
-                  {documentFilePreview ? (
-                    <div className="h-16 w-20 rounded-xl overflow-hidden border border-zinc-200 shrink-0 bg-zinc-100">
-                      <img src={documentFilePreview} alt="Preview" className="h-full w-full object-cover" />
-                    </div>
-                  ) : isPdf ? (
-                    <div className="h-16 w-20 rounded-xl border border-zinc-200 shrink-0 bg-red-50 flex items-center justify-center text-red-600">
-                      <File size={24} />
-                    </div>
-                  ) : null}
+                  {/* Quick Chips */}
+                  <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                    {LOCATION_CHIPS.map((chip) => (
+                      <button
+                        key={chip}
+                        type="button"
+                        onClick={() => setFormState({ ...formState, physical_location: chip })}
+                        className={`text-[11.5px] font-[600] px-2.5 py-1 rounded-lg border transition font-['Manrope'] cursor-pointer ${
+                          formState.physical_location === chip
+                            ? "bg-amber-100 text-amber-900 border-amber-300 font-[700]"
+                            : "bg-zinc-50 text-zinc-600 border-zinc-200 hover:bg-zinc-100"
+                        }`}
+                      >
+                        + {chip}
+                      </button>
+                    ))}
+                  </div>
 
-                  <label className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-zinc-300 hover:border-[#0b3860] text-[13px] font-[600] text-zinc-600 cursor-pointer transition bg-zinc-50/50">
-                    <Upload size={16} />
-                    <span>
-                      {documentFile ? documentFile.name : formState.file_url ? "Replace existing file" : "Upload document photo or PDF"}
-                    </span>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Safe box (master bedroom), Closet top shelf, Blue drawer"
+                    value={formState.physical_location}
+                    onChange={(e) => setFormState({ ...formState, physical_location: e.target.value })}
+                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[14px] outline-none focus:border-[#0b3860] focus:ring-1 focus:ring-[#0b3860]"
+                  />
+                </div>
+
+                {/* Photo / Document File Upload */}
+                <div>
+                  <label className="block text-[12px] font-[700] uppercase tracking-wider text-zinc-600 mb-1 font-['Manrope']">
+                    Upload Photo or PDF Document
+                  </label>
+                  <div className="flex items-center gap-4">
+                    {documentFilePreview ? (
+                      <div className="h-16 w-20 rounded-xl overflow-hidden border border-zinc-200 shrink-0 bg-zinc-100">
+                        <img src={documentFilePreview} alt="Preview" className="h-full w-full object-cover" />
+                      </div>
+                    ) : isPdf ? (
+                      <div className="h-16 w-20 rounded-xl border border-zinc-200 shrink-0 bg-red-50 flex items-center justify-center text-red-600">
+                        <File size={24} />
+                      </div>
+                    ) : null}
+
+                    <label className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-zinc-300 hover:border-[#0b3860] text-[13px] font-[600] text-zinc-600 cursor-pointer transition bg-zinc-50/50">
+                      <Upload size={16} />
+                      <span>
+                        {documentFile ? documentFile.name : formState.file_url ? "Replace existing file" : "Upload document photo or PDF"}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        className="hidden"
+                        onChange={handleFileChange}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Dates */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[12px] font-[700] uppercase tracking-wider text-zinc-600 mb-1 font-['Manrope']">
+                      Issue Date
+                    </label>
                     <input
-                      type="file"
-                      accept="image/*,application/pdf"
-                      className="hidden"
-                      onChange={handleFileChange}
+                      type="date"
+                      value={formState.issue_date}
+                      onChange={(e) => setFormState({ ...formState, issue_date: e.target.value })}
+                      className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[14px] outline-none focus:border-[#0b3860]"
                     />
-                  </label>
-                </div>
-              </div>
+                  </div>
 
-              {/* Dates */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[12px] font-[700] uppercase tracking-wider text-zinc-600 mb-1 font-['Manrope']">
+                      Expiry / Renewal Date
+                    </label>
+                    <input
+                      type="date"
+                      value={formState.expiry_date}
+                      onChange={(e) => setFormState({ ...formState, expiry_date: e.target.value })}
+                      className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[14px] outline-none focus:border-[#0b3860]"
+                    />
+                  </div>
+                </div>
+
+                {/* Description / Account Notes */}
                 <div>
                   <label className="block text-[12px] font-[700] uppercase tracking-wider text-zinc-600 mb-1 font-['Manrope']">
-                    Issue Date
+                    Notes &amp; Account Details
                   </label>
-                  <input
-                    type="date"
-                    value={formState.issue_date}
-                    onChange={(e) => setFormState({ ...formState, issue_date: e.target.value })}
+                  <textarea
+                    rows={2}
+                    placeholder="e.g. Account CAN #001234, Bank Loan account number, reference notes..."
+                    value={formState.description}
+                    onChange={(e) => setFormState({ ...formState, description: e.target.value })}
                     className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[14px] outline-none focus:border-[#0b3860]"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-[12px] font-[700] uppercase tracking-wider text-zinc-600 mb-1 font-['Manrope']">
-                    Expiry / Renewal Date
-                  </label>
-                  <input
-                    type="date"
-                    value={formState.expiry_date}
-                    onChange={(e) => setFormState({ ...formState, expiry_date: e.target.value })}
-                    className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[14px] outline-none focus:border-[#0b3860]"
-                  />
-                </div>
               </div>
 
-              {/* Description / Account Notes */}
-              <div>
-                <label className="block text-[12px] font-[700] uppercase tracking-wider text-zinc-600 mb-1 font-['Manrope']">
-                  Notes &amp; Account Details
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="e.g. Account CAN #001234, Bank Loan account number, reference notes..."
-                  value={formState.description}
-                  onChange={(e) => setFormState({ ...formState, description: e.target.value })}
-                  className="w-full rounded-xl border border-zinc-200 px-3.5 py-2 text-[14px] outline-none focus:border-[#0b3860]"
-                />
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-100">
+              {/* Actions Footer - pinned at bottom */}
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-zinc-100 bg-zinc-50/70 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="rounded-xl px-4 py-2 text-[13px] font-[600] text-zinc-600 hover:bg-zinc-100 transition font-['Manrope']"
+                  className="rounded-xl px-4 py-2 text-[13px] font-[600] text-zinc-600 hover:bg-zinc-100 transition font-['Manrope'] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#0b3860] px-5 py-2 text-[13px] font-[700] text-white hover:bg-[#051b30] transition shadow-sm disabled:opacity-50 font-['Manrope']"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#0b3860] px-5 py-2 text-[13px] font-[700] text-white hover:bg-[#051b30] transition shadow-sm disabled:opacity-50 font-['Manrope'] cursor-pointer active:scale-95"
                 >
                   <Check size={16} />
                   {saving ? "Saving…" : editingDocId ? "Save Changes" : "Create Record"}
