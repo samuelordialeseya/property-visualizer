@@ -880,24 +880,16 @@ export default function StaffTab({ building, buildings, userId }) {
 
   return (
     <div className="flex flex-col h-full min-h-0 overflow-hidden">
-      {/* Top Stat Header */}
-      <div className="px-8 py-3.5 border-b border-zinc-100 shrink-0 bg-[#f4f4f5] flex items-center justify-between animate-fade-down">
-        <div className="inline-flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-zinc-200/70 shadow-xs">
-          <div className="p-2 bg-[#e1ebf4] rounded-lg text-[#2270b8] shrink-0">
-            <Users size={16} />
-          </div>
-          <div>
-            <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider font-['Manrope']">Active Staff</div>
-            <div className="text-[16px] font-[800] text-zinc-900 font-['Sora'] leading-tight">{staff.length}</div>
-          </div>
-        </div>
-      </div>
-
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Staff Directory Left Column */}
         <div className="w-[36%] border-r border-zinc-100 flex flex-col min-h-0 overflow-hidden bg-zinc-50/30">
-          <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-100 shrink-0 bg-white">
-            <span className="text-[13px] font-bold text-zinc-700 font-['Sora']">Staff Roster</span>
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-100 shrink-0 bg-white">
+            <div className="flex items-center gap-2">
+              <span className="text-[13px] font-bold text-zinc-800 font-['Sora']">Staff Roster</span>
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#e1ebf4] text-[#2270b8]">
+                {staff.length}
+              </span>
+            </div>
             <button onClick={() => setShowAdd(true)}
               className="flex items-center gap-1 bg-[#0b3860] hover:bg-[#154e83] text-white px-3 py-1.5 rounded-xl text-[11px] font-bold transition shadow-sm cursor-pointer active:scale-95">
               <Plus size={12} /> Add Staff
