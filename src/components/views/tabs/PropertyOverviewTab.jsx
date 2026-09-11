@@ -189,7 +189,7 @@ export default function PropertyOverviewTab({
   const displayPhoto = building?.photo_url || "/images/default-property.jpg";
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
       {/* Hidden file input for fast photo change */}
       <input
         ref={fileInputRef}
@@ -200,10 +200,10 @@ export default function PropertyOverviewTab({
       />
 
       {/* 1. HERO BANNER: Property Name on Left, Faded Photo on Right */}
-      <div className="relative overflow-hidden rounded-3xl bg-white border border-zinc-200/80 shadow-[var(--shadow-card)] min-h-[260px] md:min-h-[290px] flex flex-col md:flex-row items-stretch justify-between animate-fade-down">
+      <div className="relative overflow-hidden rounded-3xl bg-white border border-zinc-200/80 shadow-[var(--shadow-card)] min-h-[240px] md:min-h-[290px] flex flex-col md:flex-row items-stretch justify-between animate-fade-down">
         
         {/* Left Side: Property Identity & Quick Actions */}
-        <div className="flex-1 p-7 md:p-9 z-10 flex flex-col justify-between max-w-2xl">
+        <div className="flex-1 p-5 sm:p-7 md:p-9 z-10 flex flex-col justify-between max-w-2xl">
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-[700] uppercase tracking-wider bg-[#e1ebf4] text-[#0b3860] font-['Manrope']">
@@ -226,7 +226,7 @@ export default function PropertyOverviewTab({
               )}
             </div>
 
-            <h1 className="text-[30px] md:text-[38px] font-[800] text-[#0b3860] tracking-[-0.03em] font-['Sora'] leading-tight">
+            <h1 className="text-[26px] sm:text-[30px] md:text-[38px] font-[800] text-[#0b3860] tracking-[-0.03em] font-['Sora'] leading-tight">
               {building?.name || "Untitled Property"}
             </h1>
 

@@ -20,14 +20,14 @@ export default function PropertiesList({ buildings = [], units = [], onSelectPro
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-[#f4f4f5] font-sans">
-      <div className="flex items-center justify-between px-12 pt-12 pb-6 shrink-0 animate-fade-down">
+      <div className="flex items-center justify-between px-4 sm:px-8 md:px-12 pt-6 md:pt-12 pb-4 md:pb-6 shrink-0 animate-fade-down">
         <div>
-          <h1 className="text-[36px] font-[800] text-[#0b3860] tracking-[-0.03em] font-['Sora']">Properties</h1>
-          <p className="text-[14px] text-zinc-400 mt-1 font-['Manrope'] font-medium">Select a property to manage units or view in 3D</p>
+          <h1 className="text-[26px] sm:text-[32px] md:text-[36px] font-[800] text-[#0b3860] tracking-[-0.03em] font-['Sora'] leading-tight">Properties</h1>
+          <p className="text-[13px] sm:text-[14px] text-zinc-400 mt-1 font-['Manrope'] font-medium">Select a property to manage units or view in 3D</p>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-12 pb-12">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-8 md:px-12 pb-6 md:pb-12">
         {buildings.length === 0 ? (
           <div className="flex h-64 items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200 bg-white animate-scale-in">
             <div className="text-center text-zinc-500">
@@ -37,14 +37,14 @@ export default function PropertiesList({ buildings = [], units = [], onSelectPro
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {buildings.map((b, idx) => {
               const stats = getBuildingStats(b.id);
               return (
                   <div 
                     key={b.id} 
                     style={{ animationDelay: `${Math.min(idx * 60, 300)}ms` }}
-                    className="group rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] border border-zinc-200/70 transition-all duration-300 hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-1 cursor-pointer flex flex-col relative overflow-hidden animate-fade-up"
+                    className="group rounded-2xl bg-white p-5 sm:p-6 shadow-[var(--shadow-card)] border border-zinc-200/70 transition-all duration-300 hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-1 cursor-pointer flex flex-col relative overflow-hidden animate-fade-up"
                     onClick={() => onSelectProperty(b.id)}
                   >
                   
@@ -82,7 +82,7 @@ export default function PropertiesList({ buildings = [], units = [], onSelectPro
                     </div>
                   </div>
                   
-                  <div className="mt-4 flex items-center justify-end text-[12px] font-[700] text-[#0F4C81] opacity-0 group-hover:opacity-100 transition-opacity font-['Manrope']">
+                  <div className="mt-4 flex items-center justify-end text-[12px] font-[700] text-[#0F4C81] opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity font-['Manrope']">
                     Open Property &rarr;
                   </div>
                 </div>

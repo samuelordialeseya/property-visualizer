@@ -312,8 +312,8 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
   const curStatus = STATUS_OPTIONS.find((s) => s.value === status) || STATUS_OPTIONS[0];
   const displayPhoto = photoFile ? URL.createObjectURL(photoFile) : tenantPhotoUrl;
 
-  const floatingClasses = "absolute top-8 bottom-8 right-10 z-[999] w-96 rounded-2xl border border-zinc-200/80 shadow-[0_2px_8px_0_rgba(0,0,0,0.12),_0_20px_48px_-8px_rgba(0,0,0,0.20)]";
-  const drawerClasses = "fixed top-0 right-0 h-full w-[420px] shadow-[0_0_0_1px_rgba(0,0,0,0.06),_0_16px_48px_-4px_rgba(0,0,0,0.18)] z-[999] transition-transform border-l border-zinc-200/80";
+  const floatingClasses = "absolute top-4 sm:top-8 bottom-4 sm:bottom-8 right-2 sm:right-10 z-[999] w-[calc(100%-1rem)] sm:w-96 rounded-2xl border border-zinc-200/80 shadow-[0_2px_8px_0_rgba(0,0,0,0.12),_0_20px_48px_-8px_rgba(0,0,0,0.20)]";
+  const drawerClasses = "fixed top-0 right-0 h-full w-full sm:w-[420px] max-w-full shadow-[0_0_0_1px_rgba(0,0,0,0.06),_0_16px_48px_-4px_rgba(0,0,0,0.18)] z-[999] transition-transform border-l border-zinc-200/80";
 
   return (
     <>
@@ -323,7 +323,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
       <div className={`flex flex-col bg-white font-sans text-zinc-900 overflow-hidden animate-slide-in-right ${isDrawerMode ? drawerClasses : floatingClasses}`}>
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4 shrink-0">
+      <div className="flex items-center justify-between border-b border-zinc-100 px-4 sm:px-6 py-3.5 sm:py-4 shrink-0">
         <div className="flex items-center gap-3">
           {/* Tenant photo */}
           {displayPhoto ? (

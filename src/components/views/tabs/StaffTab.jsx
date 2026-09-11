@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import {
   Users, Plus, ChevronRight, X, Check, Trash2,
   Receipt, ArrowDownCircle, ClipboardList, Banknote, User, Edit2, Wrench,
-  Save, Building2
+  Save, Building2, ArrowLeft
 } from "lucide-react";
 import {
   useStaff, useStaffErrands,
@@ -67,7 +67,7 @@ function AddStaffModal({ userId, buildingId, buildings, onClose }) {
 
   return (
     <div onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl w-[480px] max-h-[90vh] overflow-y-auto animate-scale-in my-auto">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[480px] max-h-[90vh] overflow-y-auto animate-scale-in my-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
           <h2 className="text-[16px] font-bold text-zinc-900 font-['Sora']">Add Staff Member</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition cursor-pointer"><X size={16} /></button>
@@ -156,7 +156,7 @@ function LogErrandModal({ staff, userId, onClose }) {
 
   return (
     <div onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl w-[460px] max-h-[90vh] overflow-y-auto animate-scale-in my-auto">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[460px] max-h-[90vh] overflow-y-auto animate-scale-in my-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
           <h2 className="text-[16px] font-bold text-zinc-900 font-['Sora']">Log Expense / Errand</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition cursor-pointer"><X size={16} /></button>
@@ -236,7 +236,7 @@ function EditErrandModal({ errand, staff, onClose }) {
 
   return (
     <div onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl w-[400px] max-h-[90vh] overflow-y-auto animate-scale-in my-auto">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[400px] max-h-[90vh] overflow-y-auto animate-scale-in my-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
           <h2 className="text-[16px] font-bold text-zinc-900 font-['Sora']">Edit Transaction</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition cursor-pointer"><X size={16} /></button>
@@ -287,7 +287,7 @@ function CashAdvanceModal({ staff, userId, onClose }) {
 
   return (
     <div onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl w-[420px] max-h-[90vh] overflow-y-auto animate-scale-in my-auto">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[420px] max-h-[90vh] overflow-y-auto animate-scale-in my-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
           <h2 className="text-[16px] font-bold text-zinc-900 font-['Sora']">Issue Cash Advance / Fund</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 transition cursor-pointer"><X size={16} /></button>
@@ -409,12 +409,20 @@ function StaffLedger({ staff, userId, buildings = [], onClose, maintenanceTicket
   return (
     <div className="flex flex-col h-full min-h-0 overflow-hidden bg-white">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-3.5 border-b border-zinc-100 shrink-0 bg-white shadow-2xs">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-zinc-100 shrink-0 bg-white shadow-2xs">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <button
+            onClick={onClose}
+            className="md:hidden p-1.5 -ml-1 mr-0.5 rounded-lg text-zinc-500 hover:bg-zinc-100 transition cursor-pointer flex items-center gap-1 text-[12px] font-bold"
+            title="Back to Roster"
+          >
+            <ArrowLeft size={16} />
+            <span className="hidden xs:inline">Roster</span>
+          </button>
           <AvatarInitials name={staff.name} size="md" />
-          <div>
-            <div className="text-[15px] font-bold text-zinc-900 font-['Sora'] leading-tight">{staff.name}</div>
-            <div className="flex items-center gap-2 mt-0.5">
+          <div className="min-w-0">
+            <div className="text-[14px] sm:text-[15px] font-bold text-zinc-900 font-['Sora'] leading-tight truncate">{staff.name}</div>
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${ROLE_COLORS[staff.role] || ROLE_COLORS.Other}`}>{staff.role}</span>
               {staff.phone && <span className="text-[11px] text-zinc-400">{staff.phone}</span>}
             </div>
@@ -882,7 +890,7 @@ export default function StaffTab({ building, buildings, userId }) {
     <div className="flex flex-col h-full min-h-0 overflow-hidden">
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Staff Directory Left Column */}
-        <div className="w-[36%] border-r border-zinc-100 flex flex-col min-h-0 overflow-hidden bg-zinc-50/30">
+        <div className={`${selectedStaff ? "hidden md:flex" : "flex"} w-full md:w-[36%] border-r border-zinc-100 flex-col min-h-0 overflow-hidden bg-zinc-50/30`}>
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-100 shrink-0 bg-white">
             <div className="flex items-center gap-2">
               <span className="text-[13px] font-bold text-zinc-800 font-['Sora']">Staff Roster</span>
@@ -933,7 +941,7 @@ export default function StaffTab({ building, buildings, userId }) {
         </div>
 
         {/* Staff Ledger Right Column */}
-        <div className="flex-1 min-h-0 flex flex-col overflow-hidden bg-white animate-fade-in">
+        <div className={`${selectedStaff ? "flex" : "hidden md:flex"} flex-1 min-h-0 flex-col overflow-hidden bg-white animate-fade-in`}>
           {selectedStaff ? (() => {
             const activeStaff = staff.find(s => s.id === selectedStaff.id) || selectedStaff;
             return <StaffLedger staff={activeStaff} userId={userId} buildings={buildings} onClose={() => setSelectedStaff(null)} maintenanceTickets={maintenanceTickets} />;

@@ -15,7 +15,7 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
 
   return (
     <aside
-      className={`relative flex flex-col transition-all duration-300 ease-in-out shrink-0 ${
+      className={`relative hidden md:flex flex-col transition-all duration-300 ease-in-out shrink-0 ${
         isDark ? "bg-[#0b0f13] border-r border-white/10" : "border-r border-zinc-200 bg-[#f4f4f5]"
       } ${collapsed ? "w-[80px]" : "w-[280px]"}`}
     >

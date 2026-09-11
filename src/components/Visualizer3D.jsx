@@ -878,8 +878,15 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
             )}
           </div>
 
+          {/* Mobile tip banner */}
+          <div className="md:hidden absolute top-3 inset-x-3 z-30 pointer-events-none flex justify-center">
+            <div className="pointer-events-auto bg-zinc-950/80 backdrop-blur-md text-zinc-300 text-[11px] font-medium px-3.5 py-1.5 rounded-full border border-white/10 shadow-lg flex items-center gap-1.5">
+              <span>💡 3D view is best experienced on iPad or desktop</span>
+            </div>
+          </div>
+
           {/* ── BOTTOM-LEFT HUD: Building Meta & Edit Controls ─────────────────────────── */}
-          <div className="absolute bottom-6 left-6 z-20 flex items-center gap-2.5 pointer-events-none flex-wrap max-w-[60vw]">
+          <div className="absolute bottom-4 sm:bottom-6 left-3 sm:left-6 z-20 flex items-center gap-2.5 pointer-events-none flex-wrap max-w-[95vw] sm:max-w-[60vw]">
             <div className="pointer-events-auto flex items-center gap-2.5 bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-1.5 pl-3 shadow-2xl shrink-0">
               {onBack && !editMode && (
                 <button onClick={onBack} className="text-white/60 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-xl transition" title="Back to property dashboard">

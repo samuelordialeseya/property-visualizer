@@ -76,43 +76,44 @@ export default function PropertyDetail({
     <div className="flex h-full w-full relative overflow-hidden bg-[#f4f4f5]">
       <div className="flex-1 flex flex-col w-full h-full overflow-hidden">
         {/* Header Bar */}
-        <div className="border-b border-zinc-200/80 bg-white px-8 pt-4 pb-3.5 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] shrink-0 relative">
-          <div className="flex items-center justify-between mb-3.5">
-            <div className="flex items-center gap-3">
+        <div className="border-b border-zinc-200/80 bg-white px-4 sm:px-6 md:px-8 pt-3.5 sm:pt-4 pb-3 sm:pb-3.5 shadow-[0_1px_3px_0_rgba(0,0,0,0.06)] shrink-0 relative">
+          <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <button 
                 onClick={onBack}
-                className="flex items-center gap-1.5 text-[13px] font-semibold text-zinc-500 hover:text-zinc-900 transition font-['Manrope']"
+                className="flex items-center gap-1 sm:gap-1.5 text-[12px] sm:text-[13px] font-semibold text-zinc-500 hover:text-zinc-900 transition font-['Manrope'] shrink-0"
               >
                 <ArrowLeft size={16} />
-                Properties
+                <span>Properties</span>
               </button>
-              <span className="text-zinc-300">/</span>
-              <span className="text-[14px] font-[700] text-[#0b3860] font-['Sora'] truncate max-w-sm">
+              <span className="text-zinc-300 shrink-0">/</span>
+              <span className="text-[13px] sm:text-[14px] font-[700] text-[#0b3860] font-['Sora'] truncate max-w-[150px] sm:max-w-xs md:max-w-sm">
                 {building?.name || "Untitled Property"}
               </span>
             </div>
             
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={onDeleteProperty}
-                className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-1.5 text-[12px] font-[700] text-red-700 transition hover:bg-red-100 shadow-sm font-['Manrope']"
+                title="Delete Property"
+                className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-2.5 sm:px-3.5 py-1.5 text-[12px] font-[700] text-red-700 transition hover:bg-red-100 shadow-sm font-['Manrope']"
               >
                 <Trash2 size={14} />
-                Delete Property
+                <span className="hidden sm:inline">Delete Property</span>
               </button>
               
               <button
                 onClick={onLaunch3D}
-                className="flex items-center gap-1.5 rounded-xl bg-[#0b3860] px-4 py-1.5 text-[12px] font-[700] text-white transition hover:bg-[#051b30] shadow-sm font-['Manrope']"
+                className="flex items-center gap-1.5 rounded-xl bg-[#0b3860] px-3 sm:px-4 py-1.5 text-[12px] font-[700] text-white transition hover:bg-[#051b30] shadow-sm font-['Manrope']"
               >
                 <Box size={14} />
-                Launch 3D
+                <span>Launch 3D</span>
               </button>
             </div>
           </div>
 
           {/* Sub Navigation Pills (Matching Sidebar Aesthetic) */}
-          <div className="flex items-center overflow-x-auto no-scrollbar">
+          <div className="flex items-center overflow-x-auto no-scrollbar -mx-1 px-1">
             <div className="inline-flex items-center gap-1 p-1 bg-[#f4f4f5] rounded-[14px] border border-zinc-200/70">
               {TABS.map(tab => {
                 const badge = tabBadge(tab.key);
@@ -121,7 +122,7 @@ export default function PropertyDetail({
                   <button
                     key={tab.key}
                     onClick={() => setActiveTab(tab.key)}
-                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-[11px] text-[13px] transition-all duration-150 font-['Manrope'] whitespace-nowrap ${
+                    className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-[11px] text-[12px] sm:text-[13px] transition-all duration-150 font-['Manrope'] whitespace-nowrap ${
                       active
                         ? "bg-white text-[#0b3860] font-[700] shadow-sm border border-zinc-200/80"
                         : "text-zinc-500 font-medium hover:text-zinc-900 hover:bg-zinc-200/50 border border-transparent"
@@ -171,7 +172,7 @@ export default function PropertyDetail({
         )}
 
         {activeTab === "units" && (
-          <div key="units" className="flex-1 overflow-y-auto p-8 animate-fade-in">
+          <div key="units" className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 animate-fade-in">
             <div className="rounded-2xl bg-white shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden">
               <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
                 <h2 className="text-[16px] font-semibold tracking-[-0.01em]">Units Directory</h2>

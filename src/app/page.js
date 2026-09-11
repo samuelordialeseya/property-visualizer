@@ -1,10 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useBuildings, useAllUnits } from "@/hooks/useFirestore";
 
 import Login from "@/components/Login";
 import Sidebar from "@/components/Sidebar";
+import BottomNav from "@/components/BottomNav";
 
 import DashboardOverview from "@/components/views/DashboardOverview";
 import PropertiesList from "@/components/views/PropertiesList";
@@ -23,11 +24,20 @@ export default function Home() {
   const [selectedUnit3D, setSelectedUnit3D] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      setSidebarCollapsed(true);
+    }
+  }, []);
+
   const handleSetActiveView = (view) => {
     setActiveView(view);
-    // Auto-collapse sidebar when entering 3D view, re-expand when leaving
-    if (view === "3d_view") setSidebarCollapsed(true);
-    else setSidebarCollapsed(false);
+    // Auto-collapse sidebar when entering 3D view, re-expand when leaving (if on desktop)
+    if (view === "3d_view") {
+      setSidebarCollapsed(true);
+    } else if (typeof window !== "undefined" && window.innerWidth >= 1024) {
+      setSidebarCollapsed(false);
+    }
   };
 
   if (authLoading) {
@@ -93,7 +103,7 @@ export default function Home() {
         onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
       />
 
-      <div className="flex-1 flex flex-col overflow-hidden relative">
+      <div className={`flex-1 flex flex-col overflow-hidden relative ${activeView !== "3d_view" ? "pb-16 md:pb-0" : ""}`}>
         {activeView === "dashboard" && (
           <div key="dashboard" className="flex-1 flex flex-col overflow-hidden animate-fade-in">
             <DashboardOverview 
@@ -203,7 +213,10 @@ export default function Home() {
           </div>
         )}
 
-
+        {/* Mobile Bottom Navigation */}
+        {activeView !== "3d_view" && (
+          <BottomNav activeView={activeView} setActiveView={handleSetActiveView} />
+        )}
       </div>
     </main>
   );

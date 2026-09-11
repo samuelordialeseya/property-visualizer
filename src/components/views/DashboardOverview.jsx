@@ -146,23 +146,23 @@ export default function DashboardOverview({ buildings = [], units = [], onAddBui
   return (
     <div className="flex h-full flex-col overflow-hidden bg-[#f4f4f5] font-sans">
       {/* Header */}
-      <div className="flex items-center justify-between px-12 pt-12 pb-6 shrink-0 animate-fade-down">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 sm:px-8 md:px-12 pt-6 md:pt-12 pb-4 md:pb-6 shrink-0 animate-fade-down">
         <div>
-          <h1 className="text-[36px] font-[800] text-[#0b3860] tracking-[-0.03em] font-['Sora']">Portfolio Overview</h1>
-          <p className="text-[14px] text-zinc-400 mt-1 font-['Manrope'] font-medium">Manage properties, track tenants, and monitor revenue</p>
+          <h1 className="text-[26px] sm:text-[32px] md:text-[36px] font-[800] text-[#0b3860] tracking-[-0.03em] font-['Sora'] leading-tight">Portfolio Overview</h1>
+          <p className="text-[13px] sm:text-[14px] text-zinc-400 mt-1 font-['Manrope'] font-medium">Manage properties, track tenants, and monitor revenue</p>
         </div>
         <button
           onClick={onAddBuilding}
-          className="flex items-center gap-2 rounded-xl bg-[#0b3860] px-6 py-3 text-[13px] font-[700] tracking-wide text-white transition hover:bg-[#051b30] shadow-md hover:shadow-lg active:scale-[0.97] font-['Manrope'] cursor-pointer"
+          className="self-start sm:self-auto flex items-center gap-2 rounded-xl bg-[#0b3860] px-5 sm:px-6 py-2.5 sm:py-3 text-[12px] sm:text-[13px] font-[700] tracking-wide text-white transition hover:bg-[#051b30] shadow-md hover:shadow-lg active:scale-[0.97] font-['Manrope'] cursor-pointer shrink-0"
         >
           <Plus size={16} strokeWidth={3} />
           NEW BUILDING
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-12 pb-12 space-y-6">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-8 md:px-12 pb-6 md:pb-12 space-y-5 sm:space-y-6">
         {/* Stats Row */}
-        <div className="grid grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
           <div className="animate-fade-up delay-50">
             <StatCard 
               label="TOTAL PROPERTIES" 
@@ -221,7 +221,7 @@ export default function DashboardOverview({ buildings = [], units = [], onAddBui
         </div>
 
         {/* Content Panels */}
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {/* Left panel: My Properties */}
           <div className="col-span-1 rounded-2xl bg-white p-6 shadow-[var(--shadow-card)] border border-zinc-200/70 flex flex-col animate-fade-up delay-150">
             <div className="flex items-center justify-between mb-5">
