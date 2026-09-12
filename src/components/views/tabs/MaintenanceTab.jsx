@@ -360,7 +360,8 @@ function TicketCard({ ticket, units = [], onEdit, onDelete, onStatusChange, staf
   const [payFile, setPayFile] = useState(null);
   const [payFilePrev, setPayFilePrev] = useState(null);
   const [submittingPay, setSubmittingPay] = useState(false);
-  const currentIdx = STATUSES.findIndex(s => s.key === ticket.status);
+  const rawIdx = STATUSES.findIndex(s => s.key === ticket.status);
+  const currentIdx = rawIdx !== -1 ? rawIdx : 0;
 
   const advanceStatus = async () => {
     if (currentIdx >= STATUSES.length - 1) return;

@@ -876,6 +876,13 @@ export default function StaffTab({ building, buildings, userId }) {
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
 
+  // Sync selectedStaff if staff is removed or updated
+  useEffect(() => {
+    if (selectedStaff && !loading && !staff.some(s => s.id === selectedStaff.id)) {
+      setSelectedStaff(null);
+    }
+  }, [staff, selectedStaff, loading]);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") {
