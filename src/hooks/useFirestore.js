@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { db, storage } from "@/lib/firebase";
+import { db, storage, auth } from "@/lib/firebase";
+import { compressImage } from "@/lib/imageUtils";
 import {
   collection,
   doc,
@@ -17,10 +18,11 @@ import {
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
-export const uploadFile = async (path, file) => {
+export const uploadFile = async (path, file, { compress = true } = {}) => {
   if (!file) return null;
+  const fileToUpload = compress ? await compressImage(file) : file;
   const storageRef = ref(storage, path);
-  await uploadBytes(storageRef, file);
+  await uploadBytes(storageRef, fileToUpload);
   return await getDownloadURL(storageRef);
 };
 
@@ -39,23 +41,21 @@ export const deleteUnitDoc = async (unitRef) => {
 
 export function useBuildings(userId) {
   const [buildings, setBuildings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!userId);
 
   useEffect(() => {
-    if (!userId) {
-      setBuildings([]);
-      setLoading(false);
-      return;
-    }
-    // Fetch all buildings and filter in JS to ensure legacy buildings (without user_id) are still retrieved
-    const q = query(collection(db, "buildings"));
+    if (!userId) return;
+    setLoading(true);
+    const q = query(
+      collection(db, "buildings"),
+      where("user_id", "==", userId)
+    );
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
         const data = snapshot.docs
-          .map(doc => ({ id: doc.id, ...doc.data() }))
-          .filter(b => !userId || b.user_id === userId || !b.user_id); // Include user docs + legacy demo docs
+          .map(doc => ({ id: doc.id, ...doc.data() }));
         
         // Sort by created_at desc in JS to avoid needing complex composite index in GCP console
         data.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
@@ -146,18 +146,15 @@ export function useBuildings(userId) {
 
 export function useAllUnits(userId) {
   const [units, setUnits] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!userId);
 
   useEffect(() => {
-    if (!userId) {
-      setUnits([]);
-      setLoading(false);
-      return;
-    }
-    // Fetch all units from collectionGroup.
-    // We remove the where() clause here to bypass the Firebase index requirement, 
-    // and instead rely on the JS .filter() below.
-    const q = query(collectionGroup(db, "units"));
+    if (!userId) return;
+    setLoading(true);
+    const q = query(
+      collectionGroup(db, "units"),
+      where("user_id", "==", userId)
+    );
 
     const unsubscribe = onSnapshot(
       q,
@@ -168,8 +165,7 @@ export function useAllUnits(userId) {
             ref: doc.ref,
             buildingId: doc.data().buildingId || doc.ref.parent?.parent?.id,
             ...doc.data()
-          }))
-          .filter(u => !userId || u.user_id === userId || !u.user_id);
+          }));
 
         setUnits(data);
         setLoading(false);
@@ -202,14 +198,11 @@ export function useAllUnits(userId) {
 
 export function useBuildingUnits(buildingId) {
   const [units, setUnits] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!buildingId);
 
   useEffect(() => {
-    if (!buildingId) {
-      setUnits([]);
-      setLoading(false);
-      return;
-    }
+    if (!buildingId) return;
+    setLoading(true);
     const q = query(collection(db, "buildings", buildingId, "units"));
     const unsubscribe = onSnapshot(
       q,
@@ -237,10 +230,11 @@ export function useBuildingUnits(buildingId) {
 
 export function useStaff(userId, buildingId) {
   const [staff, setStaff] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!userId);
 
   useEffect(() => {
-    if (!userId) { setStaff([]); setLoading(false); return; }
+    if (!userId) return;
+    setLoading(true);
     const q = query(collection(db, "staff"), where("user_id", "==", userId));
     const unsubscribe = onSnapshot(
       q,
@@ -269,10 +263,11 @@ export function useStaff(userId, buildingId) {
 
 export function useStaffErrands(staffId) {
   const [errands, setErrands] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!staffId);
 
   useEffect(() => {
-    if (!staffId) { setErrands([]); setLoading(false); return; }
+    if (!staffId) return;
+    setLoading(true);
     const q = query(collection(db, "errands"), where("staff_id", "==", staffId));
     const unsubscribe = onSnapshot(
       q,
@@ -297,6 +292,7 @@ export function useStaffErrands(staffId) {
 export const addStaffDoc = async (data) => {
   return await addDoc(collection(db, "staff"), {
     ...data,
+    user_id: data.user_id || auth?.currentUser?.uid || null,
     petty_cash_balance: 0,
     created_at: new Date().toISOString(),
   });
@@ -313,6 +309,7 @@ export const deleteStaffDoc = async (staffId) => {
 export const addErrandDoc = async (data) => {
   return await addDoc(collection(db, "errands"), {
     ...data,
+    user_id: data.user_id || auth?.currentUser?.uid || null,
     created_at: new Date().toISOString(),
   });
 };
@@ -354,13 +351,17 @@ export const settleStaffLedger = async (staffId, errandIds) => {
 
 // ─── Maintenance Hooks ────────────────────────────────────────────────────────
 
-export function useMaintenanceTickets(buildingId) {
+export function useMaintenanceTickets(buildingId, userId) {
   const [tickets, setTickets] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!buildingId);
 
   useEffect(() => {
-    if (!buildingId) { setTickets([]); setLoading(false); return; }
-    const q = query(collection(db, "maintenance"), where("building_id", "==", buildingId));
+    if (!buildingId) return;
+    setLoading(true);
+    const uid = userId || auth?.currentUser?.uid;
+    const constraints = [where("building_id", "==", buildingId)];
+    if (uid) constraints.push(where("user_id", "==", uid));
+    const q = query(collection(db, "maintenance"), ...constraints);
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
@@ -376,7 +377,7 @@ export function useMaintenanceTickets(buildingId) {
       }
     );
     return unsubscribe;
-  }, [buildingId]);
+  }, [buildingId, userId]);
 
   return { tickets, loading };
 }
@@ -384,6 +385,7 @@ export function useMaintenanceTickets(buildingId) {
 export const addMaintenanceTicketDoc = async (data) => {
   return await addDoc(collection(db, "maintenance"), {
     ...data,
+    user_id: data.user_id || auth?.currentUser?.uid || null,
     status: data.status || "reported",
     is_paid: false,
     receipt_urls: data.receipt_urls || [],
@@ -403,10 +405,11 @@ export const deleteMaintenanceTicketDoc = async (ticketId) => {
 
 export function useUserProfile(userId) {
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!userId);
 
   useEffect(() => {
-    if (!userId) { setProfile(null); setLoading(false); return; }
+    if (!userId) return;
+    setLoading(true);
     const docRef = doc(db, "users", userId);
     const unsubscribe = onSnapshot(
       docRef,
@@ -486,14 +489,11 @@ export const deleteUserData = async (userId, includeBuildings = true) => {
 // --- Property Documents Suite ---
 export function usePropertyDocuments(buildingId) {
   const [documents, setDocuments] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!buildingId);
 
   useEffect(() => {
-    if (!buildingId) {
-      setDocuments([]);
-      setLoading(false);
-      return;
-    }
+    if (!buildingId) return;
+    setLoading(true);
 
     // Query collection directly and sort in JS to avoid index dependencies or omitting docs without created_at
     const q = query(collection(db, "buildings", buildingId, "documents"));

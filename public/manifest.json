@@ -1,0 +1,22 @@
+{
+  "name": "Property Visualizer",
+  "short_name": "PropViz",
+  "description": "Manage your rental properties — 3D buildings, tenant ledger, maintenance, and payroll.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f4f5",
+  "theme_color": "#0b3860",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/branding/building-icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/branding/building-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

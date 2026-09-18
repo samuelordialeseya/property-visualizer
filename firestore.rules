@@ -1,43 +1,56 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Only authenticated users can read/write buildings they own.
-    // For v1 single-admin: any authenticated user can access all buildings.
+    // ── Buildings ────────────────────────────────────────────────────────────
     match /buildings/{buildingId} {
-      allow read, write: if request.auth != null;
-
-      // Units subcollection — same rule, must be signed in
+      allow create: if request.auth != null
+                    && request.resource.data.user_id == request.auth.uid;
+      allow read, update, delete: if request.auth != null
+                    && resource.data.user_id == request.auth.uid;
+      // Units subcollection — verify ownership via parent building
       match /units/{unitId} {
-        allow read, write: if request.auth != null;
+        allow read, write: if request.auth != null
+          && get(/databases/$(database)/documents/buildings/$(buildingId)).data.user_id == request.auth.uid;
       }
-
-      // Documents subcollection — property titles, utility bills, permits, etc.
+      // Documents subcollection
       match /documents/{docId} {
-        allow read, write: if request.auth != null;
+        allow read, write: if request.auth != null
+          && get(/databases/$(database)/documents/buildings/$(buildingId)).data.user_id == request.auth.uid;
       }
     }
-
-    // Allow collection group queries on "units" and "documents"
+    // Collection group queries (still needed for cross-building unit queries)
+    // We allow read for authenticated users, but JS-side filtering by user_id still applies.
+    // The tighter per-building rules above cover writes.
     match /{path=**}/units/{unitId} {
-      allow read, write: if request.auth != null;
+      allow read: if request.auth != null
+                  && resource.data.user_id == request.auth.uid;
+      allow write: if request.auth != null
+                   && request.resource.data.user_id == request.auth.uid;
     }
     match /{path=**}/documents/{docId} {
-      allow read, write: if request.auth != null;
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
     }
-
-    // Operations & Maintenance Suite
+    // ── Operations & Maintenance ─────────────────────────────────────────────
     match /staff/{staffId} {
-      allow read, write: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.resource.data.user_id == request.auth.uid;
+      allow read, update, delete: if request.auth != null
+                    && resource.data.user_id == request.auth.uid;
     }
     match /errands/{errandId} {
-      allow read, write: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.resource.data.user_id == request.auth.uid;
+      allow read, update, delete: if request.auth != null
+                    && resource.data.user_id == request.auth.uid;
     }
     match /maintenance/{ticketId} {
-      allow read, write: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.resource.data.user_id == request.auth.uid;
+      allow read, update, delete: if request.auth != null
+                    && resource.data.user_id == request.auth.uid;
     }
-    
-    // User Settings Profile
+    // ── User Settings Profile ────────────────────────────────────────────────
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }

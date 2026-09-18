@@ -11,7 +11,7 @@ export default function BottomNav({ activeView, setActiveView }) {
   return (
     <nav 
       aria-label="Mobile Navigation"
-      className="fixed bottom-0 inset-x-0 z-40 flex md:hidden items-center justify-around bg-white/95 backdrop-blur-xl border-t border-zinc-200/80 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] px-2 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
+      className="fixed bottom-0 inset-x-0 z-40 flex md:hidden items-center justify-around bg-white border-t border-zinc-200 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] px-2 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
     >
       {navItems.map((item) => {
         const isActive =

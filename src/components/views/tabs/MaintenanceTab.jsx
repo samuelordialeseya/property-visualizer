@@ -547,7 +547,7 @@ function TicketCard({ ticket, units = [], onEdit, onDelete, onStatusChange, staf
 // ─── Main Maintenance Tab ─────────────────────────────────────────────────────
 export default function MaintenanceTab({ building, units, userId }) {
   const buildingId = building?.id;
-  const { tickets, loading } = useMaintenanceTickets(buildingId);
+  const { tickets, loading } = useMaintenanceTickets(buildingId, userId);
   const { staff } = useStaff(userId, buildingId);
   const [showModal, setShowModal] = useState(false);
   const [editingTicket, setEditingTicket] = useState(null);

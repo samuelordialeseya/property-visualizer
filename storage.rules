@@ -1,6 +1,12 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    // Each user's files live under their uid prefix
+    match /users/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    // Fallback: allow authenticated read/write for any paths not under /users/
+    // (handles legacy paths if any exist)
     match /{allPaths=**} {
       allow read, write: if request.auth != null;
     }

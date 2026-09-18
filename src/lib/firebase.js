@@ -1,6 +1,13 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { 
+  getAuth, 
+  initializeAuth, 
+  indexedDBLocalPersistence, 
+  browserLocalPersistence, 
+  browserSessionPersistence, 
+  inMemoryPersistence 
+} from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
@@ -15,7 +22,22 @@ const firebaseConfig = {
 // Initialize Firebase (singleton pattern for Next.js)
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
-const auth = getAuth(app);
+
+// On mobile browsers (Safari, private mode, webviews), IndexedDB can hang or fail silently.
+// initializeAuth with persistence fallbacks ensures auth initializes without hanging.
+let auth;
+try {
+  if (typeof window !== "undefined") {
+    auth = initializeAuth(app, {
+      persistence: [indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence]
+    });
+  } else {
+    auth = getAuth(app);
+  }
+} catch {
+  auth = getAuth(app);
+}
+
 const storage = getStorage(app);
 
 export { app, db, auth, storage };

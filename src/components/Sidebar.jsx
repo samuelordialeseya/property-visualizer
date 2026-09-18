@@ -17,7 +17,7 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
     <aside
       className={`relative hidden md:flex flex-col transition-all duration-300 ease-in-out shrink-0 ${
         isDark ? "bg-[#0b0f13] border-r border-white/10" : "border-r border-zinc-200 bg-[#f4f4f5]"
-      } ${collapsed ? "w-[80px]" : "w-[280px]"}`}
+      } ${collapsed ? "w-[70px]" : "w-[25%] min-w-[190px] max-w-[240px] lg:w-[240px]"}`}
     >
       {/* Toggle button — sits on the edge of the sidebar */}
       <button
@@ -34,12 +34,12 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
       {/* Brand */}
       <div
         onClick={() => setActiveView("dashboard")}
-        className="relative flex items-center justify-center cursor-pointer h-[118px] px-3 select-none overflow-hidden"
+        className="relative flex items-center justify-center cursor-pointer h-[96px] px-2 select-none overflow-hidden"
         title="Go to Dashboard"
       >
         {/* Full horizontal logo */}
         <div
-          className={`absolute inset-0 flex items-center justify-center pt-6 transition-all duration-300 ease-in-out ${
+          className={`absolute inset-0 flex items-center justify-center pt-4 transition-all duration-300 ease-in-out ${
             collapsed
               ? "opacity-0 scale-90 pointer-events-none"
               : "opacity-100 scale-100 pointer-events-auto"
@@ -48,7 +48,7 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
           <img
             src="/branding/logo-horizontal.png"
             alt="Property Visualizer"
-            className="h-[65px] w-auto max-w-[210px] object-contain hover:opacity-90 transition-opacity"
+            className="h-[50px] w-auto max-w-[165px] object-contain hover:opacity-90 transition-opacity"
           />
         </div>
 
@@ -63,13 +63,13 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
           <img
             src="/branding/building-icon.png"
             alt="Property Visualizer"
-            className="h-10 w-auto object-contain hover:scale-105 transition-transform"
+            className="h-9 w-auto object-contain hover:scale-105 transition-transform"
           />
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className={`flex-1 space-y-3 px-4 mt-4`}>
+      <nav className="flex-1 space-y-2 px-3 mt-3">
         {navItems.map((item) => {
           const isActive =
             activeView === item.id ||
@@ -80,8 +80,8 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
               key={item.id}
               onClick={() => setActiveView(item.id)}
               title={collapsed ? item.label : undefined}
-              className={`flex w-full items-center rounded-[14px] transition active:scale-95 cursor-pointer text-[15px] font-medium ${
-                collapsed ? "justify-center px-0 py-3.5" : "gap-4 px-5 py-3.5"
+              className={`flex w-full items-center rounded-[12px] transition active:scale-95 cursor-pointer text-[14px] font-medium ${
+                collapsed ? "justify-center px-0 py-3" : "gap-3 px-3.5 py-3"
               } ${
                 isActive
                   ? isDark
@@ -104,18 +104,18 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
                     : "text-zinc-400"
                 }`}
               />
-              {!collapsed && <span className="whitespace-nowrap transition-opacity duration-200">{item.label}</span>}
+              {!collapsed && <span className="whitespace-nowrap truncate transition-opacity duration-200">{item.label}</span>}
             </button>
           );
         })}
       </nav>
 
       {/* Footer / Profile */}
-      <div className={`p-3 mt-auto ${isDark ? "border-t border-white/10" : "border-t border-zinc-200"}`}>
+      <div className={`p-2.5 mt-auto ${isDark ? "border-t border-white/10" : "border-t border-zinc-200"}`}>
         <div 
           onClick={() => setActiveView("settings")}
           title={collapsed ? "Profile Settings" : undefined}
-          className={`flex items-center ${collapsed ? "justify-center" : "gap-3"} cursor-pointer p-2 rounded-xl transition duration-150 hover:scale-[1.02] active:scale-[0.98] ${
+          className={`flex items-center ${collapsed ? "justify-center" : "gap-2.5"} cursor-pointer p-2 rounded-xl transition duration-150 hover:scale-[1.02] active:scale-[0.98] ${
             isDark ? "hover:bg-white/5" : "hover:bg-zinc-200/50"
           }`}
         >

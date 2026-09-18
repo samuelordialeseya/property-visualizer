@@ -37,7 +37,7 @@ export default function PropertyDetail({
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState(null);
 
-  const { tickets } = useMaintenanceTickets(building?.id);
+  const { tickets } = useMaintenanceTickets(building?.id, userId);
   const { staff } = useStaff(userId, building?.id);
   const { documents } = usePropertyDocuments(building?.id);
 

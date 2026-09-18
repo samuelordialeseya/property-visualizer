@@ -18,11 +18,39 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      setLoading(false);
-    });
-    return unsubscribe;
+    let resolved = false;
+
+    // Mobile fallback: If Firebase auth takes longer than 1500ms (e.g. mobile Safari IndexedDB delay/lock),
+    // stop blocking the page and transition so the user sees the Login screen or Dashboard
+    const timer = setTimeout(() => {
+      if (!resolved) {
+        console.warn("Auth state resolution timed out on mobile, continuing");
+        setUser(auth?.currentUser || null);
+        setLoading(false);
+      }
+    }, 1500);
+
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (u) => {
+        resolved = true;
+        clearTimeout(timer);
+        setUser(u);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("onAuthStateChanged error:", error);
+        resolved = true;
+        clearTimeout(timer);
+        setUser(null);
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+    };
   }, []);
 
   const login = (email, password) => signInWithEmailAndPassword(auth, email, password);

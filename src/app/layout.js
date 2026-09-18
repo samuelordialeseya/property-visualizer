@@ -1,5 +1,6 @@
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 export const metadata = {
   title: "Property Visualizer — Management & Tenant Hub",
@@ -18,15 +19,64 @@ export default function RootLayout({ children }) {
         <link rel="icon" href="/branding/favicon.png" type="image/png" />
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/branding/building-icon.png" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#0b3860" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="PropViz" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap"
           rel="stylesheet"
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              function showErrBanner(msg, loc) {
+                var el = document.getElementById('debug-err-banner');
+                if (!el) {
+                  el = document.createElement('div');
+                  el.id = 'debug-err-banner';
+                  el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:999999;background:#b91c1c;color:#fff;padding:12px 16px;font-size:12px;font-family:monospace;word-break:break-all;box-shadow:0 4px 6px rgba(0,0,0,0.3);';
+                  document.documentElement.appendChild(el);
+                }
+                el.innerHTML = '<strong>App Error:</strong> ' + msg + (loc ? '<br><small>' + loc + '</small>' : '');
+              }
+              window.addEventListener('error', function(e) {
+                var msg = e.message || (e.target && (e.target.src || e.target.href) ? 'Failed to load: ' + (e.target.src || e.target.href) : e.toString());
+                var loc = e.filename ? e.filename + ':' + e.lineno : '';
+                showErrBanner(msg, loc);
+              }, true);
+              window.addEventListener('unhandledrejection', function(e) {
+                var reason = e.reason;
+                var msg = reason ? (reason.message || reason.stack || String(reason)) : 'Unhandled Promise Rejection';
+                showErrBanner('Promise Rejection: ' + msg);
+              });
+              var origConsoleError = console.error;
+              console.error = function() {
+                origConsoleError.apply(console, arguments);
+                var text = Array.prototype.slice.call(arguments).map(function(a) {
+                  if (a instanceof Error) return a.name + ': ' + a.message;
+                  if (typeof a === 'object') {
+                    try { return JSON.stringify(a); } catch(_) { return String(a); }
+                  }
+                  return String(a);
+                }).join(' ');
+                if (/Error|uncaught|WebGL|Cannot read/i.test(text) && !/React will try to recreate/i.test(text)) {
+                  showErrBanner(text.slice(0, 300));
+                }
+              };
+            `,
+          }}
+        />
       </head>
       <body className="min-h-full">
-        <AuthProvider>{children}</AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>{children}</AuthProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

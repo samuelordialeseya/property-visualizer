@@ -872,7 +872,7 @@ function StaffLedger({ staff, userId, buildings = [], onClose, maintenanceTicket
 export default function StaffTab({ building, buildings, userId }) {
   const buildingId = building?.id;
   const { staff, loading } = useStaff(userId, buildingId);
-  const { tickets: maintenanceTickets } = useMaintenanceTickets(buildingId);
+  const { tickets: maintenanceTickets } = useMaintenanceTickets(buildingId, userId);
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
 

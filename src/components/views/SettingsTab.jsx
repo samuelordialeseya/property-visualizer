@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useUserProfile, updateUserProfile, deleteUserData } from "@/hooks/useFirestore";
-import { User, Download, Save, LogOut, Trash2, AlertTriangle, Eye, EyeOff, X, Loader2 } from "lucide-react";
+import { User, Download, Save, LogOut, Trash2, AlertTriangle, Eye, EyeOff, X, Loader2, RotateCw } from "lucide-react";
 
 export default function SettingsTab({ user, buildings = [], units = [] }) {
   const { logout, deleteAccount } = useAuth();
@@ -12,6 +12,7 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
   const [currency, setCurrency] = useState("PHP");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [reloading, setReloading] = useState(false);
 
   // Delete Account modal state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -20,6 +21,30 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
   const [deleteWithData, setDeleteWithData] = useState(true);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+
+  const handleForceReload = async () => {
+    setReloading(true);
+    try {
+      if (typeof window !== "undefined") {
+        if ("caches" in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map((k) => caches.delete(k)));
+        }
+        if ("serviceWorker" in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (const reg of registrations) {
+            await reg.unregister();
+          }
+        }
+        const url = new URL(window.location.origin);
+        url.searchParams.set("reload", Date.now().toString());
+        window.location.replace(url.toString());
+      }
+    } catch (e) {
+      console.warn("Reload error:", e);
+      window.location.reload();
+    }
+  };
 
   useEffect(() => {
     if (profile) {
@@ -125,9 +150,21 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
       <div className="max-w-3xl mx-auto space-y-6 pt-4">
         
         {/* Header */}
-        <div className="mb-8 animate-fade-down">
-          <h1 className="text-[36px] font-[800] text-[#0b3860] tracking-[-0.03em] font-['Sora']">Settings</h1>
-          <p className="text-[14px] text-zinc-400 mt-1 font-['Manrope'] font-medium">Manage your account profile and application preferences</p>
+        <div className="mb-8 animate-fade-down flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-[32px] sm:text-[36px] font-[800] text-[#0b3860] tracking-[-0.03em] font-['Sora']">Settings</h1>
+            <p className="text-[13px] sm:text-[14px] text-zinc-400 mt-1 font-['Manrope'] font-medium">Manage your account profile and application preferences</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleForceReload}
+            disabled={reloading}
+            title="Force reload and fetch latest version"
+            className="self-start sm:self-auto flex items-center gap-2 bg-white hover:bg-zinc-50 text-[#0b3860] border border-zinc-200/90 px-4 py-2.5 rounded-xl text-[13px] font-bold shadow-xs transition active:scale-95 cursor-pointer disabled:opacity-50 font-['Manrope']"
+          >
+            <RotateCw size={15} className={reloading ? "animate-spin text-[#0b3860]" : "text-[#0b3860]"} />
+            <span>{reloading ? "Reloading App…" : "Reload App"}</span>
+          </button>
         </div>
 
         {/* Account Profile Card */}
@@ -195,6 +232,30 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
             <button onClick={handleExportData}
               className="flex items-center gap-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-4 py-2.5 rounded-xl text-[13px] font-bold transition shadow-xs cursor-pointer active:scale-95">
               <Download size={14} /> Export CSV Data
+            </button>
+          </div>
+        </div>
+
+        {/* App Updates & Cache Card */}
+        <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden animate-fade-up delay-120">
+          <div className="px-6 py-4 border-b border-zinc-100 bg-white">
+            <h2 className="text-[14px] font-bold text-zinc-800 font-['Sora']">App Updates & Cache</h2>
+          </div>
+          <div className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="max-w-md">
+              <h3 className="text-[14px] font-bold text-zinc-900 font-['Sora'] mb-1">Check for Updates & Force Reload</h3>
+              <p className="text-[12px] text-zinc-500 font-['Manrope'] leading-relaxed">
+                If you use "Add to Home Screen" on your iPad or iPhone, tap this button to instantly download the latest updates and clear cached data without re-adding the app icon.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleForceReload}
+              disabled={reloading}
+              className="flex items-center gap-2 bg-[#0b3860] hover:bg-[#154e83] text-white px-5 py-2.5 rounded-xl text-[13px] font-bold transition shadow-xs cursor-pointer shrink-0 active:scale-95 disabled:opacity-50 font-['Manrope']"
+            >
+              <RotateCw size={14} className={reloading ? "animate-spin" : ""} />
+              {reloading ? "Updating…" : "Reload App Now"}
             </button>
           </div>
         </div>

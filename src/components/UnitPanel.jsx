@@ -184,7 +184,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
   }, [unit]);
 
   // ── Maintenance Tickets for this unit ──────────────────────────────────────
-  const { tickets } = useMaintenanceTickets(unit?.buildingId);
+  const { tickets } = useMaintenanceTickets(unit?.buildingId, unit?.user_id);
   const unitTickets = tickets.filter(t => t.unit_id === unit?.id && (t.status !== "settled" || !t.is_paid));
 
   // ── Save tenant & unit details ────────────────────────────────────────────
@@ -318,7 +318,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
   return (
     <>
       {isDrawerMode && (
-        <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+        <div className="fixed inset-0 z-40 bg-black/40 animate-fade-in" onClick={onClose} />
       )}
       <div className={`flex flex-col bg-white font-sans text-zinc-900 overflow-hidden animate-slide-in-right ${isDrawerMode ? drawerClasses : floatingClasses}`}>
 

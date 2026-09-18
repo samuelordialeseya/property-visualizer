@@ -44,23 +44,35 @@
   }
   .no-scrollbar::-webkit-scrollbar { display: none; }
 
-  /* Animation utility classes */
-  .animate-fade-in        { animation: fade-in        200ms ease-out both; }
-  .animate-fade-up        { animation: fade-up        250ms ease-out both; }
-  .animate-fade-down      { animation: fade-down      200ms ease-out both; }
-  .animate-slide-in-right { animation: slide-in-right 300ms cubic-bezier(0.32, 0, 0.15, 1) both; }
-  .animate-scale-in       { animation: scale-in       200ms ease-out both; }
-  .animate-slide-up-panel { animation: slide-up-panel 300ms cubic-bezier(0.32, 0, 0.15, 1) both; }
+  /* Animation utility classes — GPU accelerated for iPad / mobile */
+  .animate-fade-in        { animation: fade-in        140ms ease-out both; will-change: opacity; }
+  .animate-fade-up        { animation: fade-up        140ms ease-out both; will-change: transform, opacity; }
+  .animate-fade-down      { animation: fade-down      140ms ease-out both; will-change: transform, opacity; }
+  .animate-slide-in-right { animation: slide-in-right 180ms cubic-bezier(0.2, 0, 0.2, 1) both; will-change: transform, opacity; }
+  .animate-scale-in       { animation: scale-in       140ms ease-out both; will-change: transform, opacity; }
+  .animate-slide-up-panel { animation: slide-up-panel 200ms cubic-bezier(0.2, 0, 0.2, 1) both; will-change: transform; }
+
+  /* Touch device optimizations: disable sticky hover transforms that stutter on tap */
+  @media (hover: none) {
+    .hover\:-translate-y-1:hover {
+      transform: none !important;
+    }
+    .hover\:scale-105:hover,
+    .hover\:scale-110:hover,
+    .hover\:scale-\[1\.02\]:hover {
+      transform: none !important;
+    }
+  }
 
   /* Stagger delay helpers */
-  .delay-50  { animation-delay: 50ms; }
-  .delay-100 { animation-delay: 100ms; }
-  .delay-150 { animation-delay: 150ms; }
-  .delay-200 { animation-delay: 200ms; }
-  .delay-300 { animation-delay: 300ms; }
+  .delay-50  { animation-delay: 30ms; }
+  .delay-100 { animation-delay: 60ms; }
+  .delay-150 { animation-delay: 90ms; }
+  .delay-200 { animation-delay: 120ms; }
+  .delay-300 { animation-delay: 150ms; }
 }
 
-/* Keyframe definitions */
+/* Keyframe definitions with translate3d for GPU compositing */
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -69,53 +81,53 @@
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translate3d(0, 8px, 0);
   }
   to {
     opacity: 1;
-    transform: none;
+    transform: translate3d(0, 0, 0);
   }
 }
 
 @keyframes fade-down {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translate3d(0, -6px, 0);
   }
   to {
     opacity: 1;
-    transform: none;
+    transform: translate3d(0, 0, 0);
   }
 }
 
 @keyframes slide-in-right {
   from {
     opacity: 0;
-    transform: translateX(24px);
+    transform: translate3d(16px, 0, 0);
   }
   to {
     opacity: 1;
-    transform: none;
+    transform: translate3d(0, 0, 0);
   }
 }
 
 @keyframes scale-in {
   from {
     opacity: 0;
-    transform: scale(0.94);
+    transform: scale3d(0.96, 0.96, 1);
   }
   to {
     opacity: 1;
-    transform: none;
+    transform: translate3d(0, 0, 0);
   }
 }
 
 @keyframes slide-up-panel {
   from {
-    transform: translateY(100%);
+    transform: translate3d(0, 100%, 0);
   }
   to {
-    transform: none;
+    transform: translate3d(0, 0, 0);
   }
 }
 
