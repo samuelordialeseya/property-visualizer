@@ -44,13 +44,13 @@
   }
   .no-scrollbar::-webkit-scrollbar { display: none; }
 
-  /* Animation utility classes — GPU accelerated for iPad / mobile */
-  .animate-fade-in        { animation: fade-in        140ms ease-out both; will-change: opacity; }
-  .animate-fade-up        { animation: fade-up        140ms ease-out both; will-change: transform, opacity; }
-  .animate-fade-down      { animation: fade-down      140ms ease-out both; will-change: transform, opacity; }
-  .animate-slide-in-right { animation: slide-in-right 180ms cubic-bezier(0.2, 0, 0.2, 1) both; will-change: transform, opacity; }
-  .animate-scale-in       { animation: scale-in       140ms ease-out both; will-change: transform, opacity; }
-  .animate-slide-up-panel { animation: slide-up-panel 200ms cubic-bezier(0.2, 0, 0.2, 1) both; will-change: transform; }
+  /* Animation utility classes — optimized for high 60fps on mobile */
+  .animate-fade-in        { animation: fade-in        140ms ease-out both; }
+  .animate-fade-up        { animation: fade-up        140ms ease-out both; }
+  .animate-fade-down      { animation: fade-down      140ms ease-out both; }
+  .animate-slide-in-right { animation: slide-in-right 180ms cubic-bezier(0.2, 0, 0.2, 1) both; }
+  .animate-scale-in       { animation: scale-in       140ms ease-out both; }
+  .animate-slide-up-panel { animation: slide-up-panel 200ms cubic-bezier(0.2, 0, 0.2, 1) both; }
 
   /* Touch device optimizations: disable sticky hover transforms that stutter on tap */
   @media (hover: none) {

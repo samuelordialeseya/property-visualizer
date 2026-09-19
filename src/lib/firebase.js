@@ -1,10 +1,10 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, initializeFirestore, memoryLocalCache } from "firebase/firestore";
 import { 
   getAuth, 
   initializeAuth, 
+  browserLocalPersistence,
   indexedDBLocalPersistence, 
-  browserLocalPersistence, 
   browserSessionPersistence, 
   inMemoryPersistence 
 } from "firebase/auth";
@@ -21,15 +21,26 @@ const firebaseConfig = {
 
 // Initialize Firebase (singleton pattern for Next.js)
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
 
-// On mobile browsers (Safari, private mode, webviews), IndexedDB can hang or fail silently.
-// initializeAuth with persistence fallbacks ensures auth initializes without hanging.
+// Use memoryLocalCache to eliminate IndexedDB database lock/closure errors on mobile devices
+let db;
+try {
+  db = initializeFirestore(app, {
+    localCache: memoryLocalCache(),
+  });
+} catch {
+  db = getFirestore(app);
+}
+
+// On mobile browsers (Safari, private mode, webviews), IndexedDB connections frequently
+// abort or throw "database is closing" when the tab is hidden or backgrounded.
+// Prioritizing browserLocalPersistence (localStorage) guarantees fast, synchronous, persistent auth
+// that never disconnects on mobile tab hide/sleep.
 let auth;
 try {
   if (typeof window !== "undefined") {
     auth = initializeAuth(app, {
-      persistence: [indexedDBLocalPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence]
+      persistence: [browserLocalPersistence, indexedDBLocalPersistence, browserSessionPersistence, inMemoryPersistence]
     });
   } else {
     auth = getAuth(app);

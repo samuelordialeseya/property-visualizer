@@ -35,15 +35,32 @@ export default function RootLayout({ children }) {
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              function isIgnoredError(msg) {
+                if (!msg || typeof msg !== 'string') return false;
+                var lower = msg.toLowerCase();
+                return (
+                  lower.includes('database connection is closing') ||
+                  lower.includes('database is closing') ||
+                  lower.includes('connection is closed') ||
+                  lower.includes('client is offline') ||
+                  lower.includes('resizeobserver') ||
+                  lower.includes('aborterror') ||
+                  lower.includes('webglcontextlost') ||
+                  lower.includes('context lost')
+                );
+              }
               function showErrBanner(msg, loc) {
+                if (isIgnoredError(msg) || (loc && isIgnoredError(loc))) return;
                 var el = document.getElementById('debug-err-banner');
                 if (!el) {
                   el = document.createElement('div');
                   el.id = 'debug-err-banner';
-                  el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:999999;background:#b91c1c;color:#fff;padding:12px 16px;font-size:12px;font-family:monospace;word-break:break-all;box-shadow:0 4px 6px rgba(0,0,0,0.3);';
+                  el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:999999;background:#b91c1c;color:#fff;padding:10px 14px;font-size:12px;font-family:monospace;word-break:break-all;box-shadow:0 4px 12px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:space-between;gap:8px;';
                   document.documentElement.appendChild(el);
                 }
-                el.innerHTML = '<strong>App Error:</strong> ' + msg + (loc ? '<br><small>' + loc + '</small>' : '');
+                el.innerHTML = '<div style="flex:1;"><strong>App Error:</strong> ' + msg + (loc ? '<br><small>' + loc + '</small>' : '') + '</div>' +
+                  '<button onclick="document.getElementById(\\'debug-err-banner\\').style.display=\\'none\\'" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold;">✕</button>';
+                el.style.display = 'flex';
               }
               window.addEventListener('error', function(e) {
                 var msg = e.message || (e.target && (e.target.src || e.target.href) ? 'Failed to load: ' + (e.target.src || e.target.href) : e.toString());
@@ -55,20 +72,14 @@ export default function RootLayout({ children }) {
                 var msg = reason ? (reason.message || reason.stack || String(reason)) : 'Unhandled Promise Rejection';
                 showErrBanner('Promise Rejection: ' + msg);
               });
-              var origConsoleError = console.error;
-              console.error = function() {
-                origConsoleError.apply(console, arguments);
-                var text = Array.prototype.slice.call(arguments).map(function(a) {
-                  if (a instanceof Error) return a.name + ': ' + a.message;
-                  if (typeof a === 'object') {
-                    try { return JSON.stringify(a); } catch(_) { return String(a); }
+              document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible') {
+                  var el = document.getElementById('debug-err-banner');
+                  if (el && isIgnoredError(el.innerText)) {
+                    el.style.display = 'none';
                   }
-                  return String(a);
-                }).join(' ');
-                if (/Error|uncaught|WebGL|Cannot read/i.test(text) && !/React will try to recreate/i.test(text)) {
-                  showErrBanner(text.slice(0, 300));
                 }
-              };
+              });
             `,
           }}
         />

@@ -67,13 +67,20 @@ export function loadPhotoTexture(url, repeatX = 1, repeatY = 1, onLoad = null) {
   const texLoader = getLoader();
   if (!texLoader) return null;
 
-  const texture = texLoader.load(url, (loadedTex) => {
-    loadedTex.wrapS = THREE.RepeatWrapping;
-    loadedTex.wrapT = THREE.RepeatWrapping;
-    loadedTex.repeat.set(repeatX, repeatY);
-    loadedTex.needsUpdate = true;
-    if (onLoad) onLoad(loadedTex);
-  });
+  const texture = texLoader.load(
+    url,
+    (loadedTex) => {
+      loadedTex.wrapS = THREE.RepeatWrapping;
+      loadedTex.wrapT = THREE.RepeatWrapping;
+      loadedTex.repeat.set(repeatX, repeatY);
+      loadedTex.needsUpdate = true;
+      if (onLoad) onLoad(loadedTex);
+    },
+    undefined,
+    (err) => {
+      console.warn(`[textureGenerator] Could not load texture: ${url}`);
+    }
+  );
 
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
@@ -87,13 +94,14 @@ export function loadPhotoTexture(url, repeatX = 1, repeatY = 1, onLoad = null) {
  * Returns photographic material maps and PBR parameters for a unit.
  */
 export function applyMaterialToRef(mat, materialType, textureUrl, repeatX = 1, repeatY = 1, wallColor = null) {
-  if (!mat) return;
+  if (!mat || !mat.color) return;
 
   const isDefaultColor = !wallColor || wallColor === "#4a5a66";
 
   if (textureUrl) {
     // Custom uploaded texture
     const tex = loadPhotoTexture(textureUrl, repeatX, repeatY, (loaded) => {
+      if (!mat || !mat.color) return;
       mat.map = loaded;
       mat.bumpMap = loaded;
       mat.bumpScale = 0.04;
@@ -117,11 +125,13 @@ export function applyMaterialToRef(mat, materialType, textureUrl, repeatX = 1, r
 
   if (config.mapUrl || config.bumpUrl) {
     const diffuseTex = config.mapUrl ? loadPhotoTexture(config.mapUrl, repeatX, repeatY, (loaded) => {
+      if (!mat || !mat.color) return;
       mat.map = loaded;
       mat.needsUpdate = true;
     }) : null;
     const bumpTex = config.bumpUrl
       ? loadPhotoTexture(config.bumpUrl, repeatX, repeatY, (loaded) => {
+          if (!mat || !mat.color) return;
           mat.bumpMap = loaded;
           mat.needsUpdate = true;
         })

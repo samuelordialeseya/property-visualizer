@@ -11,13 +11,20 @@ import FootprintEditor from "./FootprintEditor"; // keep if needed or replace
 import RoomLayoutEditor from "./RoomLayoutEditor";
 import Blueprint2DView from "./Blueprint2DView";
 
-function checkWebGL2Support() {
+function checkWebGLSupport() {
   if (typeof window === "undefined") return true;
   try {
+    if (!window.WebGLRenderingContext && !window.WebGL2RenderingContext) return false;
     const canvas = document.createElement("canvas");
-    return !!(window.WebGL2RenderingContext && (canvas.getContext("webgl2") || canvas.getContext("experimental-webgl2")));
+    const gl = canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    const isSupported = !!gl;
+    if (gl) {
+      const ext = gl.getExtension("WEBGL_lose_context");
+      if (ext) ext.loseContext();
+    }
+    return isSupported;
   } catch (e) {
-    return false;
+    return true; // Don't lock out 3D on simple check error
   }
 }
 
@@ -51,6 +58,7 @@ function CameraController({ selectedUnit, isEditMode, cameraPreset }) {
 
   // Handle camera presets
   useEffect(() => {
+    if (!camera) return;
     if (cameraPreset === "top-down") {
       camera.position.set(0, 30, 0.1);
       if (controls) controls.target.set(0, 0, 0);
@@ -65,30 +73,33 @@ function CameraController({ selectedUnit, isEditMode, cameraPreset }) {
   }, [cameraPreset, camera, controls]);
 
   useFrame((state, delta) => {
-    // 1. Determine target offset (shift room to the left by offsetting projection right)
-    const targetOffsetX = (selectedUnit && !isEditMode) ? size.width * 0.18 : 0;
+    if (!camera || !size || size.width <= 0 || size.height <= 0) return;
+
+    // Only offset camera on desktop screens (width >= 768) where inspector is a side panel.
+    // On mobile, inspector is a bottom drawer, so horizontal offset is not needed.
+    const isDesktop = size.width >= 768;
+    const targetOffsetX = (selectedUnit && !isEditMode && isDesktop) ? size.width * 0.18 : 0;
     
-    // 2. Interpolate offset smoothly
-    currentOffset.current.x = THREE.MathUtils.lerp(currentOffset.current.x, targetOffsetX, 4 * delta);
+    // Clamp delta to avoid huge jumps on tab switch / background return
+    const safeDelta = Math.min(delta, 0.1);
+    currentOffset.current.x = THREE.MathUtils.lerp(currentOffset.current.x, targetOffsetX, 4 * safeDelta);
     
-    // 3. Apply offset to camera projection
-    if (Math.abs(currentOffset.current.x) > 0.5) {
+    // 3. Apply offset to camera projection safely
+    if (Math.abs(currentOffset.current.x) > 1) {
       camera.setViewOffset(size.width, size.height, currentOffset.current.x, 0, size.width, size.height);
     } else if (camera.view && camera.view.offsetX !== 0) {
       camera.clearViewOffset();
+      currentOffset.current.x = 0;
     }
 
-    // 4. When a unit is selected, lock and interpolate OrbitControls target smoothly
-    if (selectedUnit && !isEditMode) {
+    // 4. When a unit is selected, smoothly pan OrbitControls target
+    if (selectedUnit && !isEditMode && controls) {
       const floorOffset = ((selectedUnit.floor || 1) - 1) * (UNIT_H + 0.11);
       const h = selectedUnit.height || 2.2;
       const y = floorOffset + h / 2;
       targetPos.set(selectedUnit.x || 0, y, selectedUnit.z || 0);
-      
-      if (controls) {
-        controls.target.lerp(targetPos, 4 * delta);
-        controls.update();
-      }
+      controls.target.lerp(targetPos, 4 * safeDelta);
+      controls.update();
     }
   });
 
@@ -221,16 +232,17 @@ function UnitBox({ unit, isSelected, onClick, activeFloor, searchQuery, hoveredU
           center
           zIndexRange={[10, 0]}
           style={{ pointerEvents: 'none' }}
+          occlude={false}
         >
           <div style={{
             display: 'flex', alignItems: 'center', gap: '5px',
-            background: 'rgba(11,15,19,0.92)', backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255,255,255,0.18)',
+            background: '#111822',
+            border: '1px solid rgba(255,255,255,0.22)',
             borderRadius: '999px', padding: '2px 8px 2px 6px',
             fontSize: '11px', fontWeight: 700,
             fontFamily: 'Manrope, sans-serif', color: '#f4f4f5',
             whiteSpace: 'nowrap', opacity: isDimmed ? 0.2 : 1,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
           }}>
             <span style={{ height: 6, width: 6, borderRadius: '50%', background: statusCss, flexShrink: 0, display: 'inline-block' }} />
             {unit.unit_label || '?'}
@@ -238,13 +250,13 @@ function UnitBox({ unit, isSelected, onClick, activeFloor, searchQuery, hoveredU
         </Html>
       )}
 
-      {/* ── Rich hover card */}
+      {/* ── Rich hover card (desktop pointer only) */}
       {isHovered && !isGhosted && (
-        <Html center position={[0, h / 2 + 0.6, 0]} zIndexRange={[20, 11]} style={{ pointerEvents: 'none' }}>
+        <Html center position={[0, h / 2 + 0.6, 0]} zIndexRange={[20, 11]} style={{ pointerEvents: 'none' }} occlude={false}>
           <div style={{
-            width: 192, background: 'rgba(255,255,255,0.97)',
-            backdropFilter: 'blur(16px)', border: '1px solid #e4e4e7',
-            borderRadius: 16, padding: '10px 12px', boxShadow: '0 12px 40px rgba(0,0,0,0.28)',
+            width: 192, background: '#ffffff',
+            border: '1px solid #d4d4d8',
+            borderRadius: 16, padding: '10px 12px', boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
             fontFamily: 'Manrope, sans-serif', color: '#18181b',
           }}>
             {/* Top row */}
@@ -285,7 +297,7 @@ function UnitBox({ unit, isSelected, onClick, activeFloor, searchQuery, hoveredU
 
       {/* ── Maintenance Wrench Icon ── */}
       {!isGhosted && hasActiveTicket && !isHovered && (
-        <Html center position={[0, h / 2 + 0.45, bd / 2 + 0.12]} zIndexRange={[12, 1]} style={{ pointerEvents: 'none' }}>
+        <Html center position={[0, h / 2 + 0.45, bd / 2 + 0.12]} zIndexRange={[12, 1]} style={{ pointerEvents: 'none' }} occlude={false}>
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: '#f59e0b', color: '#fff', borderRadius: '50%',
@@ -577,7 +589,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
   const [isWebGLSupported, setIsWebGLSupported] = useState(true);
 
   useEffect(() => {
-    const supported = checkWebGL2Support();
+    const supported = checkWebGLSupport();
     setIsWebGLSupported(supported);
     if (!supported) {
       setViewMode("2d");
@@ -1360,13 +1372,13 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
           ) : (
             <WebGLErrorBoundary onSwitchTo2D={() => setViewMode("2d")}>
               <Canvas
-                shadows
-                dpr={[1, 1.5]}
+                shadows={false}
+                dpr={[1, typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 1.5) : 1]}
                 camera={{ position: [11, 9, 13], fov: 38 }}
                 gl={{
-                  antialias: true,
-                  powerPreference: "high-performance",
-                  preserveDrawingBuffer: true,
+                  antialias: false,
+                  powerPreference: "default",
+                  preserveDrawingBuffer: false,
                   failIfMajorPerformanceCaveat: false,
                 }}
                 onCreated={({ gl }) => {
@@ -1379,20 +1391,12 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                 <color attach="background" args={[0x0b0f13]} />
                 <fog attach="fog" args={[0x0b0f13, 15, 60]} />
 
-                {/* Lighting for Enhanced Dark Mode */}
-                <hemisphereLight args={[0xffffff, 0x445566, 0.6]} />
+                {/* Lighting for Enhanced Dark Mode — optimized fill */}
+                <hemisphereLight args={[0xffffff, 0x445566, 0.7]} />
                 <directionalLight
-                  castShadow
                   position={[8, 14, 6]}
                   intensity={1.5}
                   color={0xffeedd}
-                  shadow-mapSize={[512, 512]}
-                  shadow-camera-left={-14}
-                  shadow-camera-right={14}
-                  shadow-camera-top={14}
-                  shadow-camera-bottom={-14}
-                  shadow-bias={-0.001}
-                  shadow-normalBias={0.06}
                 />
                 {/* Soft rim light / fill */}
                 <directionalLight position={[-6, 8, -8]} intensity={1.8} color={0x2b4a5f} />
@@ -1400,6 +1404,12 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                 <Ground onGroundClick={() => {
                   if (!editMode && onSelectUnit) onSelectUnit(null);
                 }} />
+
+                {/* Lightweight ground ambient shadow — zero GPU overhead */}
+                <mesh position={[0, 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                  <ringGeometry args={[0, 16, 32]} />
+                  <meshBasicMaterial color="#000000" opacity={0.35} transparent depthWrite={false} />
+                </mesh>
 
                 {!editMode ? (
                   <Building
@@ -1425,16 +1435,6 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                   selectedUnit={units.find(u => u.id === selectedUnitId)} 
                   isEditMode={editMode} 
                   cameraPreset={cameraPreset}
-                />
-
-                <ContactShadows
-                  position={[0, 0.02, 0]}
-                  opacity={0.4}
-                  scale={35}
-                  blur={2}
-                  far={6}
-                  color="#000000"
-                  frames={1}
                 />
 
                 <OrbitControls
