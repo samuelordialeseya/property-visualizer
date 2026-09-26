@@ -34,12 +34,12 @@ const STATUS_COLOR = {
   overdue:  0xe05c5c,
   vacant:   0x6e8592,
 };
-const UNIT_BODY_COLOR  = 0x4a5a66;
-const ROOF_COLOR       = 0x36434d;
+const UNIT_BODY_COLOR  = 0x5b6c7d;
+const ROOF_COLOR       = 0x3d4e5e;
 const WINDOW_COLOR     = 0xf9d392;
 const DOOR_COLOR       = 0x479de9;
-const GROUND_COLOR     = 0x0b0f13;
-const SLAB_COLOR       = 0x111518;
+const GROUND_COLOR     = 0x121720;
+const SLAB_COLOR       = 0x1a222c;
 
 // ─── Build a THREE.Shape from a list of {x,z} points ────────────────────────
 function pointsToShape(pts) {
@@ -53,51 +53,37 @@ function pointsToShape(pts) {
 // ─── Camera Controller for smooth auto-framing ───────────────────────────────
 function CameraController({ selectedUnit, isEditMode, cameraPreset }) {
   const { camera, size, controls } = useThree();
-  const targetPos = useMemo(() => new THREE.Vector3(0, 2.6, 0), []);
-  const currentOffset = useRef({ x: 0 });
+  const targetPos = useMemo(() => new THREE.Vector3(0, 1.4, 0), []);
 
   // Handle camera presets
   useEffect(() => {
-    if (!camera) return;
+    if (!camera || !controls) return;
     if (cameraPreset === "top-down") {
-      camera.position.set(0, 30, 0.1);
-      if (controls) controls.target.set(0, 0, 0);
+      camera.position.set(0, 14, 0.05);
+      controls.target.set(0, 0, 0);
     } else if (cameraPreset === "front") {
-      camera.position.set(0, 5, 25);
-      if (controls) controls.target.set(0, 2.6, 0);
+      camera.position.set(0, 3.5, 11);
+      controls.target.set(0, 1.4, 0);
     } else if (cameraPreset === "isometric") {
-      camera.position.set(15, 12, 18);
-      if (controls) controls.target.set(0, 2.6, 0);
+      camera.position.set(9, 7.5, 11);
+      controls.target.set(0, 1.4, 0);
     }
-    if (controls) controls.update();
+    controls.update();
   }, [cameraPreset, camera, controls]);
 
   useFrame((state, delta) => {
-    if (!camera || !size || size.width <= 0 || size.height <= 0) return;
+    if (!camera || !controls || !size || size.width <= 0 || size.height <= 0) return;
 
-    // Only offset camera on desktop screens (width >= 768) where inspector is a side panel.
-    // On mobile, inspector is a bottom drawer, so horizontal offset is not needed.
-    const isDesktop = size.width >= 768;
-    const targetOffsetX = (selectedUnit && !isEditMode && isDesktop) ? size.width * 0.18 : 0;
-    
-    // Clamp delta to avoid huge jumps on tab switch / background return
     const safeDelta = Math.min(delta, 0.1);
-    currentOffset.current.x = THREE.MathUtils.lerp(currentOffset.current.x, targetOffsetX, 4 * safeDelta);
-    
-    // 3. Apply offset to camera projection safely
-    if (Math.abs(currentOffset.current.x) > 1) {
-      camera.setViewOffset(size.width, size.height, currentOffset.current.x, 0, size.width, size.height);
-    } else if (camera.view && camera.view.offsetX !== 0) {
-      camera.clearViewOffset();
-      currentOffset.current.x = 0;
-    }
 
-    // 4. When a unit is selected, smoothly pan OrbitControls target
-    if (selectedUnit && !isEditMode && controls) {
+    // Smoothly pan OrbitControls target to center selected unit
+    if (selectedUnit && !isEditMode) {
+      const isDesktop = size.width >= 768;
       const floorOffset = ((selectedUnit.floor || 1) - 1) * (UNIT_H + 0.11);
       const h = selectedUnit.height || 2.2;
       const y = floorOffset + h / 2;
-      targetPos.set(selectedUnit.x || 0, y, selectedUnit.z || 0);
+      const panOffset = isDesktop ? -1.0 : 0;
+      targetPos.set((selectedUnit.x || 0) + panOffset, y, selectedUnit.z || 0);
       controls.target.lerp(targetPos, 4 * safeDelta);
       controls.update();
     }
@@ -166,12 +152,15 @@ function UnitBox({ unit, isSelected, onClick, activeFloor, searchQuery, hoveredU
         <boxGeometry args={[bw, bh, bd]} />
         <meshStandardMaterial
           ref={matRef}
-          emissive={isSelected ? new THREE.Color(0x4a8a70) : new THREE.Color(0x000000)}
-          emissiveIntensity={isSelected ? 0.15 : 0}
+          color={baseColor}
+          roughness={0.55}
+          emissive={isSelected ? new THREE.Color(0x2270b8) : new THREE.Color(0x000000)}
+          emissiveIntensity={isSelected ? 0.2 : 0}
           transparent={isGhosted || isDimmed}
           opacity={isGhosted ? 0.12 : isDimmed ? 0.18 : 1}
         />
-        {isSelected && <Edges scale={1.005} threshold={15} color="#2270b8" />}
+        {/* Outlines: vibrant blue when selected, sleek slate when unselected */}
+        <Edges scale={1.001} threshold={20} color={isSelected ? "#38bdf8" : "#243242"} />
       </mesh>
 
       {/* Status strip at base */}
@@ -313,32 +302,76 @@ function UnitBox({ unit, isSelected, onClick, activeFloor, searchQuery, hoveredU
         <group position={[0, h / 2, 0]}>
           <mesh position={[0, 0.055, 0]} castShadow receiveShadow>
             <boxGeometry args={[localW + 0.2, 0.11, localD + 0.2]} />
-            <meshStandardMaterial color={ROOF_COLOR} roughness={0.9}
+            <meshStandardMaterial color={ROOF_COLOR} roughness={0.6}
               transparent={isGhosted || isDimmed} opacity={isGhosted ? 0.12 : isDimmed ? 0.18 : 1}
             />
+            <Edges scale={1.001} threshold={20} color={isSelected ? "#38bdf8" : "#283747"} />
           </mesh>
           <mesh position={[0, 0.11 + 0.5, 0]} castShadow receiveShadow rotation={[0, Math.PI / 4, 0]} scale={[(localW + 0.2) / Math.SQRT2, 1, (localD + 0.2) / Math.SQRT2]}>
             <coneGeometry args={[1, 1, 4]} />
-            <meshStandardMaterial color={ROOF_COLOR} roughness={0.9}
+            <meshStandardMaterial color={ROOF_COLOR} roughness={0.6}
               transparent={isGhosted || isDimmed} opacity={isGhosted ? 0.12 : isDimmed ? 0.18 : 1}
             />
+            <Edges scale={1.001} threshold={20} color={isSelected ? "#38bdf8" : "#283747"} />
           </mesh>
         </group>
       ) : (
-        <mesh position={[0, h / 2 + 0.055, 0]} castShadow receiveShadow>
-          <boxGeometry args={[localW + 0.2, 0.11, localD + 0.2]} />
-          <meshStandardMaterial color={ROOF_COLOR} roughness={0.9}
-            transparent={isGhosted || isDimmed} opacity={isGhosted ? 0.12 : isDimmed ? 0.18 : 1}
-          />
-        </mesh>
+        <group position={[0, h / 2 + 0.055, 0]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[localW + 0.2, 0.11, localD + 0.2]} />
+            <meshStandardMaterial color={ROOF_COLOR} roughness={0.6}
+              transparent={isGhosted || isDimmed} opacity={isGhosted ? 0.12 : isDimmed ? 0.18 : 1}
+            />
+            <Edges scale={1.001} threshold={20} color={isSelected ? "#38bdf8" : "#2c3b4a"} />
+          </mesh>
+          {/* Architectural roof cap trim for high visibility in top-down view */}
+          <mesh position={[0, 0.06, 0]}>
+            <boxGeometry args={[localW + 0.04, 0.02, localD + 0.04]} />
+            <meshStandardMaterial color="#2d3c4a" roughness={0.5} />
+            <Edges scale={1.001} threshold={20} color="#3a4c5c" />
+          </mesh>
+        </group>
       )}
     </group>
   );
 }
 
 function Building({ units, tickets = [], selectedUnitId, onSelectUnit, activeFloor, searchQuery, hoveredUnitId, onHover }) {
+  // Foundation footprint for Floor 1 units
+  const baseUnits = useMemo(() => units.filter(u => (u.floor || 1) === 1), [units]);
+  const foundation = useMemo(() => {
+    if (baseUnits.length === 0) return null;
+    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+    baseUnits.forEach(u => {
+      const rot = u.rotation || 0;
+      const isRot = rot === 90 || rot === 270;
+      const w = isRot ? (u.depth || 3.2) : (u.width || 2.6);
+      const d = isRot ? (u.width || 2.6) : (u.depth || 3.2);
+      minX = Math.min(minX, (u.x || 0) - w / 2);
+      maxX = Math.max(maxX, (u.x || 0) + w / 2);
+      minZ = Math.min(minZ, (u.z || 0) - d / 2);
+      maxZ = Math.max(maxZ, (u.z || 0) + d / 2);
+    });
+    const fw = (maxX - minX) + 0.8;
+    const fd = (maxZ - minZ) + 0.8;
+    const cx = (minX + maxX) / 2;
+    const cz = (minZ + maxZ) / 2;
+    return { fw, fd, cx, cz };
+  }, [baseUnits]);
+
   return (
     <group>
+      {/* Foundation plinth */}
+      {foundation && (
+        <group position={[foundation.cx, 0.035, foundation.cz]}>
+          <mesh receiveShadow position={[0, 0, 0]}>
+            <boxGeometry args={[foundation.fw, 0.07, foundation.fd]} />
+            <meshStandardMaterial color={SLAB_COLOR} roughness={0.8} />
+            <Edges scale={1.001} threshold={20} color="#2b3947" />
+          </mesh>
+        </group>
+      )}
+
       {units.map((unit) => {
         const hasActiveTicket = tickets.some(t => t.unitId === unit.id && t.status !== "settled");
         return (
@@ -375,7 +408,7 @@ function editorRoomsToUnits(editorRooms) {
 // ─── Ground + grid ───────────────────────────────────────────────────────────
 function Ground({ onGroundClick }) {
   return (
-    <>
+    <group>
       <mesh 
         rotation={[-Math.PI / 2, 0, 0]} 
         receiveShadow 
@@ -386,10 +419,11 @@ function Ground({ onGroundClick }) {
         }}
       >
         <planeGeometry args={[60, 60]} />
-        <meshStandardMaterial color={GROUND_COLOR} roughness={1} />
+        <meshStandardMaterial color={GROUND_COLOR} roughness={0.85} />
       </mesh>
-      <gridHelper args={[60, 60, 0x262b2e, 0x1a1e20]} position={[0, 0.005, 0]} />
-    </>
+      {/* Crisp architectural grid floor */}
+      <gridHelper args={[60, 30, 0x38bdf8, 0x223244]} position={[0, 0.005, 0]} />
+    </group>
   );
 }
 
@@ -1374,9 +1408,9 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
               <Canvas
                 shadows={false}
                 dpr={[1, typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 1.5) : 1]}
-                camera={{ position: [11, 9, 13], fov: 38 }}
+                camera={{ position: [9, 7.5, 11], fov: 38 }}
                 gl={{
-                  antialias: false,
+                  antialias: true,
                   powerPreference: "default",
                   preserveDrawingBuffer: false,
                   failIfMajorPerformanceCaveat: false,
@@ -1389,26 +1423,28 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                 }}
               >
                 <color attach="background" args={[0x0b0f13]} />
-                <fog attach="fog" args={[0x0b0f13, 15, 60]} />
+                {/* Soft horizon fog at 45m-110m distance */}
+                <fog attach="fog" args={[0x0b0f13, 45, 110]} />
 
-                {/* Lighting for Enhanced Dark Mode — optimized fill */}
-                <hemisphereLight args={[0xffffff, 0x445566, 0.7]} />
+                {/* Rich lighting system for architectural visibility */}
+                <ambientLight intensity={1.1} color="#f0f6fc" />
+                <hemisphereLight args={["#ffffff", "#243444", 0.85]} />
                 <directionalLight
-                  position={[8, 14, 6]}
+                  position={[12, 18, 10]}
                   intensity={1.5}
-                  color={0xffeedd}
+                  color="#fffaf5"
                 />
                 {/* Soft rim light / fill */}
-                <directionalLight position={[-6, 8, -8]} intensity={1.8} color={0x2b4a5f} />
+                <directionalLight position={[-10, 12, -8]} intensity={0.8} color="#8ec5fc" />
 
                 <Ground onGroundClick={() => {
                   if (!editMode && onSelectUnit) onSelectUnit(null);
                 }} />
 
-                {/* Lightweight ground ambient shadow — zero GPU overhead */}
+                {/* Subtle soft ground contact shadow disc */}
                 <mesh position={[0, 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
                   <ringGeometry args={[0, 16, 32]} />
-                  <meshBasicMaterial color="#000000" opacity={0.35} transparent depthWrite={false} />
+                  <meshBasicMaterial color="#000000" opacity={0.25} transparent depthWrite={false} />
                 </mesh>
 
                 {!editMode ? (
@@ -1439,11 +1475,11 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
 
                 <OrbitControls
                   makeDefault
-                  target={[0, 2.6, 0]}
-                  minPolarAngle={0.2}
-                  maxPolarAngle={1.4}
-                  minDistance={5}
-                  maxDistance={45}
+                  target={[0, 1.4, 0]}
+                  minPolarAngle={0.02}
+                  maxPolarAngle={Math.PI / 2 - 0.05}
+                  minDistance={3}
+                  maxDistance={40}
                   enableDamping
                   dampingFactor={0.08}
                   screenSpacePanning={false}

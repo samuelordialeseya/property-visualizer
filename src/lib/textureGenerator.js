@@ -96,7 +96,7 @@ export function loadPhotoTexture(url, repeatX = 1, repeatY = 1, onLoad = null) {
 export function applyMaterialToRef(mat, materialType, textureUrl, repeatX = 1, repeatY = 1, wallColor = null) {
   if (!mat || !mat.color) return;
 
-  const isDefaultColor = !wallColor || wallColor === "#4a5a66";
+  const isDefaultColor = !wallColor || wallColor === "#4a5a66" || wallColor === "#5b6c7d";
 
   if (textureUrl) {
     // Custom uploaded texture
@@ -140,7 +140,7 @@ export function applyMaterialToRef(mat, materialType, textureUrl, repeatX = 1, r
     mat.map = diffuseTex;
     mat.bumpMap = bumpTex || diffuseTex;
     mat.bumpScale = config.bumpScale;
-    mat.color.set(isDefaultColor ? (config.mapUrl ? "#ffffff" : "#4a5a66") : wallColor);
+    mat.color.set(isDefaultColor ? (config.mapUrl ? "#ffffff" : "#5b6c7d") : wallColor);
     mat.roughness = config.roughness;
     mat.metalness = config.metalness;
     mat.needsUpdate = true;
@@ -148,7 +148,7 @@ export function applyMaterialToRef(mat, materialType, textureUrl, repeatX = 1, r
     // Stucco / default plain color
     mat.map = null;
     mat.bumpMap = null;
-    mat.color.set(isDefaultColor ? 0x4a5a66 : wallColor);
+    mat.color.set(isDefaultColor ? 0x5b6c7d : wallColor);
     mat.roughness = config.roughness;
     mat.metalness = config.metalness;
     mat.needsUpdate = true;

@@ -153,8 +153,8 @@ function EditableRoom({ room, isSelected, rooms, startMoveDrag, startWallDrag, s
     applyMaterialToRef(matRef.current, room.material_type, room.texture_url, repeatX, repeatY, room.wall_color);
   }, [room.texture_url, room.material_type, room.width, room.height, room.wall_color, isSelected]);
 
-  const isDefaultColor = !room.wall_color || room.wall_color === '#4a5a66';
-  const baseColor = isDefaultColor ? (isSelected ? "#5c6f7c" : "#4a5a66") : room.wall_color;
+  const isDefaultColor = !room.wall_color || room.wall_color === '#4a5a66' || room.wall_color === '#5b6c7d';
+  const baseColor = isDefaultColor ? (isSelected ? "#6a7d90" : "#5b6c7d") : room.wall_color;
 
   return (
     <group>
@@ -168,10 +168,12 @@ function EditableRoom({ room, isSelected, rooms, startMoveDrag, startWallDrag, s
           <boxGeometry args={[bw, bh, bd]} />
           <meshStandardMaterial
             ref={matRef}
+            color={baseColor}
+            roughness={0.55}
             emissive={isSelected ? "#32b883" : "#000"}
-            emissiveIntensity={isSelected ? 0.18 : 0}
+            emissiveIntensity={isSelected ? 0.2 : 0}
           />
-          {isSelected && <Edges scale={1.008} threshold={15} color="#32b883" />}
+          <Edges scale={1.002} threshold={15} color={isSelected ? "#32b883" : "#243242"} />
         </mesh>
         {/* Door orientation marker */}
         <mesh position={[0, -bh / 2 + 0.5, bd / 2 + 0.03]}>
@@ -191,18 +193,28 @@ function EditableRoom({ room, isSelected, rooms, startMoveDrag, startWallDrag, s
         <group position={[room.x, yOff + h, room.z]}>
           <mesh position={[0, 0.055, 0]} castShadow receiveShadow>
             <boxGeometry args={[room.width + 0.2, 0.11, room.depth + 0.2]} />
-            <meshStandardMaterial color="#36434d" roughness={0.9} />
+            <meshStandardMaterial color="#3d4e5e" roughness={0.6} />
+            <Edges scale={1.001} threshold={20} color={isSelected ? "#32b883" : "#283747"} />
           </mesh>
           <mesh position={[0, 0.11 + 0.5, 0]} castShadow receiveShadow rotation={[0, Math.PI / 4, 0]} scale={[(room.width + 0.2) / Math.SQRT2, 1, (room.depth + 0.2) / Math.SQRT2]}>
             <coneGeometry args={[1, 1, 4]} />
-            <meshStandardMaterial color="#36434d" roughness={0.9} />
+            <meshStandardMaterial color="#3d4e5e" roughness={0.6} />
+            <Edges scale={1.001} threshold={20} color={isSelected ? "#32b883" : "#283747"} />
           </mesh>
         </group>
       ) : (
-        <mesh position={[room.x, yOff + h + 0.055, room.z]} castShadow receiveShadow>
-          <boxGeometry args={[room.width + 0.2, 0.11, room.depth + 0.2]} />
-          <meshStandardMaterial color="#36434d" roughness={0.9} />
-        </mesh>
+        <group position={[room.x, yOff + h + 0.055, room.z]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[room.width + 0.2, 0.11, room.depth + 0.2]} />
+            <meshStandardMaterial color="#3d4e5e" roughness={0.6} />
+            <Edges scale={1.001} threshold={20} color={isSelected ? "#32b883" : "#2c3b4a"} />
+          </mesh>
+          <mesh position={[0, 0.06, 0]}>
+            <boxGeometry args={[room.width + 0.04, 0.02, room.depth + 0.04]} />
+            <meshStandardMaterial color="#2d3c4a" roughness={0.5} />
+            <Edges scale={1.001} threshold={20} color="#3a4c5c" />
+          </mesh>
+        </group>
       )}
 
       {/* ── Shared-wall "seam" highlight (visual lock indicator) ── */}
