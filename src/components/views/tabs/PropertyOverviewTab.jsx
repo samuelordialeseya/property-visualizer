@@ -17,7 +17,8 @@ import {
   Upload, 
   Check, 
   X, 
-  ArrowUpRight 
+  ArrowUpRight,
+  Trash2
 } from "lucide-react";
 import { uploadFile } from "@/hooks/useFirestore";
 
@@ -29,10 +30,13 @@ export default function PropertyOverviewTab({
   onLaunch3D,
   openTicketCount = 0,
   documentCount = 0,
+  onDeleteProperty,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const fileInputRef = useRef(null);
 
   // Form state for Edit Modal
@@ -231,7 +235,7 @@ export default function PropertyOverviewTab({
             </h1>
 
             <div className="flex items-center gap-1.5 mt-2.5 text-zinc-500 text-[14px] font-medium font-['Manrope']">
-              <MapPin size={16} className="text-[#0F4C81] shrink-0" />
+              <MapPin size={16} className="text-[#0b3860] shrink-0" />
               <span>{building?.address || "No address specified yet"}</span>
             </div>
 
@@ -256,7 +260,7 @@ export default function PropertyOverviewTab({
               disabled={uploadingPhoto}
               className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white/90 backdrop-blur-sm px-4 py-2 text-[13px] font-[700] text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-900 shadow-sm font-['Manrope'] cursor-pointer"
             >
-              <Camera size={15} className="text-[#0F4C81]" />
+              <Camera size={15} className="text-[#0b3860]" />
               {uploadingPhoto ? "Uploading…" : building?.photo_url ? "Change Photo" : "Upload Photo"}
             </button>
 
@@ -330,7 +334,7 @@ export default function PropertyOverviewTab({
             ) : (
               <button
                 onClick={handleOpenEditModal}
-                className="text-[14px] font-[600] text-[#0F4C81] hover:underline font-['Manrope'] cursor-pointer"
+                className="text-[14px] font-[600] text-[#0b3860] hover:underline font-['Manrope'] cursor-pointer"
               >
                 + Set Property Value
               </button>
@@ -392,7 +396,7 @@ export default function PropertyOverviewTab({
             <span className="text-[11px] font-[700] uppercase tracking-wider text-zinc-400 font-['Manrope']">
               Monthly Rent Roll
             </span>
-            <div className="grid h-8 w-8 place-items-center rounded-lg bg-[#e1ebf4] text-[#0F4C81]">
+            <div className="grid h-8 w-8 place-items-center rounded-lg bg-[#e1ebf4] text-[#0b3860]">
               <Coins size={16} />
             </div>
           </div>
@@ -420,7 +424,7 @@ export default function PropertyOverviewTab({
               <h2 className="text-[17px] font-[700] text-[#0b3860] font-['Sora']">Property Overview & Notes</h2>
               <button
                 onClick={handleOpenEditModal}
-                className="text-[12px] font-[700] text-[#0F4C81] hover:underline flex items-center gap-1 font-['Manrope'] cursor-pointer"
+                className="text-[12px] font-[700] text-[#0b3860] hover:underline flex items-center gap-1 font-['Manrope'] cursor-pointer"
               >
                 <Edit3 size={13} />
                 Edit Notes
@@ -445,18 +449,18 @@ export default function PropertyOverviewTab({
             <div className="h-2 w-full rounded-full bg-zinc-100 flex overflow-hidden">
               {totalUnits > 0 ? (
                 <>
-                  <div style={{ width: `${(occupiedUnits / totalUnits) * 100}%` }} className="bg-[#2270b8]" title={`Occupied: ${occupiedUnits}`} />
-                  <div style={{ width: `${(overdueUnits / totalUnits) * 100}%` }} className="bg-red-500" title={`Overdue: ${overdueUnits}`} />
-                  <div style={{ width: `${(vacantUnits / totalUnits) * 100}%` }} className="bg-zinc-300" title={`Vacant: ${vacantUnits}`} />
+                  <div style={{ width: `${(occupiedUnits / totalUnits) * 100}%` }} className="bg-[#d98a53]" title={`Occupied: ${occupiedUnits}`} />
+                  <div style={{ width: `${(overdueUnits / totalUnits) * 100}%` }} className="bg-[#e05c5c]" title={`Overdue: ${overdueUnits}`} />
+                  <div style={{ width: `${(vacantUnits / totalUnits) * 100}%` }} className="bg-[#6e8592]" title={`Vacant: ${vacantUnits}`} />
                 </>
               ) : (
                 <div className="w-full bg-zinc-200" />
               )}
             </div>
             <div className="flex items-center gap-4 mt-2.5 text-[11px] font-semibold text-zinc-500 font-['Manrope']">
-              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#2270b8]" /> {occupiedUnits} Occupied</span>
-              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-red-500" /> {overdueUnits} Overdue</span>
-              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-zinc-300" /> {vacantUnits} Vacant</span>
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#d98a53]" /> {occupiedUnits} Occupied</span>
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#e05c5c]" /> {overdueUnits} Overdue</span>
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#6e8592]" /> {vacantUnits} Vacant</span>
             </div>
           </div>
         </div>
@@ -470,7 +474,7 @@ export default function PropertyOverviewTab({
             className="flex-1 rounded-2xl bg-white p-4 border border-zinc-200/80 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] hover:border-[#0b3860]/40 transition-all cursor-pointer group flex items-center justify-between"
           >
             <div className="flex items-center gap-3.5">
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#e1ebf4] text-[#0F4C81] group-hover:scale-105 transition">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#e1ebf4] text-[#0b3860] group-hover:scale-105 transition">
                 <Box size={18} />
               </div>
               <div>
@@ -531,7 +535,35 @@ export default function PropertyOverviewTab({
 
       </div>
 
-      {/* 4. EDIT PROPERTY DETAILS MODAL */}
+      {/* 4. DANGER ZONE: Safe Property Deletion */}
+      {onDeleteProperty && (
+        <div className="rounded-2xl bg-white p-6 border border-red-200/80 shadow-[var(--shadow-card)] animate-fade-up">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-[15px] font-bold text-zinc-900 font-['Sora'] flex items-center gap-2">
+                <Trash2 size={16} className="text-red-600" />
+                <span>Danger Zone: Delete Property</span>
+              </h3>
+              <p className="text-[12px] text-zinc-500 font-['Manrope'] mt-1 max-w-xl leading-relaxed">
+                Permanently delete <strong>{building?.name || "this property"}</strong>, including all {units.length} units, tenant histories, maintenance tickets, and financial records.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setDeleteConfirmText("");
+                setShowDeleteModal(true);
+              }}
+              className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-red-200 bg-red-50 text-red-700 text-[13px] font-bold hover:bg-red-100 transition active:scale-95 cursor-pointer font-['Manrope'] shadow-2xs"
+            >
+              <Trash2 size={14} />
+              <span>Delete Property</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 5. EDIT PROPERTY DETAILS MODAL */}
       {isEditing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-xl rounded-2xl bg-white shadow-2xl border border-zinc-200 overflow-hidden flex flex-col max-h-[90vh] animate-scale-in">
@@ -713,6 +745,75 @@ export default function PropertyOverviewTab({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 6. DELETE PROPERTY CONFIRMATION MODAL */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-zinc-200 overflow-hidden animate-scale-in">
+            <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
+              <div className="flex items-center gap-2.5 text-red-600">
+                <div className="p-2 rounded-xl bg-red-50 text-red-600">
+                  <Trash2 size={18} />
+                </div>
+                <div>
+                  <h3 className="text-[16px] font-bold text-zinc-900 font-['Sora']">Delete Property</h3>
+                  <p className="text-[11px] font-medium text-zinc-400 font-['Manrope']">Irreversible action</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmText("");
+                }}
+                className="text-zinc-400 hover:text-zinc-600 p-1 rounded-lg cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-[13px] text-zinc-600 font-['Manrope'] leading-relaxed">
+                This will permanently delete <strong>{building?.name}</strong> and all associated units, tenant histories, and records.
+              </p>
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-600 mb-1.5 font-['Manrope']">
+                  Type <span className="text-zinc-900 font-extrabold select-all">{building?.name}</span> to confirm:
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder={building?.name}
+                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-[13px] font-medium text-zinc-900 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/15 focus:bg-white font-['Manrope']"
+                />
+              </div>
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-zinc-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setDeleteConfirmText("");
+                  }}
+                  className="px-4 py-2 rounded-xl border border-zinc-200 text-zinc-700 text-[13px] font-bold hover:bg-zinc-50 font-['Manrope'] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={deleteConfirmText.trim().toLowerCase() !== (building?.name || "").trim().toLowerCase()}
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    onDeleteProperty?.();
+                  }}
+                  className="px-4 py-2 rounded-xl bg-red-600 text-white text-[13px] font-bold hover:bg-red-700 transition disabled:opacity-40 disabled:pointer-events-none font-['Manrope'] cursor-pointer shadow-xs active:scale-95"
+                >
+                  Permanently Delete
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

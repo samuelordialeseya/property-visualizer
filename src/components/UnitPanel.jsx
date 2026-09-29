@@ -4,9 +4,9 @@ import { updateUnitDoc, uploadFile, useMaintenanceTickets } from "@/hooks/useFir
 import { Pencil, X, Check, Plus, CreditCard, ChevronDown, ChevronUp, User, Wrench, Zap, Droplets, Wifi, Car, Trash2, Building2, Receipt, MoreHorizontal } from "lucide-react";
 
 const STATUS_OPTIONS = [
-  { value: "vacant",   label: "Vacant",         pill: "bg-zinc-100 text-zinc-600 border-zinc-200",  dot: "bg-zinc-400" },
-  { value: "occupied", label: "Occupied",        pill: "bg-[var(--color-blue-50)] text-[var(--color-blue-700)] border-[var(--color-blue-500)]", dot: "bg-[var(--color-blue-500)]" },
-  { value: "overdue",  label: "Overdue",         pill: "bg-red-50 text-red-700 border-red-500",      dot: "bg-red-500" },
+  { value: "vacant",   label: "Vacant",   pill: "bg-[#f4f4f5] text-[#52525b] border-zinc-200",  dot: "bg-[#6e8592]" },
+  { value: "occupied", label: "Occupied", pill: "bg-[#fef3c7] text-[#92400e] border-[#f59e0b]/40", dot: "bg-[#d98a53]" },
+  { value: "overdue",  label: "Overdue",  pill: "bg-[#fee2e2] text-[#991b1b] border-[#ef4444]/40", dot: "bg-[#e05c5c]" },
 ];
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -198,6 +198,18 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
       photoUrl = await uploadFile(`units/${unit.id}/tenant_photo_${Date.now()}`, photoFile);
     }
 
+    const hadTenant = !!(unit.tenant?.name || tenantName);
+    const archivedTenant = status === "vacant" && hadTenant ? {
+      name: tenantName || unit.tenant?.name || "",
+      contact: contact || unit.tenant?.contact || "",
+      lease_start: leaseStart || unit.tenant?.lease_start || "",
+      lease_end: leaseEnd || unit.tenant?.lease_end || "",
+      notes: notes || unit.tenant?.notes || "",
+      payment_method: paymentMethod || unit.tenant?.payment_method || "",
+      tenant_photo_url: photoUrl || unit.tenant?.tenant_photo_url || "",
+      ended_at: new Date().toISOString(),
+    } : (unit.last_tenant || null);
+
     await updateUnit(unit.ref, {
       unit_label: unitLabel.trim() || unit.unit_label || "101",
       status,
@@ -209,6 +221,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
         rent_due_date: rentDueDate,
         tenant_photo_url: photoUrl,
       },
+      last_tenant: archivedTenant,
     });
     setSaving(false);
     setIsEditing(false);
@@ -413,6 +426,34 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
                   <Field label="Payment Method" value={unit.tenant.payment_method} />
                 </div>
                 {unit.tenant.notes && <Field label="Notes" value={unit.tenant.notes} />}
+              </div>
+            ) : unit.last_tenant ? (
+              <div className="space-y-3">
+                <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-3 text-center text-[12px] text-zinc-500 font-['Manrope']">
+                  Unit is currently vacant. Click <strong>Edit</strong> to assign a new tenant.
+                </div>
+                <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-2xs">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 font-['Manrope']">Previous Lease Archive</span>
+                    <span className="text-[11px] font-semibold text-zinc-400 font-['Manrope']">
+                      Ended {unit.last_tenant.ended_at ? new Date(unit.last_tenant.ended_at).toLocaleDateString() : ""}
+                    </span>
+                  </div>
+                  <div className="text-[14px] font-bold text-zinc-900 font-['Sora']">{unit.last_tenant.name}</div>
+                  {unit.last_tenant.contact && (
+                    <div className="text-[12px] text-zinc-600 font-['Manrope'] mt-0.5">{unit.last_tenant.contact}</div>
+                  )}
+                  {(unit.last_tenant.lease_start || unit.last_tenant.lease_end) && (
+                    <div className="text-[11px] text-zinc-400 font-['Manrope'] mt-1">
+                      Lease period: {unit.last_tenant.lease_start || "—"} to {unit.last_tenant.lease_end || "—"}
+                    </div>
+                  )}
+                  {unit.last_tenant.notes && (
+                    <div className="text-[11px] text-zinc-500 font-['Manrope'] mt-1 italic">
+                      Notes: {unit.last_tenant.notes}
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-6 text-center text-[13px] text-zinc-400">
@@ -731,6 +772,11 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
                   </button>
                 ))}
               </div>
+              {status === "vacant" && (unit.tenant?.name || tenantName) && (
+                <div className="mt-2.5 rounded-xl bg-amber-50 border border-amber-200/80 p-3 text-[11px] font-medium text-amber-900 font-['Manrope'] leading-relaxed animate-fade-in">
+                  Setting status to <strong>Vacant</strong> will archive <strong>{tenantName || unit.tenant?.name}</strong>&apos;s lease details under Past Leases rather than deleting them.
+                </div>
+              )}
             </div>
 
             {/* Monthly Rent */}

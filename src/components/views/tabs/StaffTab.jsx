@@ -897,7 +897,7 @@ export default function StaffTab({ building, buildings, userId }) {
     <div className="flex flex-col h-full min-h-0 overflow-hidden">
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Staff Directory Left Column */}
-        <div className={`${selectedStaff ? "hidden md:flex" : "flex"} w-full md:w-[36%] border-r border-zinc-100 flex-col min-h-0 overflow-hidden bg-zinc-50/30`}>
+        <div className={`${selectedStaff ? "hidden md:flex" : "flex"} w-full md:w-[320px] lg:w-[360px] shrink-0 border-r border-zinc-100 flex-col min-h-0 overflow-hidden bg-zinc-50/30`}>
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-100 shrink-0 bg-white">
             <div className="flex items-center gap-2">
               <span className="text-[13px] font-bold text-zinc-800 font-['Sora']">Staff Roster</span>
