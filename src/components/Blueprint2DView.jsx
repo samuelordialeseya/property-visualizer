@@ -99,7 +99,7 @@ export default function Blueprint2DView({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full bg-[#0b0f13] overflow-hidden select-none cursor-grab active:cursor-grabbing font-sans"
+      className="relative w-full h-full bg-[#0b0f13] overflow-hidden select-none cursor-grab active:cursor-grabbing font-sans touch-none"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -255,13 +255,14 @@ export default function Blueprint2DView({
             <h3 className="text-[16px] font-bold text-white font-['Sora']">
               {activeFloor !== "All" ? `No Rooms on Floor ${activeFloor}` : "No Rooms Added Yet"}
             </h3>
-            <p className="text-[12px] text-zinc-400 mt-1.5 font-['Manrope']">
+            <p className="text-[11px] text-zinc-400 mt-1.5 font-['Manrope']">
               Add rooms and configure your building layout in the layout designer.
             </p>
             {onEnterEditMode && (
               <button
+                type="button"
                 onClick={onEnterEditMode}
-                className="mt-4 w-full py-2.5 px-4 rounded-xl bg-[#2270b8] hover:bg-[#3186d6] text-white text-[13px] font-bold font-['Manrope'] transition shadow-lg active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                className="mt-4 w-full py-2.5 px-4 rounded-xl bg-[#2270b8] hover:bg-[#3186d6] text-white text-[14px] font-bold font-['Manrope'] transition shadow-lg active:scale-95 flex items-center justify-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
                 Start Building Layout →
               </button>
@@ -273,24 +274,30 @@ export default function Blueprint2DView({
       {/* ── Floating Zoom / Pan Controls (Top-Right) ───────────────── */}
       <div className="absolute top-4 right-4 z-20 flex items-center gap-1 bg-zinc-900 border border-white/10 rounded-xl p-1 shadow-xl">
         <button
+          type="button"
           onClick={() => handleZoom(0.2)}
+          aria-label="Zoom in blueprint"
           title="Zoom In"
-          className="h-8 w-8 rounded-lg text-zinc-300 hover:text-white hover:bg-white/10 flex items-center justify-center transition active:scale-90"
+          className="h-8 w-8 rounded-lg text-zinc-300 hover:text-white hover:bg-white/10 flex items-center justify-center transition active:scale-90 relative after:absolute after:-inset-1.5 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
         >
           <ZoomIn size={16} />
         </button>
         <button
+          type="button"
           onClick={() => handleZoom(-0.2)}
+          aria-label="Zoom out blueprint"
           title="Zoom Out"
-          className="h-8 w-8 rounded-lg text-zinc-300 hover:text-white hover:bg-white/10 flex items-center justify-center transition active:scale-90"
+          className="h-8 w-8 rounded-lg text-zinc-300 hover:text-white hover:bg-white/10 flex items-center justify-center transition active:scale-90 relative after:absolute after:-inset-1.5 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
         >
           <ZoomOut size={16} />
         </button>
         <div className="h-4 w-px bg-white/15 mx-0.5" />
         <button
+          type="button"
           onClick={handleResetView}
+          aria-label="Reset view position"
           title="Reset View"
-          className="h-8 w-8 rounded-lg text-zinc-300 hover:text-white hover:bg-white/10 flex items-center justify-center transition active:scale-90"
+          className="h-8 w-8 rounded-lg text-zinc-300 hover:text-white hover:bg-white/10 flex items-center justify-center transition active:scale-90 relative after:absolute after:-inset-1.5 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
         >
           <RotateCcw size={14} />
         </button>

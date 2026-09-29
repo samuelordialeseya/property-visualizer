@@ -947,7 +947,7 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
           {!editMode && viewMode === "3d" && !navTipDismissed && (
             <div className="absolute bottom-6 right-6 z-20 pointer-events-none">
               <div className="pointer-events-auto flex items-center gap-2.5 bg-zinc-900 border border-white/10 shadow-xl rounded-2xl px-3.5 py-2 text-white">
-                <div className="flex items-center gap-1.5 text-[11.5px] font-['Manrope'] text-white/70">
+                <div className="flex items-center gap-1.5 text-[11px] font-['Manrope'] text-white/70">
                   <span className="flex items-center gap-1 text-white font-semibold">
                     <MousePointer size={12} className="text-[#479de9]" /> Drag
                   </span>
@@ -958,9 +958,11 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                   <span>Scroll to zoom</span>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setNavTipDismissed(true)}
+                  aria-label="Dismiss navigation tip"
                   title="Dismiss navigation tip"
-                  className="ml-1 text-white/40 hover:text-white p-0.5 rounded transition cursor-pointer"
+                  className="ml-1 text-white/40 hover:text-white p-1 rounded transition cursor-pointer relative after:absolute after:-inset-2 after:content-[''] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
                 >
                   <X size={12} />
                 </button>
@@ -978,13 +980,20 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                 <Search size={14} className="text-white/40 shrink-0" />
                 <input
                   type="text"
+                  aria-label="Search tenant or unit"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search tenant or unit..."
-                  className="bg-transparent outline-none text-[12px] text-white placeholder-white/40 w-36 sm:w-44 font-['Manrope']"
+                  className="bg-transparent outline-none text-[12px] sm:text-[14px] text-white placeholder-white/40 w-36 sm:w-44 font-['Manrope']"
                 />
                 {searchQuery && (
-                  <button onClick={() => setSearchQuery('')} className="text-white/40 hover:text-white transition cursor-pointer">
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    aria-label="Clear search"
+                    title="Clear search"
+                    className="text-white/40 hover:text-white transition cursor-pointer p-1 relative after:absolute after:-inset-2 after:content-[''] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
+                  >
                     <X size={12} />
                   </button>
                 )}
@@ -995,10 +1004,12 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
             {!editMode && (
               <div className="pointer-events-auto flex items-center bg-zinc-900 border border-white/10 rounded-2xl p-1 shadow-2xl shrink-0">
                 <button
+                  type="button"
                   onClick={() => {
                     if (isWebGLSupported) setViewMode("3d");
                   }}
                   disabled={!isWebGLSupported}
+                  aria-label="Switch to 3D Perspective Model"
                   title={isWebGLSupported ? "Switch to 3D Perspective Model" : "WebGL 2 is not supported on this device"}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold font-['Manrope'] transition ${
                     viewMode === "3d"
@@ -1012,7 +1023,9 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                   <span>3D Model</span>
                 </button>
                 <button
+                  type="button"
                   onClick={() => setViewMode("2d")}
+                  aria-label="Switch to 2D Architectural Blueprint"
                   title="Switch to 2D Architectural Blueprint (fast, smooth on all devices)"
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold font-['Manrope'] transition cursor-pointer ${
                     viewMode === "2d"
@@ -1038,7 +1051,13 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
           <div className="absolute bottom-4 sm:bottom-6 left-3 sm:left-6 z-20 flex items-center gap-2.5 pointer-events-none flex-wrap max-w-[95vw] sm:max-w-[60vw]">
             <div className="pointer-events-auto flex items-center gap-2.5 bg-zinc-900 border border-white/10 rounded-2xl p-1.5 pl-3 shadow-2xl shrink-0">
               {onBack && !editMode && (
-                <button onClick={onBack} className="text-white/60 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-xl transition cursor-pointer" title="Back to property dashboard">
+                <button
+                  type="button"
+                  onClick={onBack}
+                  aria-label="Back to property dashboard"
+                  title="Back to property dashboard"
+                  className="text-white/60 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-xl transition cursor-pointer relative after:absolute after:-inset-1 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
+                >
                   <ArrowLeft size={16} />
                 </button>
               )}
@@ -1052,26 +1071,33 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                 </span>
               </div>
               {!editMode && (
-                <button onClick={openEditInfo} title="Edit building name and address" className="text-white/40 hover:text-[#479de9] p-1 rounded-lg transition cursor-pointer">
+                <button
+                  type="button"
+                  onClick={openEditInfo}
+                  aria-label="Edit building name and address"
+                  title="Edit building name and address"
+                  className="text-white/40 hover:text-[#479de9] p-1.5 rounded-lg transition cursor-pointer relative after:absolute after:-inset-1 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
+                >
                   <Pencil size={13} />
                 </button>
               )}
               <div className="h-5 w-px bg-white/15" />
               {!editMode ? (
-                <div className="rounded-full border border-blue-400/30 bg-blue-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#479de9] font-['Manrope'] whitespace-nowrap">
+                <div className="rounded-full border border-blue-400/30 bg-blue-500/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#479de9] font-['Manrope'] whitespace-nowrap">
                   {units.length} Units
                 </div>
               ) : (
-                <div className="rounded-full border border-amber-400/30 bg-amber-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-400 font-['Manrope'] whitespace-nowrap">
+                <div className="rounded-full border border-amber-400/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-400 font-['Manrope'] whitespace-nowrap">
                   Edit Mode
                 </div>
               )}
               <div className="h-5 w-px bg-white/15" />
               {!editMode ? (
                 <button
+                  type="button"
                   onClick={handleEnterEditMode}
                   title="Open 3D layout builder to add, move, or customize rooms"
-                  className="flex items-center gap-1.5 bg-[#2270b8] hover:bg-[#3186d6] text-white px-3.5 py-1.5 rounded-xl text-[12px] font-semibold font-['Manrope'] shadow-md transition active:scale-95 cursor-pointer"
+                  className="flex items-center gap-1.5 bg-[#2270b8] hover:bg-[#3186d6] text-white px-3.5 py-2 rounded-xl text-[14px] font-semibold font-['Manrope'] shadow-md transition active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 >
                   <Layers size={14} />
                   Design Layout
@@ -1079,17 +1105,19 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
               ) : (
                 <div className="flex items-center gap-1.5">
                   <button
+                    type="button"
                     onClick={() => setEditMode(false)}
                     title="Discard unsaved changes and return to viewing mode"
-                    className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-zinc-300 hover:text-white px-2.5 py-1.5 rounded-xl text-[12px] font-semibold font-['Manrope'] transition cursor-pointer"
+                    className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-zinc-300 hover:text-white px-3 py-2 rounded-xl text-[14px] font-semibold font-['Manrope'] transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                   >
                     <X size={13} />
                     Cancel
                   </button>
                   <button
+                    type="button"
                     onClick={handleSave}
                     title="Save all layout changes to the cloud"
-                    className="flex items-center gap-1 bg-[#2270b8] hover:bg-[#3186d6] text-white px-3.5 py-1.5 rounded-xl text-[12px] font-semibold font-['Manrope'] shadow-lg transition cursor-pointer"
+                    className="flex items-center gap-1 bg-[#2270b8] hover:bg-[#3186d6] text-white px-3.5 py-2 rounded-xl text-[14px] font-semibold font-['Manrope'] shadow-lg transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                   >
                     <Check size={13} />
                     Save
@@ -1114,26 +1142,30 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                       <input
                         type="text"
                         aria-label="Unit label"
-                        className="font-bold text-zinc-900 font-['Sora'] text-[13px] bg-zinc-100 border border-zinc-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-[#2270b8] flex-1 min-w-0 transition"
+                        className="font-bold text-zinc-900 font-['Sora'] text-[14px] bg-zinc-100 border border-zinc-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-[#2270b8] flex-1 min-w-0 transition"
                         value={selectedRoom.unit_label}
                         placeholder="e.g. 101, A-1, Studio"
                         onChange={(e) => setEditorRooms(editorRooms.map(r => r.id === selectedEditorRoomId ? { ...r, unit_label: e.target.value } : r))}
                       />
                       <div className="flex items-center gap-1 shrink-0">
                         <button
+                          type="button"
+                          aria-label="Rotate 90 degrees clockwise"
                           title="Rotate 90° clockwise"
                           onClick={() => {
                             const cur = selectedRoom.rotation || 0;
                             setEditorRooms(editorRooms.map(r => r.id === selectedEditorRoomId ? { ...r, rotation: (cur + 90) % 360 } : r));
                           }}
-                          className="text-[#2270b8] hover:bg-blue-50 p-1.5 rounded-lg border border-blue-100 transition active:scale-95"
+                          className="text-[#2270b8] hover:bg-blue-50 p-1.5 rounded-lg border border-blue-100 transition active:scale-95 relative after:absolute after:-inset-1.5 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
                         >
                           <RotateCw size={14} />
                         </button>
                         <button
+                          type="button"
+                          aria-label="Delete room from layout"
                           title="Delete room from layout"
                           onClick={handleDeleteRoom}
-                          className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg border border-red-100 transition active:scale-95"
+                          className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg border border-red-100 transition active:scale-95 relative after:absolute after:-inset-1.5 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -1153,30 +1185,38 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                       <span className="text-[11px] text-zinc-500 font-['Manrope'] pl-1">0.5m Nudge:</span>
                       <div className="flex items-center gap-1">
                         <button
+                          type="button"
                           onClick={() => handleNudge(-0.5, 0)}
+                          aria-label="Nudge room left"
                           title="Nudge Left (-0.5m)"
-                          className="h-7 w-7 rounded-lg bg-white hover:bg-blue-50 hover:text-[#2270b8] border border-zinc-200 text-zinc-600 flex items-center justify-center transition shadow-xs active:scale-90"
+                          className="h-7 w-7 rounded-lg bg-white hover:bg-blue-50 hover:text-[#2270b8] border border-zinc-200 text-zinc-600 flex items-center justify-center transition shadow-xs active:scale-90 relative after:absolute after:-inset-1.5 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
                         >
                           <ChevronLeft size={14} />
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleNudge(0, -0.5)}
+                          aria-label="Nudge room backward"
                           title="Nudge Backward / Away (-0.5m)"
-                          className="h-7 w-7 rounded-lg bg-white hover:bg-blue-50 hover:text-[#2270b8] border border-zinc-200 text-zinc-600 flex items-center justify-center transition shadow-xs active:scale-90"
+                          className="h-7 w-7 rounded-lg bg-white hover:bg-blue-50 hover:text-[#2270b8] border border-zinc-200 text-zinc-600 flex items-center justify-center transition shadow-xs active:scale-90 relative after:absolute after:-inset-1.5 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
                         >
                           <ChevronUp size={14} />
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleNudge(0, 0.5)}
+                          aria-label="Nudge room forward"
                           title="Nudge Forward / Toward (+0.5m)"
-                          className="h-7 w-7 rounded-lg bg-white hover:bg-blue-50 hover:text-[#2270b8] border border-zinc-200 text-zinc-600 flex items-center justify-center transition shadow-xs active:scale-90"
+                          className="h-7 w-7 rounded-lg bg-white hover:bg-blue-50 hover:text-[#2270b8] border border-zinc-200 text-zinc-600 flex items-center justify-center transition shadow-xs active:scale-90 relative after:absolute after:-inset-1.5 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
                         >
                           <ChevronDown size={14} />
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleNudge(0.5, 0)}
+                          aria-label="Nudge room right"
                           title="Nudge Right (+0.5m)"
-                          className="h-7 w-7 rounded-lg bg-white hover:bg-blue-50 hover:text-[#2270b8] border border-zinc-200 text-zinc-600 flex items-center justify-center transition shadow-xs active:scale-90"
+                          className="h-7 w-7 rounded-lg bg-white hover:bg-blue-50 hover:text-[#2270b8] border border-zinc-200 text-zinc-600 flex items-center justify-center transition shadow-xs active:scale-90 relative after:absolute after:-inset-1.5 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
                         >
                           <ChevronRight size={14} />
                         </button>
@@ -1321,9 +1361,11 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                     ].map(([preset, label, icon, tip]) => (
                       <button
                         key={preset}
+                        type="button"
                         onClick={() => setCameraPreset(preset)}
+                        aria-label={tip}
                         title={tip}
-                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold font-['Manrope'] transition cursor-pointer ${
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold font-['Manrope'] transition cursor-pointer relative after:absolute after:-inset-1 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8] ${
                           cameraPreset === preset
                             ? 'bg-[#0F4C81] text-white shadow-sm border border-blue-400/30'
                             : 'text-zinc-400 hover:text-white hover:bg-white/10'
@@ -1344,9 +1386,11 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                     {['All', ...floorList].map((f) => (
                       <button
                         key={f}
+                        type="button"
                         onClick={() => setActiveFloor(f)}
+                        aria-label={f === 'All' ? 'View all floors simultaneously' : `Isolate Floor ${f} only`}
                         title={f === 'All' ? 'View all floors simultaneously' : `Isolate Floor ${f} only`}
-                        className={`px-2.5 py-1.5 rounded-xl text-[11px] font-semibold font-['Manrope'] transition cursor-pointer ${
+                        className={`px-2.5 py-1.5 rounded-xl text-[11px] font-semibold font-['Manrope'] transition cursor-pointer relative after:absolute after:-inset-1 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8] ${
                           activeFloor === f
                             ? 'bg-[#2270b8] text-white shadow-sm'
                             : 'text-zinc-400 hover:text-white hover:bg-white/10'
@@ -1364,15 +1408,19 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
               {editMode ? (
                 <>
                   <button
+                    type="button"
                     onClick={handleAddRoom}
+                    aria-label="Add a new room to the layout"
                     title="Add a new rectangular room unit to the layout"
-                    className="flex items-center gap-1 bg-[#0b3860] hover:bg-[#154e83] border border-[#2270b8]/40 text-white px-3 py-1.5 rounded-xl text-[11px] font-semibold font-['Manrope'] transition shadow-sm active:scale-95 cursor-pointer"
+                    className="flex items-center gap-1 bg-[#0b3860] hover:bg-[#154e83] border border-[#2270b8]/40 text-white px-3 py-1.5 rounded-xl text-[11px] font-semibold font-['Manrope'] transition shadow-sm active:scale-95 cursor-pointer relative after:absolute after:-inset-1 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
                   >
                     <Plus size={13} /> Room
                   </button>
                   <button
+                    type="button"
                     onClick={handleAddLShape}
-                    className="flex items-center gap-1.5 bg-[#2d5a72] hover:bg-[#3a7290] border border-[#3a7290] text-white px-3 py-1.5 rounded-xl text-[11px] font-semibold font-['Manrope'] transition shadow-sm active:scale-95 cursor-pointer"
+                    aria-label="Add an L-shaped room to the layout"
+                    className="flex items-center gap-1.5 bg-[#2d5a72] hover:bg-[#3a7290] border border-[#3a7290] text-white px-3 py-1.5 rounded-xl text-[11px] font-semibold font-['Manrope'] transition shadow-sm active:scale-95 cursor-pointer relative after:absolute after:-inset-1 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
                     title="Add two connected rooms in an L-shaped layout (2 units)"
                   >
                     <CopyPlus size={13} /> L-Shaped Room

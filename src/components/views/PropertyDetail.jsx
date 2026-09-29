@@ -80,31 +80,37 @@ export default function PropertyDetail({
           <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <button 
+                type="button"
                 onClick={onBack}
-                className="flex items-center gap-1 sm:gap-1.5 text-[12px] sm:text-[13px] font-semibold text-zinc-500 hover:text-zinc-900 transition font-['Manrope'] shrink-0"
+                aria-label="Back to properties list"
+                className="flex items-center gap-1 sm:gap-1.5 text-[14px] font-semibold text-zinc-500 hover:text-zinc-900 transition font-['Manrope'] shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8] rounded-lg p-1"
               >
                 <ArrowLeft size={16} />
                 <span>Properties</span>
               </button>
               <span className="text-zinc-300 shrink-0">/</span>
-              <span className="text-[13px] sm:text-[14px] font-[700] text-[#0b3860] font-['Sora'] truncate max-w-[150px] sm:max-w-xs md:max-w-sm">
+              <span className="text-[14px] font-[700] text-[#0b3860] font-['Sora'] truncate max-w-[150px] sm:max-w-xs md:max-w-sm">
                 {building?.name || "Untitled Property"}
               </span>
             </div>
             
             <div className="flex items-center gap-2 shrink-0">
               <button
+                type="button"
                 onClick={onDeleteProperty}
+                aria-label={`Delete ${building?.name || "property"}`}
                 title="Delete Property"
-                className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-2.5 sm:px-3.5 py-1.5 text-[12px] font-[700] text-red-700 transition hover:bg-red-100 shadow-sm font-['Manrope']"
+                className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-2.5 sm:px-3.5 py-1.5 text-[14px] font-[700] text-red-700 transition hover:bg-red-100 shadow-sm font-['Manrope'] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
               >
                 <Trash2 size={14} />
                 <span className="hidden sm:inline">Delete Property</span>
               </button>
               
               <button
+                type="button"
                 onClick={onLaunch3D}
-                className="flex items-center gap-1.5 rounded-xl bg-[#0b3860] px-3 sm:px-4 py-1.5 text-[12px] font-[700] text-white transition hover:bg-[#051b30] shadow-sm font-['Manrope']"
+                aria-label={`Launch 3D view for ${building?.name || "property"}`}
+                className="flex items-center gap-1.5 rounded-xl bg-[#0b3860] px-3 sm:px-4 py-1.5 text-[14px] font-[700] text-white transition hover:bg-[#051b30] shadow-sm font-['Manrope'] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
               >
                 <Box size={14} />
                 <span>Launch 3D</span>
@@ -121,8 +127,10 @@ export default function PropertyDetail({
                 return (
                   <button
                     key={tab.key}
+                    type="button"
                     onClick={() => setActiveTab(tab.key)}
-                    className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-[11px] text-[12px] sm:text-[13px] transition-all duration-150 font-['Manrope'] whitespace-nowrap ${
+                    aria-label={`${tab.label} tab${badge !== null ? ` with ${badge} items` : ""}`}
+                    className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-[11px] text-[14px] transition-all duration-150 font-['Manrope'] whitespace-nowrap cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8] ${
                       active
                         ? "bg-white text-[#0b3860] font-[700] shadow-sm border border-zinc-200/80"
                         : "text-zinc-500 font-medium hover:text-zinc-900 hover:bg-zinc-200/50 border border-transparent"
@@ -134,7 +142,7 @@ export default function PropertyDetail({
                     <span>{tab.label}</span>
                     {badge !== null && (
                       <span
-                        className={`ml-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full transition-colors ${
+                        className={`ml-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full transition-colors font-['Manrope'] ${
                           active
                             ? "bg-[#0b3860] text-white shadow-xs"
                             : "bg-zinc-200 text-zinc-600"
@@ -239,15 +247,19 @@ export default function PropertyDetail({
                             <td className="px-6 py-3 text-right">
                               <div className="flex justify-end gap-2">
                                 <button 
+                                  type="button"
                                   onClick={(e) => { e.stopPropagation(); setSelectedUnit(u); }}
-                                  className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-[600] text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition shadow-sm cursor-pointer"
+                                  aria-label={`Edit unit ${u.unit_label || "details"}`}
+                                  className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition shadow-sm cursor-pointer font-['Manrope'] relative after:absolute after:-inset-1.5 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
                                 >
                                   Edit
                                 </button>
                                 {hasTenant && (
                                   <button 
+                                    type="button"
                                     onClick={(e) => { e.stopPropagation(); setSelectedUnit(u); }}
-                                    className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-[12px] font-[600] text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition shadow-sm cursor-pointer"
+                                    aria-label={`Record payment for unit ${u.unit_label || ""}`}
+                                    className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition shadow-sm cursor-pointer font-['Manrope'] relative after:absolute after:-inset-1.5 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
                                   >
                                     Pay
                                   </button>

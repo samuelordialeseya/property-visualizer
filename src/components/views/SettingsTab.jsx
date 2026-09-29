@@ -152,15 +152,15 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
         {/* Header */}
         <div className="mb-8 animate-fade-down flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-[32px] sm:text-[36px] font-[800] text-[#0b3860] tracking-[-0.03em] font-['Sora']">Settings</h1>
-            <p className="text-[13px] sm:text-[14px] text-zinc-400 mt-1 font-['Manrope'] font-medium">Manage your account profile and application preferences</p>
+            <h1 className="text-[36px] font-[800] text-[#0b3860] tracking-[-0.03em] font-['Sora']">Settings</h1>
+            <p className="text-[14px] text-zinc-400 mt-1 font-['Manrope'] font-medium">Manage your account profile and application preferences</p>
           </div>
           <button
             type="button"
             onClick={handleForceReload}
             disabled={reloading}
             title="Force reload and fetch latest version"
-            className="self-start sm:self-auto flex items-center gap-2 bg-white hover:bg-zinc-50 text-[#0b3860] border border-zinc-200/90 px-4 py-2.5 rounded-xl text-[13px] font-bold shadow-xs transition active:scale-95 cursor-pointer disabled:opacity-50 font-['Manrope']"
+            className="self-start sm:self-auto flex items-center gap-2 bg-white hover:bg-zinc-50 text-[#0b3860] border border-zinc-200/90 px-4 py-2.5 rounded-xl text-[14px] font-bold shadow-xs transition active:scale-95 cursor-pointer disabled:opacity-50 font-['Manrope']"
           >
             <RotateCw size={15} className={reloading ? "animate-spin text-[#0b3860]" : "text-[#0b3860]"} />
             <span>{reloading ? "Reloading App…" : "Reload App"}</span>
@@ -178,45 +178,47 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
                 {(managerName || user?.email || "?")[0].toUpperCase()}
               </div>
               <div>
-                <div className="text-[12px] font-semibold text-zinc-400 uppercase tracking-wider mb-0.5">Email Address</div>
-                <div className="text-[15px] font-semibold text-zinc-900">{user?.email}</div>
+                <div className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-0.5 font-['Manrope']">Email Address</div>
+                <div className="text-[16px] font-semibold text-zinc-900 font-['Manrope']">{user?.email}</div>
               </div>
             </div>
 
             <form onSubmit={handleSave} className="pt-2">
               <div className="mb-4">
-                <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+                <label htmlFor="manager-name-input" className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 font-['Manrope']">
                   Full Name
                 </label>
                 <input 
+                  id="manager-name-input"
                   value={managerName} 
                   onChange={e => setManagerName(e.target.value)} 
                   placeholder="e.g. Juan dela Cruz / Skyline Properties LLC"
-                  className="w-full max-w-md rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-[13px] font-medium outline-none focus:border-[#2270b8] focus:bg-white transition" 
+                  className="w-full max-w-md rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-[14px] font-medium outline-none focus:border-[#2270b8] focus:bg-white transition" 
                 />
               </div>
 
               <div className="mb-6">
-                <label className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+                <label htmlFor="default-currency-select" className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 font-['Manrope']">
                   Default Currency
                 </label>
                 <select 
+                  id="default-currency-select"
                   value={currency} 
                   onChange={e => setCurrency(e.target.value)}
-                  className="w-full max-w-[260px] rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-[13px] font-medium outline-none focus:border-[#2270b8] focus:bg-white transition"
+                  className="w-full max-w-[260px] rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-[14px] font-medium outline-none focus:border-[#2270b8] focus:bg-white transition"
                 >
                   <option value="PHP">PHP (₱) — Philippine Peso</option>
                   <option value="USD">USD ($) — US Dollar</option>
                 </select>
-                <p className="text-[11px] text-zinc-400 mt-2">Currently visual only. Converts display formats.</p>
+                <p className="text-[11px] text-zinc-400 mt-2 font-['Manrope']">Currently visual only. Converts display formats.</p>
               </div>
 
               <div className="pt-4 border-t border-zinc-100 flex items-center gap-3">
                 <button type="submit" disabled={saving}
-                  className="flex items-center gap-2 bg-[#0b3860] hover:bg-[#154e83] text-white px-5 py-2.5 rounded-xl text-[13px] font-bold transition shadow-sm cursor-pointer disabled:opacity-50">
+                  className="flex items-center gap-2 bg-[#0b3860] hover:bg-[#154e83] text-white px-5 py-2.5 rounded-xl text-[14px] font-bold transition shadow-sm cursor-pointer disabled:opacity-50">
                   <Save size={14} /> {saving ? "Saving..." : "Save Changes"}
                 </button>
-                {saved && <span className="text-[12px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full animate-fade-in">Saved successfully!</span>}
+                {saved && <span className="text-[11px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full animate-fade-in font-['Manrope']">Saved successfully!</span>}
               </div>
             </form>
           </div>
@@ -228,9 +230,9 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
             <h2 className="text-[14px] font-bold text-zinc-800 font-['Sora']">Data Management</h2>
           </div>
           <div className="p-6">
-            <p className="text-[13px] text-zinc-500 mb-4">Export your tenant list, rent logs, staff ledgers, and property layouts into a secure spreadsheet format for backup or external accounting.</p>
+            <p className="text-[14px] text-zinc-500 mb-4 font-['Manrope']">Export your tenant list, rent logs, staff ledgers, and property layouts into a secure spreadsheet format for backup or external accounting.</p>
             <button onClick={handleExportData}
-              className="flex items-center gap-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-4 py-2.5 rounded-xl text-[13px] font-bold transition shadow-xs cursor-pointer active:scale-95">
+              className="flex items-center gap-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-4 py-2.5 rounded-xl text-[14px] font-bold transition shadow-xs cursor-pointer active:scale-95 font-['Manrope']">
               <Download size={14} /> Export CSV Data
             </button>
           </div>
@@ -244,7 +246,7 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
           <div className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="max-w-md">
               <h3 className="text-[14px] font-bold text-zinc-900 font-['Sora'] mb-1">Check for Updates & Force Reload</h3>
-              <p className="text-[12px] text-zinc-500 font-['Manrope'] leading-relaxed">
+              <p className="text-[11px] text-zinc-500 font-['Manrope'] leading-relaxed">
                 If you use "Add to Home Screen" on your iPad or iPhone, tap this button to instantly download the latest updates and clear cached data without re-adding the app icon.
               </p>
             </div>
@@ -252,7 +254,7 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
               type="button"
               onClick={handleForceReload}
               disabled={reloading}
-              className="flex items-center gap-2 bg-[#0b3860] hover:bg-[#154e83] text-white px-5 py-2.5 rounded-xl text-[13px] font-bold transition shadow-xs cursor-pointer shrink-0 active:scale-95 disabled:opacity-50 font-['Manrope']"
+              className="flex items-center gap-2 bg-[#0b3860] hover:bg-[#154e83] text-white px-5 py-2.5 rounded-xl text-[14px] font-bold transition shadow-xs cursor-pointer shrink-0 active:scale-95 disabled:opacity-50 font-['Manrope']"
             >
               <RotateCw size={14} className={reloading ? "animate-spin" : ""} />
               {reloading ? "Updating…" : "Reload App Now"}
@@ -271,12 +273,12 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
             <div className="p-6 flex items-center justify-between gap-4">
               <div>
                 <h3 className="text-[14px] font-bold text-zinc-900 font-['Sora'] mb-0.5">Log Out</h3>
-                <p className="text-[12px] text-zinc-500 font-['Manrope']">Securely sign out of your current session on this device.</p>
+                <p className="text-[11px] text-zinc-500 font-['Manrope']">Securely sign out of your current session on this device.</p>
               </div>
               <button 
                 type="button"
                 onClick={logout}
-                className="flex items-center gap-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-5 py-2.5 rounded-xl text-[13px] font-bold transition shadow-xs cursor-pointer shrink-0 active:scale-95"
+                className="flex items-center gap-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-5 py-2.5 rounded-xl text-[14px] font-bold transition shadow-xs cursor-pointer shrink-0 active:scale-95 font-['Manrope']"
               >
                 <LogOut size={14} /> Log Out
               </button>
@@ -286,7 +288,7 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
             <div className="p-6 flex items-center justify-between gap-4">
               <div>
                 <h3 className="text-[14px] font-bold text-zinc-900 font-['Sora'] mb-0.5">Delete Account</h3>
-                <p className="text-[12px] text-zinc-500 font-['Manrope']">
+                <p className="text-[11px] text-zinc-500 font-['Manrope']">
                   Permanently delete your account, login credentials, and all associated property data.
                 </p>
               </div>
@@ -297,7 +299,7 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
                   setDeletePassword("");
                   setShowDeleteModal(true);
                 }}
-                className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 hover:border-red-300 px-5 py-2.5 rounded-xl text-[13px] font-bold transition shadow-xs cursor-pointer shrink-0 active:scale-95"
+                className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 hover:border-red-300 px-5 py-2.5 rounded-xl text-[14px] font-bold transition shadow-xs cursor-pointer shrink-0 active:scale-95 font-['Manrope']"
               >
                 <Trash2 size={14} /> Delete Account
               </button>
@@ -323,8 +325,10 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => !deleteLoading && setShowDeleteModal(false)}
                 disabled={deleteLoading}
+                aria-label="Close delete modal"
                 className="grid h-8 w-8 place-items-center rounded-lg text-zinc-400 hover:bg-zinc-200/50 hover:text-zinc-600 transition disabled:opacity-50 cursor-pointer"
               >
                 <X size={18} />
@@ -333,7 +337,7 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
 
             {/* Modal Body */}
             <form onSubmit={handleDeleteAccount} className="p-6 space-y-4">
-              <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3.5 text-[12px] text-zinc-600 leading-relaxed">
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3.5 text-[11px] text-zinc-600 leading-relaxed font-['Manrope']">
                 You are about to permanently delete <strong>{user?.email}</strong>. All account settings, preferences, and session data will be permanently wiped.
               </div>
 
@@ -345,19 +349,20 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
                   onChange={(e) => setDeleteWithData(e.target.checked)}
                   className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-red-600 focus:ring-red-500 cursor-pointer"
                 />
-                <div className="text-[12px]">
-                  <span className="font-bold text-zinc-800 block">Delete all owned properties and units</span>
+                <div className="text-[11px] font-['Manrope']">
+                  <span className="font-bold text-zinc-800 block text-[14px]">Delete all owned properties and units</span>
                   <span className="text-zinc-500 font-medium">Also permanently remove all buildings, units, tenant history, and staff records created by this account.</span>
                 </div>
               </label>
 
               {/* Password field */}
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-600 mb-1.5 font-['Manrope']">
+                <label htmlFor="delete-password-input" className="block text-[11px] font-bold uppercase tracking-wider text-zinc-600 mb-1.5 font-['Manrope']">
                   Confirm your password
                 </label>
                 <div className="relative">
                   <input
+                    id="delete-password-input"
                     type={showPassword ? "text" : "password"}
                     value={deletePassword}
                     onChange={(e) => {
@@ -367,22 +372,22 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
                     placeholder="Enter current password"
                     required
                     disabled={deleteLoading}
-                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 pr-10 text-[13px] font-medium outline-none transition focus:border-red-500 focus:bg-white disabled:opacity-60"
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 pr-10 text-[14px] font-medium outline-none transition focus:border-red-500 focus:bg-white disabled:opacity-60"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    tabIndex={-1}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 p-1 relative after:absolute after:-inset-1.5 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-                <p className="text-[11px] text-zinc-400 mt-1">Required to verify account ownership before deletion.</p>
+                <p className="text-[11px] text-zinc-400 mt-1 font-['Manrope']">Required to verify account ownership before deletion.</p>
               </div>
 
               {deleteError && (
-                <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-[12px] font-semibold text-red-700 animate-in fade-in duration-200">
+                <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-[11px] font-semibold text-red-700 animate-in fade-in duration-200 font-['Manrope']">
                   <AlertTriangle size={15} className="shrink-0 text-red-600" />
                   <span>{deleteError}</span>
                 </div>
@@ -394,14 +399,14 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
                   type="button"
                   onClick={() => setShowDeleteModal(false)}
                   disabled={deleteLoading}
-                  className="rounded-xl border border-zinc-200 px-4 py-2 text-[13px] font-bold text-zinc-700 hover:bg-zinc-100 transition disabled:opacity-50 cursor-pointer"
+                  className="rounded-xl border border-zinc-200 px-4 py-2 text-[14px] font-bold text-zinc-700 hover:bg-zinc-100 transition disabled:opacity-50 cursor-pointer font-['Manrope']"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={deleteLoading || !deletePassword.trim()}
-                  className="flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.98] px-5 py-2 text-[13px] font-bold text-white shadow-sm transition disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                  className="flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.98] px-5 py-2 text-[14px] font-bold text-white shadow-sm transition disabled:opacity-50 disabled:pointer-events-none cursor-pointer font-['Manrope']"
                 >
                   {deleteLoading ? (
                     <>

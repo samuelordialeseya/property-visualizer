@@ -1,0 +1,237 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-29T09:55:00.000Z",
+  "title": "Design System: Property Visualizer",
+  "extensions": {
+    "colorMeta": {
+      "ocean-authority": {
+        "role": "primary",
+        "displayName": "Ocean Authority",
+        "canonical": "#0b3860",
+        "tonalRamp": ["#030d17", "#051b30", "#082a47", "#0b3860", "#155791", "#257bc7", "#7ab8ed", "#e1ebf4"]
+      },
+      "blueprint-cobalt": {
+        "role": "primary-accent",
+        "displayName": "Blueprint Cobalt",
+        "canonical": "#2270b8",
+        "tonalRamp": ["#071b2e", "#0e375c", "#18538a", "#2270b8", "#388fe0", "#6bb0f0", "#a8d3f7", "#e1ebf4"]
+      },
+      "status-occupied": {
+        "role": "status-occupied",
+        "displayName": "Warm Terracotta",
+        "canonical": "#d98a53",
+        "tonalRamp": ["#42210c", "#6e3714", "#a3531f", "#d98a53", "#e3a478", "#edbe9e", "#f7decb", "#fef3c7"]
+      },
+      "status-overdue": {
+        "role": "status-overdue",
+        "displayName": "Crimson Coral",
+        "canonical": "#e05c5c",
+        "tonalRamp": ["#4a1515", "#782222", "#ad3232", "#e05c5c", "#e87d7d", "#f0a1a1", "#f7c8c8", "#fee2e2"]
+      },
+      "status-vacant": {
+        "role": "status-vacant",
+        "displayName": "Muted Slate",
+        "canonical": "#6e8592",
+        "tonalRamp": ["#1e2529", "#354148", "#50626c", "#6e8592", "#8b9ea9", "#a8b7c1", "#c8d2d8", "#f4f4f5"]
+      },
+      "surface-canvas": {
+        "role": "neutral-bg",
+        "displayName": "Canvas Mist",
+        "canonical": "#f4f4f5",
+        "tonalRamp": ["#18181b", "#27272a", "#3f3f46", "#71717a", "#a1a1aa", "#d4d4d8", "#e4e4e7", "#f4f4f5"]
+      },
+      "obsidian-dark": {
+        "role": "workspace-dark",
+        "displayName": "Obsidian Night",
+        "canonical": "#0b0f13",
+        "tonalRamp": ["#050709", "#0b0f13", "#141a21", "#1e2732", "#2e3b4b", "#495a6f", "#8093a8", "#c8d4e2"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display Headline",
+        "purpose": "Dashboard metric hero figures and executive portfolio counters in Sora 800."
+      },
+      "headline": {
+        "displayName": "Section Headline",
+        "purpose": "Section titles, property names in detail headers, and modal titles in Sora 700."
+      },
+      "title": {
+        "displayName": "Card Title",
+        "purpose": "Unit numbers, card titles, and secondary group headers in Sora 600."
+      },
+      "body": {
+        "displayName": "Body Text",
+        "purpose": "Tenant records, financial statements, and general UI descriptions in Manrope 400."
+      },
+      "label": {
+        "displayName": "Micro Metadata Label",
+        "purpose": "Uppercase stat category tags, column headers, and status badges in Manrope 700."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-card",
+        "value": "0 1px 3px 0 rgba(0,0,0,0.08), 0 6px 20px -3px rgba(0,0,0,0.10)",
+        "purpose": "Primary administrative surface card depth at rest."
+      },
+      {
+        "name": "shadow-card-hover",
+        "value": "0 2px 6px 0 rgba(0,0,0,0.10), 0 12px 30px -5px rgba(0,0,0,0.14)",
+        "purpose": "Ambient floating lift upon desktop pointer hover."
+      },
+      {
+        "name": "shadow-card-sm",
+        "value": "0 1px 2px 0 rgba(0,0,0,0.07), 0 3px 8px -2px rgba(0,0,0,0.09)",
+        "purpose": "Sub-card elements and floating control docks."
+      },
+      {
+        "name": "shadow-modal",
+        "value": "0 4px 12px 0 rgba(0,0,0,0.10), 0 24px 60px -10px rgba(0,0,0,0.20)",
+        "purpose": "Elevation for system modals and floating detail sheets."
+      }
+    ],
+    "motion": [
+      {
+        "name": "fade-in",
+        "value": "fade-in 140ms ease-out both",
+        "purpose": "Screen view cross-fading without jarring visual jump."
+      },
+      {
+        "name": "fade-up",
+        "value": "fade-up 140ms ease-out both",
+        "purpose": "Card entrance animation with 8px vertical lift."
+      },
+      {
+        "name": "slide-in-right",
+        "value": "slide-in-right 180ms cubic-bezier(0.2, 0, 0.2, 1) both",
+        "purpose": "Unit detail inspector drawer entrance."
+      },
+      {
+        "name": "active-scale",
+        "value": "transform: scale(0.95); transition: transform 140ms ease-out",
+        "purpose": "Physical tactile feedback on button press."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Action Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Dominant administrative trigger for saving changes, creating properties, and primary navigation.",
+      "html": "<button class=\"ds-btn-primary\">Save Changes</button>",
+      "css": ".ds-btn-primary { background: #0b3860; color: #ffffff; padding: 10px 18px; font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 600; border: none; border-radius: 12px; cursor: pointer; transition: all 140ms ease-out; box-shadow: 0 1px 2px rgba(0,0,0,0.06); } .ds-btn-primary:hover { background: #051b30; } .ds-btn-primary:active { transform: scale(0.95); }"
+    },
+    {
+      "name": "Blueprint Accent Button",
+      "kind": "button",
+      "refersTo": "button-accent",
+      "description": "Spatial tool trigger for 3D layout design, room creation, and active mode toggles.",
+      "html": "<button class=\"ds-btn-accent\">Design Layout</button>",
+      "css": ".ds-btn-accent { background: #2270b8; color: #ffffff; padding: 10px 18px; font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; transition: all 140ms ease-out; box-shadow: 0 2px 6px rgba(34,112,184,0.25); } .ds-btn-accent:hover { background: #3186d6; } .ds-btn-accent:active { transform: scale(0.95); }"
+    },
+    {
+      "name": "Secondary Outline Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Neutral secondary trigger for cancellation, filtering, and optional actions.",
+      "html": "<button class=\"ds-btn-secondary\">Cancel</button>",
+      "css": ".ds-btn-secondary { background: #ffffff; color: #18181b; padding: 10px 16px; font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 600; border: 1px solid #e4e4e7; border-radius: 12px; cursor: pointer; transition: all 140ms ease-out; } .ds-btn-secondary:hover { background: #f4f4f5; } .ds-btn-secondary:active { transform: scale(0.95); }"
+    },
+    {
+      "name": "Dashboard Stat Card",
+      "kind": "card",
+      "refersTo": "card-stat",
+      "description": "High-visibility metric container presenting primary numerical portfolio health.",
+      "html": "<div class=\"ds-card-stat\"><div class=\"ds-card-header\"><span class=\"ds-card-label\">TOTAL UNITS</span><span class=\"ds-card-icon\">🏢</span></div><div class=\"ds-card-value\">24</div><div class=\"ds-card-sub\">92% Occupancy Rate</div></div>",
+      "css": ".ds-card-stat { background: #ffffff; border: 1px solid rgba(228,228,231,0.8); border-radius: 16px; padding: 20px; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.08), 0 6px 20px -3px rgba(0,0,0,0.10); font-family: 'Manrope', sans-serif; transition: all 140ms ease-out; } .ds-card-stat:hover { box-shadow: 0 2px 6px 0 rgba(0,0,0,0.10), 0 12px 30px -5px rgba(0,0,0,0.14); transform: translateY(-2px); } .ds-card-header { display: flex; justify-content: space-between; align-items: center; } .ds-card-label { font-size: 11px; font-weight: 700; color: #71717a; letter-spacing: 0.08em; text-transform: uppercase; } .ds-card-icon { font-size: 14px; background: #e1ebf4; color: #0b3860; padding: 6px; border-radius: 10px; } .ds-card-value { font-family: 'Sora', sans-serif; font-size: 30px; font-weight: 800; color: #18181b; line-height: 1.1; margin-top: 12px; } .ds-card-sub { font-size: 12px; font-weight: 600; color: #059669; margin-top: 8px; }"
+    },
+    {
+      "name": "Occupied Status Badge",
+      "kind": "chip",
+      "refersTo": "badge-occupied",
+      "description": "Pill indicator for actively leased rooms with warm terracotta hue.",
+      "html": "<span class=\"ds-badge-occupied\"><span class=\"ds-dot-occupied\"></span>OCCUPIED</span>",
+      "css": ".ds-badge-occupied { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 9999px; background: #fef3c7; color: #92400e; border: 1px solid rgba(245,158,11,0.3); font-family: 'Manrope', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; } .ds-dot-occupied { width: 6px; height: 6px; border-radius: 9999px; background: #d98a53; }"
+    },
+    {
+      "name": "Overdue Status Badge",
+      "kind": "chip",
+      "refersTo": "badge-overdue",
+      "description": "High-urgency pill indicator for units with overdue rent or critical flags.",
+      "html": "<span class=\"ds-badge-overdue\"><span class=\"ds-dot-overdue\"></span>OVERDUE</span>",
+      "css": ".ds-badge-overdue { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 9999px; background: #fee2e2; color: #991b1b; border: 1px solid rgba(239,68,68,0.3); font-family: 'Manrope', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; } .ds-dot-overdue { width: 6px; height: 6px; border-radius: 9999px; background: #e05c5c; }"
+    },
+    {
+      "name": "Standard Form Input",
+      "kind": "input",
+      "refersTo": "input-standard",
+      "description": "Text input field with crisp resting stroke and high-focus cobalt boundary.",
+      "html": "<input class=\"ds-input-standard\" type=\"text\" placeholder=\"e.g. Unit 201\" />",
+      "css": ".ds-input-standard { width: 100%; box-sizing: border-box; background: #ffffff; color: #18181b; padding: 10px 14px; font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 500; border: 1px solid #e4e4e7; border-radius: 12px; outline: none; transition: border-color 140ms ease-out, box-shadow 140ms ease-out; } .ds-input-standard:focus { border-color: #2270b8; box-shadow: 0 0 0 3px rgba(34,112,184,0.18); } .ds-input-standard::placeholder { color: #a1a1aa; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Architectural Control Deck",
+    "overview": "Property Visualizer bridges two demanding worlds: executive financial property administration and interactive 3D/2D CAD architectural modeling. Rather than forcing a compromise between dense spreadsheet utilities and artistic 3D game engines, the system establishes a deliberate bifurcation called The Dual-World Doctrine. Administrative tasks, financial records, tenant ledgers, and property portfolios operate in a luminous, high-clarity mist canvas (#f4f4f5) anchored by pure white cards (#ffffff) and deep maritime blues (#0b3860). In contrast, the spatial layout visualizer operates inside an Obsidian Darkroom (#0b0f13) where architectural blueprints, low-poly structural geometry, and unit statuses glow with drafting-table precision.",
+    "keyCharacteristics": [
+      "Dual-World Clarity: High-contrast daylight administration paired with an obsidian darkroom for 3D and 2D floorplan visualization.",
+      "Dual-Layer Elevation: Flat, crisp 1px borders at rest that lift into subtle floating ambient cushions upon user interaction.",
+      "Typographic Duality: Authoritative geometric headings (Sora) paired with an ultra-readable ergonomic grotesk (Manrope).",
+      "Tactile Kinetic Feedback: Rapid 140ms GPU-accelerated micro-interactions with immediate scale feedback (active:scale-95)."
+    ],
+    "rules": [
+      {
+        "name": "The Dual-World Doctrine",
+        "body": "Never bleed the light mist administrative canvas into the spatial 3D/2D visualizer, and never render dashboard data cards on dark canvas. Light is for accounting and operations; Obsidian is for spatial architecture.",
+        "section": "colors"
+      },
+      {
+        "name": "The 10% Cobalt Rule",
+        "body": "Blueprint Cobalt (#2270b8) is an intentional precision trigger. It must occupy ≤ 10% of any given administrative viewport to preserve its ability to draw the eye immediately.",
+        "section": "colors"
+      },
+      {
+        "name": "The Sora Numeric Rule",
+        "body": "All primary numerical metrics (financial totals, occupancy rates, room quantities) must render in Sora at font-weight: 700 or 800 to preserve physical typographic presence.",
+        "section": "typography"
+      },
+      {
+        "name": "The Strict Uppercase Discipline",
+        "body": "Uppercase typography is restricted solely to metadata labels and status pills (font-size: 10px–11px). Standard navigation and action buttons must use Title Case or Sentence Case.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-At-Rest Doctrine",
+        "body": "Surfaces never float with heavy ambient shadows without an active state. Shadows indicate either an active elevation layer (modals, floating HUD docks) or direct user hover.",
+        "section": "elevation"
+      },
+      {
+        "name": "The No-Blur Compositing Mandate",
+        "body": "Avoid backdrop-filter: blur(...) across mobile and iPad WebKit interfaces. Use solid, high-opacity dark surfaces (#141a21, #161c22) and clean white panels to guarantee 60fps frame rates.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do maintain the strict visual split between the light mist ledger (#f4f4f5) and the obsidian 3D/2D CAD visualizer (#0b0f13).",
+      "Do format all monetary amounts in ₱ (PHP) with standard digit-grouping commas (e.g. ₱15,000).",
+      "Do pair Sora for numbers/headers and Manrope for descriptive body copy and table data.",
+      "Do enforce active:scale-95 and 140ms duration on all interactive touch buttons for snappy tactile response.",
+      "Do provide immediate 2D Architectural Blueprint fallback whenever WebGL 2 is unavailable on the client device."
+    ],
+    "donts": [
+      "Don't use decorative multi-color gradients on buttons or navigation elements.",
+      "Don't add heavy Gaussian backdrop-blur-* filters on mobile overlays where WebKit GPU frame rates drop.",
+      "Don't display raw hexadecimal colors or unformatted timestamps to property managers.",
+      "Don't allow 3D Canvas wrappers to use flexible percentage heights without min-h-0 or absolute inset-0.",
+      "Don't use amber or coral status colors for non-urgent decorative accents; reserve them strictly for real-world lease and payment states."
+    ]
+  }
+}

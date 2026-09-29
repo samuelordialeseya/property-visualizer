@@ -21,8 +21,10 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
     >
       {/* Toggle button — sits on the edge of the sidebar */}
       <button
+        type="button"
         onClick={onToggleCollapse}
-        className={`absolute -right-3 top-1/2 -translate-y-1/2 z-20 grid h-6 w-6 place-items-center rounded-full border shadow-sm transition ${
+        aria-label={collapsed ? "Expand sidebar navigation" : "Collapse sidebar navigation"}
+        className={`absolute -right-3 top-1/2 -translate-y-1/2 z-20 grid h-6 w-6 place-items-center rounded-full border shadow-sm transition after:absolute after:-inset-2.5 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8] ${
           isDark
             ? "border-white/15 bg-[#141a21] text-zinc-400 hover:bg-[#1f2933] hover:text-white hover:border-white/30"
             : "border-zinc-200 bg-white text-zinc-500 hover:bg-[var(--color-blue-50)] hover:text-[var(--color-blue-600)] hover:border-[var(--color-blue-300)]"
@@ -33,8 +35,12 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
 
       {/* Brand */}
       <div
+        role="button"
+        tabIndex={0}
+        aria-label="Go to Dashboard"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveView("dashboard"); } }}
         onClick={() => setActiveView("dashboard")}
-        className="relative flex items-center justify-center cursor-pointer h-[96px] px-2 select-none overflow-hidden"
+        className="relative flex items-center justify-center cursor-pointer h-[96px] px-2 select-none overflow-hidden rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
         title="Go to Dashboard"
       >
         {/* Full horizontal logo */}
@@ -78,9 +84,11 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
           return (
             <button
               key={item.id}
+              type="button"
               onClick={() => setActiveView(item.id)}
+              aria-label={item.label}
               title={collapsed ? item.label : undefined}
-              className={`flex w-full items-center rounded-[12px] transition active:scale-95 cursor-pointer text-[14px] font-medium ${
+              className={`flex w-full items-center rounded-[12px] transition active:scale-95 cursor-pointer text-[14px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8] ${
                 collapsed ? "justify-center px-0 py-3" : "gap-3 px-3.5 py-3"
               } ${
                 isActive
@@ -112,22 +120,24 @@ export default function Sidebar({ user, activeView, setActiveView, onLogout, col
 
       {/* Footer / Profile */}
       <div className={`p-2.5 mt-auto ${isDark ? "border-t border-white/10" : "border-t border-zinc-200"}`}>
-        <div 
+        <button 
+          type="button"
           onClick={() => setActiveView("settings")}
+          aria-label="Open Profile Settings"
           title={collapsed ? "Profile Settings" : undefined}
-          className={`flex items-center ${collapsed ? "justify-center" : "gap-2.5"} cursor-pointer p-2 rounded-xl transition duration-150 hover:scale-[1.02] active:scale-[0.98] ${
+          className={`w-full text-left flex items-center ${collapsed ? "justify-center" : "gap-2.5"} cursor-pointer p-2 rounded-xl transition duration-150 hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8] ${
             isDark ? "hover:bg-white/5" : "hover:bg-zinc-200/50"
           }`}
         >
-          <div className="h-8 w-8 bg-[#0b3860] rounded-full flex items-center justify-center text-white text-[13px] font-bold font-['Sora'] shadow-sm shrink-0 border border-white/10">
+          <div className="h-8 w-8 bg-[#0b3860] rounded-full flex items-center justify-center text-white text-[14px] font-bold font-['Sora'] shadow-sm shrink-0 border border-white/10">
             {initial}
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <div className={`text-[13px] font-bold truncate ${isDark ? "text-white" : "text-zinc-900"}`}>{managerName}</div>
+              <div className={`text-[14px] font-bold truncate ${isDark ? "text-white" : "text-zinc-900"}`}>{managerName}</div>
             </div>
           )}
-        </div>
+        </button>
       </div>
     </aside>
   );

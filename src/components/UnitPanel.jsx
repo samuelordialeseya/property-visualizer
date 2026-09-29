@@ -334,36 +334,42 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
             </div>
           )}
           <div>
-            <div className="text-[17px] font-semibold leading-tight text-zinc-900">
+            <div className="text-[16px] font-semibold leading-tight text-zinc-900 font-['Sora']">
               {unit.unit_label || "Unnamed Unit"}
             </div>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className={`h-1.5 w-1.5 rounded-full ${curStatus.dot}`} />
-              <span className="text-[12px] text-zinc-500">{curStatus.label} · Floor {unit.floor}</span>
+              <span className="text-[11px] text-zinc-500 font-['Manrope']">{curStatus.label} · Floor {unit.floor}</span>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {!isEditing ? (
             <button
+              type="button"
               onClick={() => setIsEditing(true)}
-              className="flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-semibold text-zinc-600 transition hover:bg-zinc-100 cursor-pointer"
+              aria-label="Edit unit details"
+              className="flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[11px] font-semibold text-zinc-600 transition hover:bg-zinc-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
             >
               <Pencil size={12} />
               Edit
             </button>
           ) : (
             <button
+              type="button"
               onClick={() => setIsEditing(false)}
-              className="flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] font-semibold text-zinc-500 transition hover:bg-zinc-100 cursor-pointer"
+              aria-label="Cancel editing unit details"
+              className="flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[11px] font-semibold text-zinc-500 transition hover:bg-zinc-100 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
             >
               <X size={12} />
               Cancel
             </button>
           )}
           <button
+            type="button"
             onClick={onClose}
-            className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 text-zinc-500 transition hover:bg-zinc-200 cursor-pointer"
+            aria-label="Close unit details"
+            className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 text-zinc-500 transition hover:bg-zinc-200 cursor-pointer relative after:absolute after:-inset-2 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
           >
             <X size={16} />
           </button>
@@ -431,38 +437,38 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
                     
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Rent (Fixed)</label>
-                        <div className="w-full rounded-xl border border-zinc-200 bg-zinc-100 px-3 py-2 text-[12px] text-zinc-500 cursor-not-allowed">
+                        <span className="mb-1 block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider font-['Manrope']">Rent (Fixed)</span>
+                        <div className="w-full rounded-xl border border-zinc-200 bg-zinc-100 px-3 py-2 text-[14px] text-zinc-500 cursor-not-allowed">
                           ₱{Number(billRent).toLocaleString()}
                         </div>
                       </div>
                       <div>
-                        <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Electric Bill</label>
-                        <input type="number" min="0" value={billElectric} onChange={(e) => setBillElectric(e.target.value)} placeholder="0" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]" />
+                        <label htmlFor="bill-electric-input" className="mb-1 block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider font-['Manrope']">Electric Bill</label>
+                        <input id="bill-electric-input" type="number" min="0" value={billElectric} onChange={(e) => setBillElectric(e.target.value)} placeholder="0" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[14px] outline-none focus:border-[var(--color-blue-600)] transition" />
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Water Bill</label>
-                        <input type="number" min="0" value={billWater} onChange={(e) => setBillWater(e.target.value)} placeholder="0" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]" />
+                        <label htmlFor="bill-water-input" className="mb-1 block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider font-['Manrope']">Water Bill</label>
+                        <input id="bill-water-input" type="number" min="0" value={billWater} onChange={(e) => setBillWater(e.target.value)} placeholder="0" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[14px] outline-none focus:border-[var(--color-blue-600)] transition" />
                       </div>
                       <div>
-                        <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Other / Extras</label>
-                        <input type="number" min="0" value={billOther} onChange={(e) => setBillOther(e.target.value)} placeholder="0" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]" />
+                        <label htmlFor="bill-other-input" className="mb-1 block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider font-['Manrope']">Other / Extras</label>
+                        <input id="bill-other-input" type="number" min="0" value={billOther} onChange={(e) => setBillOther(e.target.value)} placeholder="0" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[14px] outline-none focus:border-[var(--color-blue-600)] transition" />
                       </div>
                     </div>
                     
                     <div>
-                      <label className="mb-1 block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Notes (Optional)</label>
-                      <input type="text" value={billNotes} onChange={(e) => setBillNotes(e.target.value)} placeholder="e.g. Broken faucet repair included in Others" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-[var(--color-blue-600)]" />
+                      <label htmlFor="bill-notes-input" className="mb-1 block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider font-['Manrope']">Notes (Optional)</label>
+                      <input id="bill-notes-input" type="text" value={billNotes} onChange={(e) => setBillNotes(e.target.value)} placeholder="e.g. Broken faucet repair included in Others" className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[14px] outline-none focus:border-[var(--color-blue-600)] transition" />
                     </div>
                     
                     <div className="pt-2 flex items-center justify-between border-t border-[var(--color-blue-100)]">
-                      <div className="text-[12px] font-semibold text-[var(--color-blue-700)]">Total: ₱{(Number(billRent) + (Number(billElectric)||0) + (Number(billWater)||0) + (Number(billOther)||0)).toLocaleString()}</div>
+                      <div className="text-[14px] font-semibold text-[var(--color-blue-700)]">Total: ₱{(Number(billRent) + (Number(billElectric)||0) + (Number(billWater)||0) + (Number(billOther)||0)).toLocaleString()}</div>
                       <div className="flex gap-2">
-                        <button type="button" onClick={() => setShowBillForm(false)} className="px-3 py-1.5 rounded-xl text-[11px] font-semibold text-zinc-500 hover:bg-zinc-100 transition">Cancel</button>
-                        <button type="submit" disabled={saving} className="px-4 py-1.5 rounded-xl bg-[var(--color-blue-600)] hover:bg-[var(--color-blue-700)] text-white text-[11px] font-semibold transition disabled:opacity-50">Save Bill</button>
+                        <button type="button" onClick={() => setShowBillForm(false)} className="px-3 py-1.5 rounded-xl text-[11px] font-semibold text-zinc-500 hover:bg-zinc-100 transition cursor-pointer">Cancel</button>
+                        <button type="submit" disabled={saving} className="px-4 py-1.5 rounded-xl bg-[var(--color-blue-600)] hover:bg-[var(--color-blue-700)] text-white text-[11px] font-semibold transition disabled:opacity-50 cursor-pointer">Save Bill</button>
                       </div>
                     </div>
                   </form>
@@ -471,15 +477,15 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
                 {/* Record Payment Form */}
                 {showPayForm && (
                   <form onSubmit={handleRecordPayment} className="mb-4 rounded-2xl border border-green-200 bg-green-50 p-4 space-y-3">
-                    <div className="text-[11px] font-semibold uppercase tracking-wider text-green-700">Record Payment</div>
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-green-700 font-['Manrope']">Record Payment</div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="mb-1 block text-[10px] font-semibold text-green-700/70 uppercase tracking-wider">Date Paid</label>
-                        <input type="date" required value={payDatePaid} onChange={(e) => setPayDatePaid(e.target.value)} className="w-full rounded-xl border border-green-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-green-500" />
+                        <label htmlFor="pay-date-input" className="mb-1 block text-[11px] font-semibold text-green-700/80 uppercase tracking-wider font-['Manrope']">Date Paid</label>
+                        <input id="pay-date-input" type="date" required value={payDatePaid} onChange={(e) => setPayDatePaid(e.target.value)} className="w-full rounded-xl border border-green-200 bg-white px-3 py-2 text-[14px] outline-none focus:border-green-500 transition" />
                       </div>
                       <div>
-                        <label className="mb-1 block text-[10px] font-semibold text-green-700/70 uppercase tracking-wider">Payment Method</label>
-                        <select value={payMethod} onChange={(e) => setPayMethod(e.target.value)} className="w-full rounded-xl border border-green-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-green-500">
+                        <label htmlFor="pay-method-select" className="mb-1 block text-[11px] font-semibold text-green-700/80 uppercase tracking-wider font-['Manrope']">Payment Method</label>
+                        <select id="pay-method-select" value={payMethod} onChange={(e) => setPayMethod(e.target.value)} className="w-full rounded-xl border border-green-200 bg-white px-3 py-2 text-[14px] outline-none focus:border-green-500 transition">
                           <option>Cash</option>
                           <option>GCash</option>
                           <option>Bank Transfer</option>
@@ -488,13 +494,13 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
                       </div>
                     </div>
                     <div>
-                      <label className="mb-1 block text-[10px] font-semibold text-green-700/70 uppercase tracking-wider">Receipt / Screenshot</label>
-                      <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; setPayFile(f || null); setPayFilePrev(f ? URL.createObjectURL(f) : null); }} className="w-full text-[11px] text-green-700 file:mr-2 file:rounded-full file:border-0 file:bg-white file:px-2 file:py-1 file:text-[11px] file:font-semibold file:text-green-700" />
+                      <label htmlFor="pay-file-input" className="mb-1 block text-[11px] font-semibold text-green-700/80 uppercase tracking-wider font-['Manrope']">Receipt / Screenshot</label>
+                      <input id="pay-file-input" type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; setPayFile(f || null); setPayFilePrev(f ? URL.createObjectURL(f) : null); }} className="w-full text-[11px] text-green-700 file:mr-2 file:rounded-full file:border-0 file:bg-white file:px-2 file:py-1 file:text-[11px] file:font-semibold file:text-green-700" />
                       {payFilePrev && <img src={payFilePrev} alt="Receipt preview" className="mt-2 h-20 w-full rounded-xl object-cover border border-green-200" />}
                     </div>
                     <div className="flex gap-2 pt-1">
-                      <button type="button" onClick={() => { setShowPayForm(false); setPayTargetId(null); }} className="px-3 py-1.5 rounded-xl text-[11px] font-semibold text-zinc-500 hover:bg-zinc-100 transition border border-transparent bg-white">Cancel</button>
-                      <button type="submit" disabled={recordingSave} className="flex-1 rounded-xl bg-green-600 hover:bg-green-700 text-white py-2 text-[12px] font-semibold transition disabled:opacity-50">Confirm Payment</button>
+                      <button type="button" onClick={() => { setShowPayForm(false); setPayTargetId(null); }} className="px-3 py-1.5 rounded-xl text-[11px] font-semibold text-zinc-500 hover:bg-zinc-100 transition border border-transparent bg-white cursor-pointer">Cancel</button>
+                      <button type="submit" disabled={recordingSave} className="flex-1 rounded-xl bg-green-600 hover:bg-green-700 text-white py-2 text-[14px] font-semibold transition disabled:opacity-50 cursor-pointer">Confirm Payment</button>
                     </div>
                   </form>
                 )}
@@ -700,8 +706,9 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
           <form id="unit-form" onSubmit={handleSave} className="space-y-5">
             {/* Unit Name / Number */}
             <div>
-              <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.08em] text-zinc-500 uppercase">UNIT NAME / NUMBER</label>
+              <label htmlFor="edit-unit-label" className="mb-1.5 block text-[11px] font-semibold tracking-[0.08em] text-zinc-500 uppercase font-['Manrope']">UNIT NAME / NUMBER</label>
               <input
+                id="edit-unit-label"
                 type="text"
                 className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-[14px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] focus:bg-white transition"
                 value={unitLabel}
@@ -709,16 +716,16 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
                 placeholder="e.g. 101, A-1, Studio B, Penthouse, Room 4"
                 required
               />
-              <p className="mt-1 text-[11px] text-zinc-400">Can be any format (numbers, letters, custom room names)</p>
+              <p className="mt-1 text-[11px] text-zinc-400 font-['Manrope']">Can be any format (numbers, letters, custom room names)</p>
             </div>
 
             {/* Status */}
             <div>
-              <label className="mb-2 block text-[11px] font-semibold tracking-[0.08em] text-zinc-500">STATUS</label>
+              <span className="mb-2 block text-[11px] font-semibold tracking-[0.08em] text-zinc-500 font-['Manrope'] uppercase">STATUS</span>
               <div className="flex gap-2 flex-wrap">
                 {STATUS_OPTIONS.map((opt) => (
                   <button key={opt.value} type="button" onClick={() => setStatus(opt.value)}
-                    className={`rounded-full px-3 py-1.5 text-[12px] font-semibold transition border ${status === opt.value ? opt.pill + " ring-2 ring-current ring-offset-1" : "bg-white text-zinc-500 border-zinc-200 hover:bg-zinc-50"}`}
+                    className={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition border font-['Manrope'] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8] ${status === opt.value ? opt.pill + " ring-2 ring-current ring-offset-1" : "bg-white text-zinc-500 border-zinc-200 hover:bg-zinc-50"}`}
                   >
                     {opt.label}
                   </button>
@@ -728,20 +735,24 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
 
             {/* Monthly Rent */}
             <div>
-              <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.08em] text-zinc-500">MONTHLY RENT (₱)</label>
-              <input type="number" min="0"
+              <label htmlFor="edit-unit-rent" className="mb-1.5 block text-[11px] font-semibold tracking-[0.08em] text-zinc-500 font-['Manrope'] uppercase">MONTHLY RENT (₱)</label>
+              <input
+                id="edit-unit-rent"
+                type="number"
+                min="0"
                 className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-[14px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] focus:bg-white transition"
-                value={rent} onChange={(e) => setRent(e.target.value)}
+                value={rent}
+                onChange={(e) => setRent(e.target.value)}
               />
             </div>
 
             {status !== "vacant" && (
               <div className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4 space-y-4">
-                <div className="text-[10px] font-semibold tracking-[0.08em] text-zinc-500 uppercase">Tenant Details</div>
+                <div className="text-[11px] font-semibold tracking-[0.08em] text-zinc-500 uppercase font-['Manrope']">Tenant Details</div>
 
                 {/* Tenant photo */}
                 <div>
-                  <label className="mb-1 block text-[10px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Photo</label>
+                  <label htmlFor="edit-tenant-photo" className="mb-1 block text-[11px] font-semibold tracking-[0.06em] text-zinc-500 uppercase font-['Manrope']">Photo</label>
                   <div className="flex items-center gap-3">
                     {displayPhoto ? (
                       <img src={displayPhoto} alt="Tenant" className="h-10 w-10 rounded-full object-cover border border-zinc-200 shrink-0" />
@@ -750,53 +761,72 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
                         <User size={18} />
                       </div>
                     )}
-                    <input type="file" accept="image/*"
-                      className="w-full text-[12px] text-zinc-600 file:mr-2 file:rounded-full file:border-0 file:bg-zinc-200 file:px-2 file:py-1 file:text-[11px] file:font-semibold file:text-zinc-700"
+                    <input
+                      id="edit-tenant-photo"
+                      type="file"
+                      accept="image/*"
+                      className="w-full text-[11px] text-zinc-600 file:mr-2 file:rounded-full file:border-0 file:bg-zinc-200 file:px-2 file:py-1 file:text-[11px] file:font-semibold file:text-zinc-700"
                       onChange={(e) => setPhotoFile(e.target.files[0])}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-[10px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Name</label>
-                  <input type="text"
-                    className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[13px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition"
-                    value={tenantName} onChange={(e) => setTenantName(e.target.value)}
-                    required={status !== "vacant"} placeholder="Full name"
+                  <label htmlFor="edit-tenant-name" className="mb-1 block text-[11px] font-semibold tracking-[0.06em] text-zinc-500 uppercase font-['Manrope']">Name</label>
+                  <input
+                    id="edit-tenant-name"
+                    type="text"
+                    className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[14px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition"
+                    value={tenantName}
+                    onChange={(e) => setTenantName(e.target.value)}
+                    required={status !== "vacant"}
+                    placeholder="Full name"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-[10px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Contact</label>
-                  <input type="text"
-                    className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[13px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition"
-                    value={contact} onChange={(e) => setContact(e.target.value)} placeholder="+63 9XX XXX XXXX"
+                  <label htmlFor="edit-tenant-contact" className="mb-1 block text-[11px] font-semibold tracking-[0.06em] text-zinc-500 uppercase font-['Manrope']">Contact</label>
+                  <input
+                    id="edit-tenant-contact"
+                    type="text"
+                    className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[14px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition"
+                    value={contact}
+                    onChange={(e) => setContact(e.target.value)}
+                    placeholder="+63 9XX XXX XXXX"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="mb-1 block text-[10px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Lease Start</label>
-                    <input type="date"
-                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition"
-                      value={leaseStart} onChange={(e) => setLeaseStart(e.target.value)}
+                    <label htmlFor="edit-lease-start" className="mb-1 block text-[11px] font-semibold tracking-[0.06em] text-zinc-500 uppercase font-['Manrope']">Lease Start</label>
+                    <input
+                      id="edit-lease-start"
+                      type="date"
+                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[14px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition"
+                      value={leaseStart}
+                      onChange={(e) => setLeaseStart(e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-[10px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Lease End</label>
-                    <input type="date"
-                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition"
-                      value={leaseEnd} onChange={(e) => setLeaseEnd(e.target.value)}
+                    <label htmlFor="edit-lease-end" className="mb-1 block text-[11px] font-semibold tracking-[0.06em] text-zinc-500 uppercase font-['Manrope']">Lease End</label>
+                    <input
+                      id="edit-lease-end"
+                      type="date"
+                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[14px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition"
+                      value={leaseEnd}
+                      onChange={(e) => setLeaseEnd(e.target.value)}
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="mb-1 block text-[10px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Payment Method</label>
+                    <label htmlFor="edit-payment-method" className="mb-1 block text-[11px] font-semibold tracking-[0.06em] text-zinc-500 uppercase font-['Manrope']">Payment Method</label>
                     <select
-                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition"
-                      value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}
+                      id="edit-payment-method"
+                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[14px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition"
+                      value={paymentMethod}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
                     >
                       <option>Cash</option>
                       <option>GCash</option>
@@ -805,19 +835,29 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
                     </select>
                   </div>
                   <div>
-                    <label className="mb-1 block text-[10px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Due Day</label>
-                    <input type="number" min="1" max="31"
-                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition"
-                      value={rentDueDate} onChange={(e) => setRentDueDate(e.target.value)} placeholder="e.g. 5"
+                    <label htmlFor="edit-rent-due-date" className="mb-1 block text-[11px] font-semibold tracking-[0.06em] text-zinc-500 uppercase font-['Manrope']">Due Day</label>
+                    <input
+                      id="edit-rent-due-date"
+                      type="number"
+                      min="1"
+                      max="31"
+                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[14px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition"
+                      value={rentDueDate}
+                      onChange={(e) => setRentDueDate(e.target.value)}
+                      placeholder="e.g. 5"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-[10px] font-semibold tracking-[0.06em] text-zinc-500 uppercase">Notes</label>
-                  <textarea rows="2"
-                    className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[12px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition resize-none"
-                    value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional notes…"
+                  <label htmlFor="edit-tenant-notes" className="mb-1 block text-[11px] font-semibold tracking-[0.06em] text-zinc-500 uppercase font-['Manrope']">Notes</label>
+                  <textarea
+                    id="edit-tenant-notes"
+                    rows="2"
+                    className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-[14px] text-zinc-900 outline-none focus:border-[var(--color-blue-600)] transition resize-none"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Optional notes…"
                   />
                 </div>
               </div>

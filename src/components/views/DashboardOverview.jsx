@@ -17,7 +17,7 @@ function StatCard({ label, value, subLabel, icon: Icon, iconColor, iconBg, accen
       <div className="mt-3">
         <div className="text-[30px] font-[800] leading-none text-zinc-900 tracking-tight font-['Sora']">{value}</div>
         {subLabel && (
-          <div className="mt-3 text-[12px] font-semibold font-['Manrope']">
+          <div className="mt-3 text-[11px] font-semibold font-['Manrope']">
             {subLabel}
           </div>
         )}
@@ -38,7 +38,7 @@ const AVATAR_COLORS = [
 function PropertyAvatar({ name }) {
   const idx = (name || "").charCodeAt(0) % AVATAR_COLORS.length;
   return (
-    <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${AVATAR_COLORS[idx]} text-white font-bold text-[17px] font-['Sora'] shadow-sm`}>
+    <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${AVATAR_COLORS[idx]} text-white font-bold text-[16px] font-['Sora'] shadow-sm`}>
       {name ? name.charAt(0).toUpperCase() : "B"}
     </div>
   );
@@ -246,9 +246,13 @@ export default function DashboardOverview({ buildings = [], units = [], onAddBui
                     
                   return (
                     <div key={b.id} 
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`View property ${b.name || "Untitled Building"}`}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectProperty(b.id); } }}
                       onClick={() => onSelectProperty(b.id)}
                       style={{ animationDelay: `${Math.min(idx * 50, 300)}ms` }}
-                      className="flex items-center justify-between py-3.5 px-3 -mx-1 rounded-xl cursor-pointer transition-all duration-200 hover:bg-zinc-50 group animate-fade-up">
+                      className="flex items-center justify-between py-3.5 px-3 -mx-1 rounded-xl cursor-pointer transition-all duration-200 hover:bg-zinc-50 group animate-fade-up focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]">
                       <div className="flex items-center gap-3.5 flex-1 min-w-0">
                         <PropertyAvatar name={b.name} />
                         <div className="min-w-0">
@@ -264,8 +268,10 @@ export default function DashboardOverview({ buildings = [], units = [], onAddBui
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <button 
+                          type="button"
                           onClick={(e) => { e.stopPropagation(); onOpen3D(b.id); }}
-                          className="px-3 py-1.5 rounded-lg border border-zinc-200 bg-white text-[11px] font-[700] text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition shadow-sm font-['Manrope'] cursor-pointer"
+                          aria-label={`Open 3D layout view for ${b.name || "building"}`}
+                          className="px-3 py-1.5 rounded-lg border border-zinc-200 bg-white text-[11px] font-[700] text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition shadow-sm font-['Manrope'] cursor-pointer relative after:absolute after:-inset-1.5 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
                         >
                           3D View
                         </button>
