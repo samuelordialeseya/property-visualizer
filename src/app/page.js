@@ -173,6 +173,8 @@ export default function Home() {
               buildings={buildings} 
               units={units} 
               onSelectProperty={handleSelectProperty} 
+              onAddBuilding={handleNewBuildingFromDashboard}
+              onOpen3D={handleOpen3D}
             />
           </div>
         )}
