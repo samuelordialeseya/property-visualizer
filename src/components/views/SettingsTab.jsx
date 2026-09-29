@@ -2,7 +2,10 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useUserProfile, updateUserProfile, deleteUserData } from "@/hooks/useFirestore";
-import { User, Download, Save, LogOut, Trash2, AlertTriangle, Eye, EyeOff, X, Loader2, RotateCw } from "lucide-react";
+import { 
+  User, Download, Save, LogOut, Trash2, AlertTriangle, 
+  Eye, EyeOff, X, Loader2, RotateCw, Check, ShieldCheck, Database
+} from "lucide-react";
 
 export default function SettingsTab({ user, buildings = [], units = [] }) {
   const { logout, deleteAccount } = useAuth();
@@ -146,14 +149,14 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-[#f4f4f5] p-8">
-      <div className="max-w-3xl mx-auto space-y-6 pt-4">
+    <div className="h-full overflow-y-auto bg-[#f4f4f5] px-4 py-6 sm:px-8 sm:py-8">
+      <div className="max-w-3xl mx-auto space-y-6">
         
         {/* Header */}
-        <div className="mb-8 animate-fade-down flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="mb-2 animate-fade-down flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-[36px] font-[800] text-[#0b3860] tracking-[-0.03em] font-['Sora']">Settings</h1>
-            <p className="text-[14px] text-zinc-400 mt-1 font-['Manrope'] font-medium">Manage your account profile and application preferences</p>
+            <h1 className="text-[32px] sm:text-[36px] font-[800] text-[#0b3860] tracking-[-0.03em] font-['Sora']">Settings</h1>
+            <p className="text-[14px] text-zinc-500 mt-1 font-['Manrope'] font-medium">Manage your account profile and application preferences</p>
           </div>
           <button
             type="button"
@@ -169,56 +172,74 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
 
         {/* Account Profile Card */}
         <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden animate-fade-up delay-50">
-          <div className="px-6 py-4 border-b border-zinc-100 bg-white">
-            <h2 className="text-[14px] font-bold text-zinc-800 font-['Sora']">Account Profile</h2>
+          <div className="px-6 py-4 border-b border-zinc-100 bg-white flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-[#0b3860]/10 flex items-center justify-center text-[#0b3860]">
+                <User size={16} />
+              </div>
+              <div>
+                <h2 className="text-[14px] font-bold text-zinc-900 font-['Sora']">Account Profile</h2>
+                <p className="text-[11px] text-zinc-400 font-['Manrope']">Personal identity and presentation settings</p>
+              </div>
+            </div>
           </div>
           <div className="p-6 space-y-6">
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 bg-[#0b3860] rounded-full flex items-center justify-center text-white text-[20px] font-bold font-['Sora'] shadow-sm">
+              <div className="h-16 w-16 bg-[#0b3860] rounded-2xl flex items-center justify-center text-white text-[22px] font-extrabold font-['Sora'] shadow-sm ring-4 ring-zinc-100">
                 {(managerName || user?.email || "?")[0].toUpperCase()}
               </div>
               <div>
-                <div className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-0.5 font-['Manrope']">Email Address</div>
+                <div className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-0.5 font-['Manrope']">Signed in as</div>
                 <div className="text-[16px] font-semibold text-zinc-900 font-['Manrope']">{user?.email}</div>
+                <span className="inline-flex items-center gap-1.5 mt-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md font-['Manrope']">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  Active Session
+                </span>
               </div>
             </div>
 
             <form onSubmit={handleSave} className="pt-2">
               <div className="mb-4">
-                <label htmlFor="manager-name-input" className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 font-['Manrope']">
-                  Full Name
+                <label htmlFor="manager-name-input" className="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-2 font-['Manrope']">
+                  Manager / Organization Name
                 </label>
                 <input 
                   id="manager-name-input"
                   value={managerName} 
                   onChange={e => setManagerName(e.target.value)} 
                   placeholder="e.g. Juan dela Cruz / Skyline Properties LLC"
-                  className="w-full max-w-md rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-[14px] font-medium outline-none focus:border-[#2270b8] focus:bg-white transition" 
+                  className="w-full max-w-md rounded-xl border border-zinc-200 bg-zinc-50/70 px-4 py-2.5 text-[14px] font-medium text-zinc-900 outline-none focus:border-[#2270b8] focus:bg-white focus:ring-2 focus:ring-[#2270b8]/15 transition" 
                 />
               </div>
 
               <div className="mb-6">
-                <label htmlFor="default-currency-select" className="block text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2 font-['Manrope']">
-                  Default Currency
+                <label htmlFor="default-currency-select" className="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-2 font-['Manrope']">
+                  Default Currency Display
                 </label>
                 <select 
                   id="default-currency-select"
                   value={currency} 
                   onChange={e => setCurrency(e.target.value)}
-                  className="w-full max-w-[260px] rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-[14px] font-medium outline-none focus:border-[#2270b8] focus:bg-white transition"
+                  className="w-full max-w-[280px] rounded-xl border border-zinc-200 bg-zinc-50/70 px-4 py-2.5 text-[14px] font-medium text-zinc-900 outline-none focus:border-[#2270b8] focus:bg-white focus:ring-2 focus:ring-[#2270b8]/15 transition cursor-pointer"
                 >
                   <option value="PHP">PHP (₱) — Philippine Peso</option>
                   <option value="USD">USD ($) — US Dollar</option>
                 </select>
-                <p className="text-[11px] text-zinc-400 mt-2 font-['Manrope']">Currently visual only. Converts display formats.</p>
+                <p className="text-[11px] text-zinc-400 mt-2 font-['Manrope']">Controls currency symbol formatting across financial tables and cards.</p>
               </div>
 
-              <div className="pt-4 border-t border-zinc-100 flex items-center gap-3">
+              <div className="pt-4 border-t border-zinc-100 flex flex-wrap items-center gap-3">
                 <button type="submit" disabled={saving}
-                  className="flex items-center gap-2 bg-[#0b3860] hover:bg-[#154e83] text-white px-5 py-2.5 rounded-xl text-[14px] font-bold transition shadow-sm cursor-pointer disabled:opacity-50">
-                  <Save size={14} /> {saving ? "Saving..." : "Save Changes"}
+                  className="flex items-center gap-2 bg-[#0b3860] hover:bg-[#051b30] text-white px-5 py-2.5 rounded-xl text-[14px] font-bold transition shadow-xs active:scale-[0.98] cursor-pointer disabled:opacity-50 font-['Manrope']">
+                  {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+                  <span>{saving ? "Saving Changes…" : "Save Changes"}</span>
                 </button>
-                {saved && <span className="text-[11px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full animate-fade-in font-['Manrope']">Saved successfully!</span>}
+                {saved && (
+                  <span className="inline-flex items-center gap-1.5 text-[12px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-3 py-1.5 rounded-xl animate-fade-in font-['Manrope']">
+                    <Check size={14} className="text-emerald-600" />
+                    Changes saved successfully!
+                  </span>
+                )}
               </div>
             </form>
           </div>
@@ -226,69 +247,104 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
 
         {/* Data Management Card */}
         <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden animate-fade-up delay-100">
-          <div className="px-6 py-4 border-b border-zinc-100 bg-white">
-            <h2 className="text-[14px] font-bold text-zinc-800 font-['Sora']">Data Management</h2>
+          <div className="px-6 py-4 border-b border-zinc-100 bg-white flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-[#0b3860]/10 flex items-center justify-center text-[#0b3860]">
+                <Database size={16} />
+              </div>
+              <div>
+                <h2 className="text-[14px] font-bold text-zinc-900 font-['Sora']">Data Management</h2>
+                <p className="text-[11px] text-zinc-400 font-['Manrope']">Export and archive your property records</p>
+              </div>
+            </div>
+            <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-100 text-zinc-600 text-[11px] font-semibold font-['Manrope']">
+              <span>{buildings.length} {buildings.length === 1 ? "Property" : "Properties"}</span>
+              <span>•</span>
+              <span>{units.length} {units.length === 1 ? "Unit" : "Units"}</span>
+            </div>
           </div>
           <div className="p-6">
-            <p className="text-[14px] text-zinc-500 mb-4 font-['Manrope']">Export your tenant list, rent logs, staff ledgers, and property layouts into a secure spreadsheet format for backup or external accounting.</p>
+            <p className="text-[14px] text-zinc-600 mb-4 font-['Manrope'] leading-relaxed">
+              Export your tenant list, rent logs, staff ledgers, and property layouts into a secure CSV spreadsheet format for external bookkeeping, tax compliance, or offline archiving.
+            </p>
             <button onClick={handleExportData}
-              className="flex items-center gap-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-4 py-2.5 rounded-xl text-[14px] font-bold transition shadow-xs cursor-pointer active:scale-95 font-['Manrope']">
-              <Download size={14} /> Export CSV Data
+              className="flex items-center gap-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 px-4 py-2.5 rounded-xl text-[14px] font-bold transition shadow-xs cursor-pointer active:scale-[0.98] font-['Manrope']">
+              <Download size={15} /> Export CSV Data
             </button>
           </div>
         </div>
 
         {/* App Updates & Cache Card */}
         <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden animate-fade-up delay-120">
-          <div className="px-6 py-4 border-b border-zinc-100 bg-white">
-            <h2 className="text-[14px] font-bold text-zinc-800 font-['Sora']">App Updates & Cache</h2>
+          <div className="px-6 py-4 border-b border-zinc-100 bg-white flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-[#0b3860]/10 flex items-center justify-center text-[#0b3860]">
+                <RotateCw size={16} />
+              </div>
+              <div>
+                <h2 className="text-[14px] font-bold text-zinc-900 font-['Sora']">App Updates & Cache</h2>
+                <p className="text-[11px] text-zinc-400 font-['Manrope']">Service worker and version synchronization</p>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-bold font-['Manrope'] border border-emerald-200/60">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              v0.1.0 • PWA Ready
+            </span>
           </div>
           <div className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="max-w-md">
               <h3 className="text-[14px] font-bold text-zinc-900 font-['Sora'] mb-1">Check for Updates & Force Reload</h3>
-              <p className="text-[11px] text-zinc-500 font-['Manrope'] leading-relaxed">
-                If you use "Add to Home Screen" on your iPad or iPhone, tap this button to instantly download the latest updates and clear cached data without re-adding the app icon.
+              <p className="text-[12px] text-zinc-500 font-['Manrope'] leading-relaxed">
+                If you use "Add to Home Screen" on iPad or iPhone, tap this button to clear cached assets and immediately download the latest build without deleting and re-adding your home screen icon.
               </p>
             </div>
             <button
               type="button"
               onClick={handleForceReload}
               disabled={reloading}
-              className="flex items-center gap-2 bg-[#0b3860] hover:bg-[#154e83] text-white px-5 py-2.5 rounded-xl text-[14px] font-bold transition shadow-xs cursor-pointer shrink-0 active:scale-95 disabled:opacity-50 font-['Manrope']"
+              className="flex items-center gap-2 bg-[#0b3860] hover:bg-[#051b30] text-white px-5 py-2.5 rounded-xl text-[14px] font-bold transition shadow-xs cursor-pointer shrink-0 active:scale-[0.98] disabled:opacity-50 font-['Manrope']"
             >
-              <RotateCw size={14} className={reloading ? "animate-spin" : ""} />
-              {reloading ? "Updating…" : "Reload App Now"}
+              <RotateCw size={15} className={reloading ? "animate-spin" : ""} />
+              <span>{reloading ? "Updating App…" : "Reload App Now"}</span>
             </button>
           </div>
         </div>
 
         {/* Account Actions Card */}
         <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] border border-zinc-200/70 overflow-hidden animate-fade-up delay-150">
-          <div className="px-6 py-4 border-b border-zinc-100 bg-white">
-            <h2 className="text-[14px] font-bold text-zinc-800 font-['Sora']">Account Actions</h2>
+          <div className="px-6 py-4 border-b border-zinc-100 bg-white flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-700">
+                <ShieldCheck size={16} />
+              </div>
+              <div>
+                <h2 className="text-[14px] font-bold text-zinc-900 font-['Sora']">Account Security & Actions</h2>
+                <p className="text-[11px] text-zinc-400 font-['Manrope']">Session management and destructive controls</p>
+              </div>
+            </div>
           </div>
 
           <div className="divide-y divide-zinc-100">
             {/* Log Out */}
-            <div className="p-6 flex items-center justify-between gap-4">
+            <div className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-[14px] font-bold text-zinc-900 font-['Sora'] mb-0.5">Log Out</h3>
-                <p className="text-[11px] text-zinc-500 font-['Manrope']">Securely sign out of your current session on this device.</p>
+                <p className="text-[12px] text-zinc-500 font-['Manrope']">Securely sign out of your current session on this device.</p>
               </div>
               <button 
                 type="button"
                 onClick={logout}
-                className="flex items-center gap-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-5 py-2.5 rounded-xl text-[14px] font-bold transition shadow-xs cursor-pointer shrink-0 active:scale-95 font-['Manrope']"
+                className="self-start sm:self-auto flex items-center gap-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 px-5 py-2.5 rounded-xl text-[14px] font-bold transition shadow-xs cursor-pointer shrink-0 active:scale-[0.98] font-['Manrope']"
               >
-                <LogOut size={14} /> Log Out
+                <LogOut size={15} /> Log Out
               </button>
             </div>
 
             {/* Delete Account */}
-            <div className="p-6 flex items-center justify-between gap-4">
+            <div className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-[14px] font-bold text-zinc-900 font-['Sora'] mb-0.5">Delete Account</h3>
-                <p className="text-[11px] text-zinc-500 font-['Manrope']">
+                <p className="text-[12px] text-zinc-500 font-['Manrope']">
                   Permanently delete your account, login credentials, and all associated property data.
                 </p>
               </div>
@@ -299,9 +355,9 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
                   setDeletePassword("");
                   setShowDeleteModal(true);
                 }}
-                className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 hover:border-red-300 px-5 py-2.5 rounded-xl text-[14px] font-bold transition shadow-xs cursor-pointer shrink-0 active:scale-95 font-['Manrope']"
+                className="self-start sm:self-auto flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 hover:border-red-300 px-5 py-2.5 rounded-xl text-[14px] font-bold transition shadow-xs cursor-pointer shrink-0 active:scale-[0.98] font-['Manrope']"
               >
-                <Trash2 size={14} /> Delete Account
+                <Trash2 size={15} /> Delete Account
               </button>
             </div>
           </div>
@@ -311,12 +367,12 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-zinc-200 overflow-hidden animate-scale-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-zinc-200/90 overflow-hidden animate-scale-in">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-zinc-100 bg-white px-6 py-4">
               <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-zinc-100 text-zinc-700">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-red-50 text-red-600">
                   <Trash2 size={18} />
                 </div>
                 <div>
@@ -329,7 +385,7 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
                 onClick={() => !deleteLoading && setShowDeleteModal(false)}
                 disabled={deleteLoading}
                 aria-label="Close delete modal"
-                className="grid h-8 w-8 place-items-center rounded-lg text-zinc-400 hover:bg-zinc-200/50 hover:text-zinc-600 transition disabled:opacity-50 cursor-pointer"
+                className="grid h-8 w-8 place-items-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition disabled:opacity-50 cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -337,7 +393,7 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
 
             {/* Modal Body */}
             <form onSubmit={handleDeleteAccount} className="p-6 space-y-4">
-              <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3.5 text-[11px] text-zinc-600 leading-relaxed font-['Manrope']">
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3.5 text-[12px] text-zinc-600 leading-relaxed font-['Manrope']">
                 You are about to permanently delete <strong>{user?.email}</strong>. All account settings, preferences, and session data will be permanently wiped.
               </div>
 
@@ -349,8 +405,8 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
                   onChange={(e) => setDeleteWithData(e.target.checked)}
                   className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-red-600 focus:ring-red-500 cursor-pointer"
                 />
-                <div className="text-[11px] font-['Manrope']">
-                  <span className="font-bold text-zinc-800 block text-[14px]">Delete all owned properties and units</span>
+                <div className="text-[12px] font-['Manrope']">
+                  <span className="font-bold text-zinc-900 block text-[13px]">Delete all owned properties and units</span>
                   <span className="text-zinc-500 font-medium">Also permanently remove all buildings, units, tenant history, and staff records created by this account.</span>
                 </div>
               </label>
@@ -372,13 +428,13 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
                     placeholder="Enter current password"
                     required
                     disabled={deleteLoading}
-                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 pr-10 text-[14px] font-medium outline-none transition focus:border-red-500 focus:bg-white disabled:opacity-60"
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50/70 px-4 py-2.5 pr-10 text-[14px] font-medium text-zinc-900 outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-500/15 focus:bg-white disabled:opacity-60"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? "Hide password" : "Show password"}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 p-1 relative after:absolute after:-inset-1.5 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2270b8] rounded"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -387,7 +443,7 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
               </div>
 
               {deleteError && (
-                <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-[11px] font-semibold text-red-700 animate-in fade-in duration-200 font-['Manrope']">
+                <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-[12px] font-semibold text-red-700 animate-fade-in font-['Manrope']">
                   <AlertTriangle size={15} className="shrink-0 text-red-600" />
                   <span>{deleteError}</span>
                 </div>
@@ -399,7 +455,7 @@ export default function SettingsTab({ user, buildings = [], units = [] }) {
                   type="button"
                   onClick={() => setShowDeleteModal(false)}
                   disabled={deleteLoading}
-                  className="rounded-xl border border-zinc-200 px-4 py-2 text-[14px] font-bold text-zinc-700 hover:bg-zinc-100 transition disabled:opacity-50 cursor-pointer font-['Manrope']"
+                  className="rounded-xl border border-zinc-200 px-4 py-2 text-[14px] font-bold text-zinc-700 hover:bg-zinc-100 transition disabled:opacity-50 cursor-pointer font-['Manrope'] active:scale-[0.98]"
                 >
                   Cancel
                 </button>
