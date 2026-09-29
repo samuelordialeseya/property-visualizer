@@ -132,6 +132,17 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
   const [rentDueDate,   setRentDueDate]   = useState("1");
   const [tenantPhotoUrl, setTenantPhotoUrl] = useState("");
   const [photoFile,     setPhotoFile]     = useState(null);
+  const [photoPreview,  setPhotoPreview]  = useState(null);
+
+  useEffect(() => {
+    if (!photoFile) {
+      setPhotoPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(photoFile);
+    setPhotoPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [photoFile]);
 
 
 
@@ -193,38 +204,49 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
     if (!unit) return;
     setSaving(true);
 
-    let photoUrl = tenantPhotoUrl;
-    if (photoFile) {
-      photoUrl = await uploadFile(`units/${unit.id}/tenant_photo_${Date.now()}`, photoFile);
+    try {
+      let photoUrl = tenantPhotoUrl;
+      if (photoFile) {
+        photoUrl = await uploadFile(`units/${unit.id}/tenant_photo_${Date.now()}`, photoFile);
+      }
+
+      const hadTenant = !!(unit.tenant?.name || tenantName);
+      const archivedTenant = status === "vacant" && hadTenant ? {
+        name: tenantName || unit.tenant?.name || "",
+        contact: contact || unit.tenant?.contact || "",
+        lease_start: leaseStart || unit.tenant?.lease_start || "",
+        lease_end: leaseEnd || unit.tenant?.lease_end || "",
+        notes: notes || unit.tenant?.notes || "",
+        payment_method: paymentMethod || unit.tenant?.payment_method || "",
+        tenant_photo_url: photoUrl || unit.tenant?.tenant_photo_url || "",
+        ended_at: new Date().toISOString(),
+      } : (unit.last_tenant || null);
+
+      await updateUnit(unit.ref || unit, {
+        unit_label: unitLabel.trim() || unit.unit_label || "101",
+        status,
+        monthly_rent: Number(rent) || 0,
+        tenant: status === "vacant" ? null : {
+          name: tenantName, contact,
+          lease_start: leaseStart, lease_end: leaseEnd,
+          notes, payment_method: paymentMethod,
+          rent_due_date: rentDueDate,
+          tenant_photo_url: photoUrl,
+        },
+        last_tenant: archivedTenant,
+      });
+
+      if (photoUrl) {
+        setTenantPhotoUrl(photoUrl);
+      }
+      setPhotoFile(null);
+      setIsEditing(false);
+    } catch (err) {
+      console.error("Failed to save unit details:", err);
+      alert("Failed to save: " + (err.message || "An unexpected error occurred."));
+    } finally {
+      setSaving(false);
     }
-
-    const hadTenant = !!(unit.tenant?.name || tenantName);
-    const archivedTenant = status === "vacant" && hadTenant ? {
-      name: tenantName || unit.tenant?.name || "",
-      contact: contact || unit.tenant?.contact || "",
-      lease_start: leaseStart || unit.tenant?.lease_start || "",
-      lease_end: leaseEnd || unit.tenant?.lease_end || "",
-      notes: notes || unit.tenant?.notes || "",
-      payment_method: paymentMethod || unit.tenant?.payment_method || "",
-      tenant_photo_url: photoUrl || unit.tenant?.tenant_photo_url || "",
-      ended_at: new Date().toISOString(),
-    } : (unit.last_tenant || null);
-
-    await updateUnit(unit.ref, {
-      unit_label: unitLabel.trim() || unit.unit_label || "101",
-      status,
-      monthly_rent: Number(rent) || 0,
-      tenant: status === "vacant" ? null : {
-        name: tenantName, contact,
-        lease_start: leaseStart, lease_end: leaseEnd,
-        notes, payment_method: paymentMethod,
-        rent_due_date: rentDueDate,
-        tenant_photo_url: photoUrl,
-      },
-      last_tenant: archivedTenant,
-    });
-    setSaving(false);
-    setIsEditing(false);
   };
 
 
@@ -235,36 +257,41 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
     if (!unit || unit.status === "vacant") return;
     setSaving(true);
     
-    const newBill = {
-      id: `${billYear}-${billMonth}`,
-      month: billMonth,
-      year: billYear,
-      rent_amount: Number(billRent) || 0,
-      electric_amount: Number(billElectric) || 0,
-      water_amount: Number(billWater) || 0,
-      other_amount: Number(billOther) || 0,
-      notes: billNotes,
-      recorded_at: new Date().toISOString(),
-    };
-    
-    const existingIndex = paymentHistory.findIndex(p => p.id === newBill.id);
-    let updated;
-    if (existingIndex >= 0) {
-      updated = [...paymentHistory];
-      updated[existingIndex] = { ...updated[existingIndex], ...newBill };
-    } else {
-      newBill.is_paid = false;
-      newBill.date_paid = "";
-      newBill.method = "";
-      newBill.screenshot_url = "";
-      updated = [newBill, ...paymentHistory];
+    try {
+      const newBill = {
+        id: `${billYear}-${billMonth}`,
+        month: billMonth,
+        year: billYear,
+        rent_amount: Number(billRent) || 0,
+        electric_amount: Number(billElectric) || 0,
+        water_amount: Number(billWater) || 0,
+        other_amount: Number(billOther) || 0,
+        notes: billNotes,
+        recorded_at: new Date().toISOString(),
+      };
+      
+      const existingIndex = paymentHistory.findIndex(p => p.id === newBill.id);
+      let updated;
+      if (existingIndex >= 0) {
+        updated = [...paymentHistory];
+        updated[existingIndex] = { ...updated[existingIndex], ...newBill };
+      } else {
+        newBill.is_paid = false;
+        newBill.date_paid = "";
+        newBill.method = "";
+        newBill.screenshot_url = "";
+        updated = [newBill, ...paymentHistory];
+      }
+      
+      await updateUnit(unit.ref || unit, { payment_history: updated });
+      setPaymentHistory(updated);
+      setShowBillForm(false);
+    } catch (err) {
+      console.error("Failed to create bill:", err);
+      alert("Failed to create bill: " + (err.message || "An unexpected error occurred."));
+    } finally {
+      setSaving(false);
     }
-    
-    await updateUnit(unit.ref, { payment_history: updated });
-    setPaymentHistory(updated);
-    
-    setShowBillForm(false);
-    setSaving(false);
   };
 
   // ── Record Payment for a Bill ──────────────────────────────────────────
@@ -272,50 +299,61 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
     e.preventDefault();
     setRecordingSave(true);
     
-    let screenshotUrl = "";
-    if (payFile) {
-      const safeName = payFile.name ? payFile.name.replace(/[^a-zA-Z0-9.-]/g, "_") : "receipt";
-      screenshotUrl = await uploadFile(
-        `units/${unit.id}/payments/${payTargetId}_${Date.now()}_${safeName}`,
-        payFile
-      );
-    }
-    
-    const updated = paymentHistory.map(p => {
-      if (p.id === payTargetId) {
-        return {
-          ...p,
-          is_paid: true,
-          date_paid: payDatePaid,
-          method: payMethod,
-          screenshot_url: screenshotUrl || p.screenshot_url,
-        };
+    try {
+      let screenshotUrl = "";
+      if (payFile) {
+        const safeName = payFile.name ? payFile.name.replace(/[^a-zA-Z0-9.-]/g, "_") : "receipt";
+        screenshotUrl = await uploadFile(
+          `units/${unit.id}/payments/${payTargetId}_${Date.now()}_${safeName}`,
+          payFile
+        );
       }
-      return p;
-    });
-    
-    await updateUnit(unit.ref, { payment_history: updated });
-    setPaymentHistory(updated);
-    
-    if (status === "overdue") {
-      await updateUnit(unit.ref, { status: "occupied" });
-      setStatus("occupied");
+      
+      const updated = paymentHistory.map(p => {
+        if (p.id === payTargetId) {
+          return {
+            ...p,
+            is_paid: true,
+            date_paid: payDatePaid,
+            method: payMethod,
+            screenshot_url: screenshotUrl || p.screenshot_url,
+          };
+        }
+        return p;
+      });
+      
+      await updateUnit(unit.ref || unit, { payment_history: updated });
+      setPaymentHistory(updated);
+      
+      if (status === "overdue") {
+        await updateUnit(unit.ref || unit, { status: "occupied" });
+        setStatus("occupied");
+      }
+      
+      setShowPayForm(false);
+      setPayTargetId(null);
+      setPayDatePaid("");
+      setPayFile(null);
+      setPayFilePrev(null);
+    } catch (err) {
+      console.error("Failed to record payment:", err);
+      alert("Failed to record payment: " + (err.message || "An unexpected error occurred."));
+    } finally {
+      setRecordingSave(false);
     }
-    
-    setShowPayForm(false);
-    setPayTargetId(null);
-    setPayDatePaid("");
-    setPayFile(null);
-    setPayFilePrev(null);
-    setRecordingSave(false);
   };
 
   // ── Delete a Statement ──────────────────────────────────────────────────
   const handleDeleteStatement = async (statementId) => {
     if (!confirm("Are you sure you want to delete this statement?")) return;
-    const updated = paymentHistory.filter(p => p.id !== statementId);
-    await updateUnit(unit.ref, { payment_history: updated });
-    setPaymentHistory(updated);
+    try {
+      const updated = paymentHistory.filter(p => p.id !== statementId);
+      await updateUnit(unit.ref || unit, { payment_history: updated });
+      setPaymentHistory(updated);
+    } catch (err) {
+      console.error("Failed to delete statement:", err);
+      alert("Failed to delete statement: " + (err.message || "An unexpected error occurred."));
+    }
   };
 
 
@@ -323,7 +361,7 @@ export default function UnitPanel({ unit, onClose, isDrawerMode, onNavigateToMai
   if (!unit) return null;
 
   const curStatus = STATUS_OPTIONS.find((s) => s.value === status) || STATUS_OPTIONS[0];
-  const displayPhoto = photoFile ? URL.createObjectURL(photoFile) : tenantPhotoUrl;
+  const displayPhoto = photoPreview || tenantPhotoUrl;
 
   const floatingClasses = "absolute top-4 sm:top-8 bottom-4 sm:bottom-8 right-2 sm:right-10 z-[999] w-[calc(100%-1rem)] sm:w-96 rounded-2xl border border-zinc-200/80 shadow-[0_2px_8px_0_rgba(0,0,0,0.12),_0_20px_48px_-8px_rgba(0,0,0,0.20)]";
   const drawerClasses = "fixed top-0 right-0 h-full w-full sm:w-[420px] max-w-full shadow-[0_0_0_1px_rgba(0,0,0,0.06),_0_16px_48px_-4px_rgba(0,0,0,0.18)] z-[999] transition-transform border-l border-zinc-200/80";

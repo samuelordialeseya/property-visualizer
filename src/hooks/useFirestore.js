@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { db, storage, auth } from "@/lib/firebase";
-import { compressImage } from "@/lib/imageUtils";
+import { compressImage, fileToDataUrl } from "@/lib/imageUtils";
 import {
   collection,
   doc,
@@ -18,17 +18,43 @@ import {
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
+export { fileToDataUrl };
+
 export const uploadFile = async (path, file, { compress = true } = {}) => {
   if (!file) return null;
+  if (typeof file === "string") return file;
   const fileToUpload = compress ? await compressImage(file) : file;
-  const storageRef = ref(storage, path);
-  await uploadBytes(storageRef, fileToUpload);
-  return await getDownloadURL(storageRef);
+  try {
+    const storageRef = ref(storage, path);
+    const uploadPromise = (async () => {
+      await uploadBytes(storageRef, fileToUpload);
+      return await getDownloadURL(storageRef);
+    })();
+
+    // 4-second timeout safeguard: if storage bucket doesn't exist or network stalls
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Storage upload timed out")), 4000)
+    );
+
+    return await Promise.race([uploadPromise, timeoutPromise]);
+  } catch (err) {
+    console.warn("Storage upload failed or not provisioned; falling back to embedded data URL:", err);
+    return await fileToDataUrl(fileToUpload, 400);
+  }
 };
 
 // Standalone document mutation helpers (no snapshot listeners attached)
-export const updateUnitDoc = async (unitRef, data) => {
-  await updateDoc(unitRef, data);
+export const updateUnitDoc = async (unitRef, data, buildingId, unitId) => {
+  let targetRef = unitRef?.ref || unitRef;
+  if (!targetRef?.id && typeof unitRef === "object") {
+    const bId = buildingId || unitRef?.buildingId;
+    const uId = unitId || unitRef?.id;
+    if (bId && uId) {
+      targetRef = doc(db, "buildings", bId, "units", uId);
+    }
+  }
+  if (!targetRef) throw new Error("Unit reference could not be determined for update.");
+  await updateDoc(targetRef, data);
 };
 
 export const addUnitDoc = async (buildingId, data) => {

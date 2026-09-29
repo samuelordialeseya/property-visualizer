@@ -76,3 +76,54 @@ export async function compressImage(file, opts = {}) {
   });
 }
 
+/**
+ * Converts any File object into a compact base64 data URL.
+ * Used as an instant fallback when Firebase Storage is not provisioned or offline.
+ */
+export async function fileToDataUrl(file, maxDimension = 400, quality = 0.75) {
+  if (!file || typeof window === "undefined") return null;
+  return new Promise((resolve) => {
+    try {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            let width = img.width;
+            let height = img.height;
+            if (width > height) {
+              if (width > maxDimension) {
+                height = Math.round((height * maxDimension) / width);
+                width = maxDimension;
+              }
+            } else {
+              if (height > maxDimension) {
+                width = Math.round((width * maxDimension) / height);
+                height = maxDimension;
+              }
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) {
+              resolve(event.target.result);
+              return;
+            }
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL("image/jpeg", quality);
+            resolve(dataUrl);
+          } catch {
+            resolve(event.target.result);
+          }
+        };
+        img.onerror = () => resolve(event.target?.result || null);
+        img.src = event.target?.result;
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    } catch {
+      resolve(null);
+    }
+  });
+}
