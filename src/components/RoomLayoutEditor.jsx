@@ -173,7 +173,7 @@ function EditableRoom({ room, isSelected, rooms, startMoveDrag, startWallDrag, s
             emissive={isSelected ? "#32b883" : "#000"}
             emissiveIntensity={isSelected ? 0.2 : 0}
           />
-          <Edges scale={1.002} threshold={15} color={isSelected ? "#32b883" : "#243242"} />
+          {isSelected && <Edges scale={1.002} threshold={15} color="#32b883" />}
         </mesh>
         {/* Door orientation marker */}
         <mesh position={[0, -bh / 2 + 0.5, bd / 2 + 0.03]}>
@@ -194,12 +194,12 @@ function EditableRoom({ room, isSelected, rooms, startMoveDrag, startWallDrag, s
           <mesh position={[0, 0.055, 0]} castShadow receiveShadow>
             <boxGeometry args={[room.width + 0.2, 0.11, room.depth + 0.2]} />
             <meshStandardMaterial color="#3d4e5e" roughness={0.6} />
-            <Edges scale={1.001} threshold={20} color={isSelected ? "#32b883" : "#283747"} />
+            {isSelected && <Edges scale={1.001} threshold={20} color="#32b883" />}
           </mesh>
           <mesh position={[0, 0.11 + 0.5, 0]} castShadow receiveShadow rotation={[0, Math.PI / 4, 0]} scale={[(room.width + 0.2) / Math.SQRT2, 1, (room.depth + 0.2) / Math.SQRT2]}>
             <coneGeometry args={[1, 1, 4]} />
             <meshStandardMaterial color="#3d4e5e" roughness={0.6} />
-            <Edges scale={1.001} threshold={20} color={isSelected ? "#32b883" : "#283747"} />
+            {isSelected && <Edges scale={1.001} threshold={20} color="#32b883" />}
           </mesh>
         </group>
       ) : (
@@ -207,12 +207,11 @@ function EditableRoom({ room, isSelected, rooms, startMoveDrag, startWallDrag, s
           <mesh castShadow receiveShadow>
             <boxGeometry args={[room.width + 0.2, 0.11, room.depth + 0.2]} />
             <meshStandardMaterial color="#3d4e5e" roughness={0.6} />
-            <Edges scale={1.001} threshold={20} color={isSelected ? "#32b883" : "#2c3b4a"} />
+            {isSelected && <Edges scale={1.001} threshold={20} color="#32b883" />}
           </mesh>
           <mesh position={[0, 0.06, 0]}>
             <boxGeometry args={[room.width + 0.04, 0.02, room.depth + 0.04]} />
             <meshStandardMaterial color="#2d3c4a" roughness={0.5} />
-            <Edges scale={1.001} threshold={20} color="#3a4c5c" />
           </mesh>
         </group>
       )}

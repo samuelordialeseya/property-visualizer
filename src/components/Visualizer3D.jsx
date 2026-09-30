@@ -28,6 +28,28 @@ function checkWebGLSupport() {
   }
 }
 
+// ─── Hardware performance profiling for mobile devices / iPad Air 2 standard ─
+function checkDevicePerformance() {
+  if (typeof window === "undefined") {
+    return { isLowPower: false, dpr: 1.25, antialias: true, precision: "highp" };
+  }
+  const isTouch = "ontouchstart" in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+  const isApple = /iPad|iPhone|iPod|Macintosh/i.test(navigator.userAgent);
+  const cores = navigator.hardwareConcurrency || 4;
+  const memory = navigator.deviceMemory || 4;
+
+  // iPad Air 2: 3 cores, A8X GPU, 2GB RAM.
+  // Any touch device with <= 4 cores, or <= 3GB memory, or iPad with <= 6 cores is classified low-power:
+  const isLowPower = isTouch && (cores <= 4 || memory <= 3 || (isApple && cores <= 6));
+
+  return {
+    isLowPower,
+    dpr: isLowPower ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.35),
+    antialias: !isLowPower,
+    precision: isLowPower ? "mediump" : "highp",
+  };
+}
+
 // ─── Colours (matching building-mockup.html palette) ────────────────────────
 const STATUS_COLOR = {
   occupied: 0xd98a53,
@@ -84,8 +106,10 @@ function CameraController({ selectedUnit, isEditMode, cameraPreset }) {
       const y = floorOffset + h / 2;
       const panOffset = isDesktop ? -1.0 : 0;
       targetPos.set((selectedUnit.x || 0) + panOffset, y, selectedUnit.z || 0);
-      controls.target.lerp(targetPos, 4 * safeDelta);
-      controls.update();
+      if (controls.target.distanceToSquared(targetPos) > 0.0001) {
+        controls.target.lerp(targetPos, 4 * safeDelta);
+        controls.update();
+      }
     }
   });
 
@@ -94,7 +118,19 @@ function CameraController({ selectedUnit, isEditMode, cameraPreset }) {
 // Status colour as CSS hex for Html pins
 const STATUS_CSS = { occupied: '#d98a53', overdue: '#e05c5c', vacant: '#6e8592' };
 
-function UnitBox({ unit, isSelected, onClick, activeFloor, searchQuery, hoveredUnitId, onHover, isEditMode, hasActiveTicket }) {
+function UnitBox({ 
+  unit, 
+  isSelected, 
+  onClick, 
+  activeFloor, 
+  searchQuery, 
+  hoveredUnitId, 
+  onHover, 
+  isEditMode, 
+  hasActiveTicket,
+  isOrbiting,
+  isLowPower
+}) {
   const x = unit.x || 0;
   const floorOffset = ((unit.floor || 1) - 1) * (UNIT_H + 0.11);
   const h = unit.height || 2.2;
@@ -142,8 +178,8 @@ function UnitBox({ unit, isSelected, onClick, activeFloor, searchQuery, hoveredU
     <group position={[x, y, z]} rotation={[0, rad, 0]}>
       {/* Main body */}
       <mesh
-        castShadow
-        receiveShadow
+        castShadow={!isLowPower}
+        receiveShadow={!isLowPower}
         onClick={(e) => { e.stopPropagation(); onClick(unit); }}
         onPointerOver={(e) => { if (!isEditMode && e.pointerType === 'mouse') { e.stopPropagation(); onHover(unit.id); } }}
         onPointerOut={(e) => { if (!isEditMode && e.pointerType === 'mouse') { e.stopPropagation(); onHover(null); } }}
@@ -154,17 +190,18 @@ function UnitBox({ unit, isSelected, onClick, activeFloor, searchQuery, hoveredU
           ref={matRef}
           color={baseColor}
           roughness={0.55}
-          emissive={isSelected ? new THREE.Color(0x2270b8) : new THREE.Color(0x000000)}
+          emissive={isSelected ? "#2270b8" : "#000000"}
           emissiveIntensity={isSelected ? 0.2 : 0}
           transparent={isGhosted || isDimmed}
           opacity={isGhosted ? 0.12 : isDimmed ? 0.18 : 1}
         />
-        {/* Outlines: vibrant blue when selected, sleek slate when unselected */}
-        <Edges scale={1.001} threshold={20} color={isSelected ? "#38bdf8" : "#243242"} />
+        {/* Outlines: vibrant blue when selected */}
+        {isSelected && <Edges scale={1.001} threshold={20} color="#38bdf8" />}
+        {!isLowPower && !isSelected && <Edges scale={1.001} threshold={20} color="#243242" />}
       </mesh>
 
       {/* Status strip at base */}
-      <mesh position={[0, -h / 2 + 0.07, 0]} castShadow>
+      <mesh position={[0, -h / 2 + 0.07, 0]} castShadow={!isLowPower}>
         <boxGeometry args={[localW - 0.02, 0.14, localD - 0.02]} />
         <meshStandardMaterial
           color={statusHex} roughness={0.6}
@@ -179,7 +216,7 @@ function UnitBox({ unit, isSelected, onClick, activeFloor, searchQuery, hoveredU
           <planeGeometry args={[0.5, 0.6]} />
           <meshStandardMaterial
             color={WINDOW_COLOR}
-            emissive={new THREE.Color(WINDOW_COLOR)}
+            emissive={WINDOW_COLOR}
             emissiveIntensity={unit.status === 'vacant' ? 0.02 : 0.35}
             roughness={0.4}
             side={THREE.DoubleSide}
@@ -194,7 +231,7 @@ function UnitBox({ unit, isSelected, onClick, activeFloor, searchQuery, hoveredU
           <planeGeometry args={[0.5, 0.6]} />
           <meshStandardMaterial
             color={WINDOW_COLOR}
-            emissive={new THREE.Color(WINDOW_COLOR)}
+            emissive={WINDOW_COLOR}
             emissiveIntensity={unit.status === 'vacant' ? 0.02 : 0.35}
             roughness={0.4}
             side={THREE.DoubleSide}
@@ -214,8 +251,8 @@ function UnitBox({ unit, isSelected, onClick, activeFloor, searchQuery, hoveredU
         </mesh>
       )}
 
-      {/* ── Facade-mounted pin (replaces old roof Text label) */}
-      {!isGhosted && !isHovered && (
+      {/* ── Facade-mounted pin (omitted during active orbit on low-power devices for 60fps) */}
+      {!isGhosted && !isHovered && !isDimmed && !(isOrbiting && isLowPower) && (
         <Html
           position={[0, h / 2 + 0.22, bd / 2 + 0.12]}
           center
@@ -230,8 +267,8 @@ function UnitBox({ unit, isSelected, onClick, activeFloor, searchQuery, hoveredU
             borderRadius: '999px', padding: '2px 8px 2px 6px',
             fontSize: '11px', fontWeight: 700,
             fontFamily: 'Manrope, sans-serif', color: '#f4f4f5',
-            whiteSpace: 'nowrap', opacity: isDimmed ? 0.2 : 1,
-            boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
+            whiteSpace: 'nowrap',
+            willChange: 'transform',
           }}>
             <span style={{ height: 6, width: 6, borderRadius: '50%', background: statusCss, flexShrink: 0, display: 'inline-block' }} />
             {unit.unit_label || '?'}
@@ -247,6 +284,7 @@ function UnitBox({ unit, isSelected, onClick, activeFloor, searchQuery, hoveredU
             border: '1px solid #d4d4d8',
             borderRadius: 16, padding: '10px 12px', boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
             fontFamily: 'Manrope, sans-serif', color: '#18181b',
+            willChange: 'transform',
           }}>
             {/* Top row */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -285,13 +323,14 @@ function UnitBox({ unit, isSelected, onClick, activeFloor, searchQuery, hoveredU
       )}
 
       {/* ── Maintenance Wrench Icon ── */}
-      {!isGhosted && hasActiveTicket && !isHovered && (
+      {!isGhosted && hasActiveTicket && !isHovered && !(isOrbiting && isLowPower) && (
         <Html center position={[0, h / 2 + 0.45, bd / 2 + 0.12]} zIndexRange={[12, 1]} style={{ pointerEvents: 'none' }} occlude={false}>
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: '#f59e0b', color: '#fff', borderRadius: '50%',
-            width: 20, height: 20, boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)',
-            opacity: isDimmed ? 0.3 : 1
+            width: 20, height: 20,
+            opacity: isDimmed ? 0.3 : 1,
+            willChange: 'transform',
           }}>
             <Wrench size={10} strokeWidth={3} />
           </div>
@@ -300,35 +339,36 @@ function UnitBox({ unit, isSelected, onClick, activeFloor, searchQuery, hoveredU
 
       {unit.roof_type === 'triangle' ? (
         <group position={[0, h / 2, 0]}>
-          <mesh position={[0, 0.055, 0]} castShadow receiveShadow>
+          <mesh position={[0, 0.055, 0]} castShadow={!isLowPower} receiveShadow={!isLowPower}>
             <boxGeometry args={[localW + 0.2, 0.11, localD + 0.2]} />
             <meshStandardMaterial color={ROOF_COLOR} roughness={0.6}
               transparent={isGhosted || isDimmed} opacity={isGhosted ? 0.12 : isDimmed ? 0.18 : 1}
             />
-            <Edges scale={1.001} threshold={20} color={isSelected ? "#38bdf8" : "#283747"} />
+            {isSelected && <Edges scale={1.001} threshold={20} color="#38bdf8" />}
+            {!isLowPower && !isSelected && <Edges scale={1.001} threshold={20} color="#283747" />}
           </mesh>
-          <mesh position={[0, 0.11 + 0.5, 0]} castShadow receiveShadow rotation={[0, Math.PI / 4, 0]} scale={[(localW + 0.2) / Math.SQRT2, 1, (localD + 0.2) / Math.SQRT2]}>
+          <mesh position={[0, 0.11 + 0.5, 0]} castShadow={!isLowPower} receiveShadow={!isLowPower} rotation={[0, Math.PI / 4, 0]} scale={[(localW + 0.2) / Math.SQRT2, 1, (localD + 0.2) / Math.SQRT2]}>
             <coneGeometry args={[1, 1, 4]} />
             <meshStandardMaterial color={ROOF_COLOR} roughness={0.6}
               transparent={isGhosted || isDimmed} opacity={isGhosted ? 0.12 : isDimmed ? 0.18 : 1}
             />
-            <Edges scale={1.001} threshold={20} color={isSelected ? "#38bdf8" : "#283747"} />
+            {isSelected && <Edges scale={1.001} threshold={20} color="#38bdf8" />}
           </mesh>
         </group>
       ) : (
         <group position={[0, h / 2 + 0.055, 0]}>
-          <mesh castShadow receiveShadow>
+          <mesh castShadow={!isLowPower} receiveShadow={!isLowPower}>
             <boxGeometry args={[localW + 0.2, 0.11, localD + 0.2]} />
             <meshStandardMaterial color={ROOF_COLOR} roughness={0.6}
               transparent={isGhosted || isDimmed} opacity={isGhosted ? 0.12 : isDimmed ? 0.18 : 1}
             />
-            <Edges scale={1.001} threshold={20} color={isSelected ? "#38bdf8" : "#2c3b4a"} />
+            {isSelected && <Edges scale={1.001} threshold={20} color="#38bdf8" />}
+            {!isLowPower && !isSelected && <Edges scale={1.001} threshold={20} color="#2c3b4a" />}
           </mesh>
           {/* Architectural roof cap trim for high visibility in top-down view */}
           <mesh position={[0, 0.06, 0]}>
             <boxGeometry args={[localW + 0.04, 0.02, localD + 0.04]} />
             <meshStandardMaterial color="#2d3c4a" roughness={0.5} />
-            <Edges scale={1.001} threshold={20} color="#3a4c5c" />
           </mesh>
         </group>
       )}
@@ -336,7 +376,18 @@ function UnitBox({ unit, isSelected, onClick, activeFloor, searchQuery, hoveredU
   );
 }
 
-function Building({ units, tickets = [], selectedUnitId, onSelectUnit, activeFloor, searchQuery, hoveredUnitId, onHover }) {
+function Building({ 
+  units, 
+  tickets = [], 
+  selectedUnitId, 
+  onSelectUnit, 
+  activeFloor, 
+  searchQuery, 
+  hoveredUnitId, 
+  onHover,
+  isOrbiting,
+  isLowPower
+}) {
   // Foundation footprint for Floor 1 units
   const baseUnits = useMemo(() => units.filter(u => (u.floor || 1) === 1), [units]);
   const foundation = useMemo(() => {
@@ -364,10 +415,10 @@ function Building({ units, tickets = [], selectedUnitId, onSelectUnit, activeFlo
       {/* Foundation plinth */}
       {foundation && (
         <group position={[foundation.cx, 0.035, foundation.cz]}>
-          <mesh receiveShadow position={[0, 0, 0]}>
+          <mesh receiveShadow={!isLowPower} position={[0, 0, 0]}>
             <boxGeometry args={[foundation.fw, 0.07, foundation.fd]} />
             <meshStandardMaterial color={SLAB_COLOR} roughness={0.8} />
-            <Edges scale={1.001} threshold={20} color="#2b3947" />
+            {!isLowPower && <Edges scale={1.001} threshold={20} color="#2b3947" />}
           </mesh>
         </group>
       )}
@@ -386,6 +437,8 @@ function Building({ units, tickets = [], selectedUnitId, onSelectUnit, activeFlo
             onHover={onHover}
             isEditMode={false}
             hasActiveTicket={hasActiveTicket}
+            isOrbiting={isOrbiting}
+            isLowPower={isLowPower}
           />
         );
       })}
@@ -411,7 +464,6 @@ function Ground({ onGroundClick }) {
     <group>
       <mesh 
         rotation={[-Math.PI / 2, 0, 0]} 
-        receiveShadow 
         position={[0, -0.01, 0]}
         onClick={(e) => {
           e.stopPropagation();
@@ -419,7 +471,7 @@ function Ground({ onGroundClick }) {
         }}
       >
         <planeGeometry args={[60, 60]} />
-        <meshStandardMaterial color={GROUND_COLOR} roughness={0.85} />
+        <meshBasicMaterial color={GROUND_COLOR} />
       </mesh>
       {/* Crisp architectural grid floor */}
       <gridHelper args={[60, 30, 0x38bdf8, 0x223244]} position={[0, 0.005, 0]} />
@@ -639,6 +691,8 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
   const [selectedEditorRoomId, setSelectedEditorRoomId] = useState(null);
   const [deletedRoomIds, setDeletedRoomIds] = useState([]);
   const [cameraPreset, setCameraPreset] = useState("isometric");
+  const [isOrbiting, setIsOrbiting] = useState(false);
+  const perfProfile = useMemo(() => checkDevicePerformance(), []);
 
   // ── Feature state: search, floor isolator, hover
   const [searchQuery, setSearchQuery] = useState("");
@@ -1455,13 +1509,17 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
             <WebGLErrorBoundary onSwitchTo2D={() => setViewMode("2d")}>
               <Canvas
                 shadows={false}
-                dpr={[1, typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 1.5) : 1]}
+                dpr={perfProfile.dpr}
+                performance={{ min: 0.5 }}
                 camera={{ position: [9, 7.5, 11], fov: 38 }}
                 gl={{
-                  antialias: true,
-                  powerPreference: "default",
+                  antialias: perfProfile.antialias,
+                  powerPreference: "high-performance",
                   preserveDrawingBuffer: false,
                   failIfMajorPerformanceCaveat: false,
+                  precision: perfProfile.precision,
+                  depth: true,
+                  stencil: false,
                 }}
                 onCreated={({ gl }) => {
                   gl.setClearColor(0x0b0f13, 1);
@@ -1474,16 +1532,17 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                 {/* Soft horizon fog at 45m-110m distance */}
                 <fog attach="fog" args={[0x0b0f13, 45, 110]} />
 
-                {/* Rich lighting system for architectural visibility */}
-                <ambientLight intensity={1.1} color="#f0f6fc" />
-                <hemisphereLight args={["#ffffff", "#243444", 0.85]} />
+                {/* Lighting system tuned for architectural fidelity and GPU efficiency */}
+                <ambientLight intensity={perfProfile.isLowPower ? 1.25 : 1.1} color="#f0f6fc" />
+                <hemisphereLight args={["#ffffff", "#243444", perfProfile.isLowPower ? 0.6 : 0.85]} />
                 <directionalLight
                   position={[12, 18, 10]}
                   intensity={1.5}
                   color="#fffaf5"
                 />
-                {/* Soft rim light / fill */}
-                <directionalLight position={[-10, 12, -8]} intensity={0.8} color="#8ec5fc" />
+                {!perfProfile.isLowPower && (
+                  <directionalLight position={[-10, 12, -8]} intensity={0.8} color="#8ec5fc" />
+                )}
 
                 <Ground onGroundClick={() => {
                   if (!editMode && onSelectUnit) onSelectUnit(null);
@@ -1505,6 +1564,8 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                     searchQuery={searchQuery}
                     hoveredUnitId={hoveredUnitId}
                     onHover={setHoveredUnitId}
+                    isOrbiting={isOrbiting}
+                    isLowPower={perfProfile.isLowPower}
                   />
                 ) : (
                   <RoomLayoutEditor 
@@ -1529,8 +1590,12 @@ export default function Visualizer3D({ building, units, selectedUnitId, onSelect
                   minDistance={3}
                   maxDistance={40}
                   enableDamping
-                  dampingFactor={0.08}
+                  dampingFactor={perfProfile.isLowPower ? 0.12 : 0.09}
+                  rotateSpeed={perfProfile.isLowPower ? 0.85 : 1.0}
+                  touches={{ ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }}
                   screenSpacePanning={false}
+                  onStart={() => setIsOrbiting(true)}
+                  onEnd={() => setIsOrbiting(false)}
                 />
               </Canvas>
             </WebGLErrorBoundary>

@@ -112,6 +112,7 @@ export default function Blueprint2DView({
           transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
           transformOrigin: "center center",
           transition: isPanning ? "none" : "transform 140ms ease-out",
+          willChange: "transform",
         }}
       >
         <svg
