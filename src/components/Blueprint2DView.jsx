@@ -159,7 +159,7 @@ export default function Blueprint2DView({
 
             const isSelected = selectedUnitId === unit.id;
             const isHovered = hoveredUnitId === unit.id;
-            const hasTicket = tickets.some((t) => t.unitId === unit.id && t.status !== "settled");
+            const hasTicket = tickets.some((t) => (t.unit_id === unit.id || t.unitId === unit.id) && t.status !== "settled");
 
             const isDimmed = q.length > 0 && !(
               (unit.unit_label || "").toLowerCase().includes(q) ||

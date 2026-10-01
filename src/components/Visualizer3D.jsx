@@ -424,7 +424,7 @@ function Building({
       )}
 
       {units.map((unit) => {
-        const hasActiveTicket = tickets.some(t => t.unitId === unit.id && t.status !== "settled");
+        const hasActiveTicket = tickets.some(t => (t.unit_id === unit.id || t.unitId === unit.id) && t.status !== "settled");
         return (
           <UnitBox
             key={unit.id}
